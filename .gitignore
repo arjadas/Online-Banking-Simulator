@@ -9,6 +9,7 @@
 dev.db*
 dist
 dist-babel
+.history
 node_modules
 yarn-error.log
 web/public/mockServiceWorker.js
@@ -22,3 +23,5 @@ api/src/lib/generateGraphiQLHeader.*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+postgres

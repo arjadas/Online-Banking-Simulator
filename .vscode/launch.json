@@ -25,7 +25,7 @@
       "name": "Launch Web debugger",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:8910",
+      "url": "http://localhost:2987",
       "webRoot": "${workspaceRoot}/web/src",
       "preLaunchTask": "WaitForDevServer",
     },

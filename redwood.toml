@@ -7,7 +7,7 @@
 
 [web]
   title = "Redwood App"
-  port = 8910
+  port = 2987
   apiUrl = "/.redwood/functions" # You can customize graphql and dbauth urls individually too: see https://redwoodjs.com/docs/app-configuration-redwood-toml#api-paths
   includeEnvironmentVariables = [
     # Add any ENV vars that should be available to the web side to this array
@@ -16,6 +16,9 @@
 [api]
   port = 8911
 [browser]
-  open = true
+  open = false
 [notifications]
   versionUpdates = ["latest"]
+
+[experimental.dockerfile]
+	enabled = true

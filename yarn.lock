@@ -4365,6 +4365,155 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@libsql/client@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@libsql/client@npm:0.10.0"
+  dependencies:
+    "@libsql/core": "npm:^0.10.0"
+    "@libsql/hrana-client": "npm:^0.6.2"
+    js-base64: "npm:^3.7.5"
+    libsql: "npm:^0.4.1"
+    promise-limit: "npm:^2.7.0"
+  checksum: 10c0/1e118266f671c6d511634b1bca77486dc37a4a28ab122a2049f3fdf6a9a072a03f8a82c307e8ab4e403b755d3699bf908d5887aca2d531a930fdeb0246fa2858
+  languageName: node
+  linkType: hard
+
+"@libsql/core@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@libsql/core@npm:0.10.0"
+  dependencies:
+    js-base64: "npm:^3.7.5"
+  checksum: 10c0/37a08ed75a25bd15303e23069eb881782d3d791d9c39e6a734862782e5d1beac406c462786e1ba4244e9a17f757cab813cb44c392d03d1e80c4ce56926b60c73
+  languageName: node
+  linkType: hard
+
+"@libsql/darwin-arm64@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/darwin-arm64@npm:0.3.19"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@libsql/darwin-arm64@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/darwin-arm64@npm:0.4.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@libsql/darwin-x64@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/darwin-x64@npm:0.3.19"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/darwin-x64@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/darwin-x64@npm:0.4.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/hrana-client@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@libsql/hrana-client@npm:0.6.2"
+  dependencies:
+    "@libsql/isomorphic-fetch": "npm:^0.2.1"
+    "@libsql/isomorphic-ws": "npm:^0.1.5"
+    js-base64: "npm:^3.7.5"
+    node-fetch: "npm:^3.3.2"
+  checksum: 10c0/4cfbea1df1c8fd89df1b0f43442d8c502815e7d80fcf9b192d9096768cb3cf02cacb37f86897a3f3c2bb9f43b4d53e14b193a33d834e47ffcd16a4672314921e
+  languageName: node
+  linkType: hard
+
+"@libsql/isomorphic-fetch@npm:^0.2.1":
+  version: 0.2.5
+  resolution: "@libsql/isomorphic-fetch@npm:0.2.5"
+  checksum: 10c0/6bd32b47aa9ce8dc658eb563e61ff3994b6ca6d0c299237cb0fe215d9fa7724af65844b8813715553aba2c03f08635a2b3a2a4c170e2d3ed9919ba0fb2d642d7
+  languageName: node
+  linkType: hard
+
+"@libsql/isomorphic-ws@npm:^0.1.5":
+  version: 0.1.5
+  resolution: "@libsql/isomorphic-ws@npm:0.1.5"
+  dependencies:
+    "@types/ws": "npm:^8.5.4"
+    ws: "npm:^8.13.0"
+  checksum: 10c0/7028bbc50dd094cdcbe56714dbf52fb646812d1b042c1973e61293f4a1cb5b81d5af670530a2463a2ba485f84f7728daf3eb75d40a7f55316ee4f7015dcc99ae
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-arm64-gnu@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/linux-arm64-gnu@npm:0.3.19"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-arm64-gnu@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/linux-arm64-gnu@npm:0.4.1"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-arm64-musl@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/linux-arm64-musl@npm:0.3.19"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-arm64-musl@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/linux-arm64-musl@npm:0.4.1"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-x64-gnu@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/linux-x64-gnu@npm:0.3.19"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-x64-gnu@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/linux-x64-gnu@npm:0.4.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-x64-musl@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/linux-x64-musl@npm:0.3.19"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/linux-x64-musl@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/linux-x64-musl@npm:0.4.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/win32-x64-msvc@npm:0.3.19":
+  version: 0.3.19
+  resolution: "@libsql/win32-x64-msvc@npm:0.3.19"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@libsql/win32-x64-msvc@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@libsql/win32-x64-msvc@npm:0.4.1"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@lukeed/ms@npm:^2.0.1":
   version: 2.0.2
   resolution: "@lukeed/ms@npm:2.0.2"
@@ -4404,6 +4553,13 @@ __metadata:
     strict-event-emitter: "npm:^0.2.4"
     web-encoding: "npm:^1.1.5"
   checksum: 10c0/0343a93711b60c321c40733d6bf2720a736d8e0730f5d0d9916ee4a24abfcfca4a83d1e4b2e21c3affef4fc61f04588104be002fbc8258dc4b0d202c384ade33
+  languageName: node
+  linkType: hard
+
+"@neon-rs/load@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "@neon-rs/load@npm:0.0.4"
+  checksum: 10c0/546fa4e48aa9cdb402f0a3524b591b1cac863bcfdd0217432323dba42ad37ece24b736019e6196e34326201db6b6deb410d7a983ac3c54f322619c9b6bd568bb
   languageName: node
   linkType: hard
 
@@ -4878,6 +5034,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/adapter-libsql@npm:^5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/adapter-libsql@npm:5.19.1"
+  dependencies:
+    "@prisma/driver-adapter-utils": "npm:5.19.1"
+    async-mutex: "npm:0.5.0"
+  peerDependencies:
+    "@libsql/client": ^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0
+  checksum: 10c0/295081e46a2bb45165daf180dc138042b360dc21d5be6d3aa34228251994c2df7546104e79ac553eb19111c6f7bb85aca352686babc4d48727ce4cef385650ed
+  languageName: node
+  linkType: hard
+
 "@prisma/client@npm:5.14.0":
   version: 5.14.0
   resolution: "@prisma/client@npm:5.14.0"
@@ -4890,6 +5058,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/client@npm:^5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/client@npm:5.19.1"
+  peerDependencies:
+    prisma: "*"
+  peerDependenciesMeta:
+    prisma:
+      optional: true
+  checksum: 10c0/3fd0c77c831cf592155539d0d369849d5c4f6bbe483b7e5ed476aad29434491a0d5a63ebcda86852484b808fa94bdd614c7715fb2084c0696fdcedd21d3671fb
+  languageName: node
+  linkType: hard
+
 "@prisma/debug@npm:5.14.0":
   version: 5.14.0
   resolution: "@prisma/debug@npm:5.14.0"
@@ -4897,10 +5077,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/debug@npm:5.19.1"
+  checksum: 10c0/4b88719b9a0dd76692bec766fd8188b685a81f0459f3df8fb44b4c492b483a6aadaf7021f7aca90afa5a2f27d84d737a3f2d5abed5f9f818a640487f49d1b8c4
+  languageName: node
+  linkType: hard
+
+"@prisma/driver-adapter-utils@npm:5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/driver-adapter-utils@npm:5.19.1"
+  dependencies:
+    "@prisma/debug": "npm:5.19.1"
+  checksum: 10c0/cb1ea7ab282139cea77e6b49e11062cba099707bdbed153d1ffc7aacdc237e9deb6c21ad7a5756d96c40bd409c00b0e2a3c6cf46888e2432c48f6e4e81c11bd4
+  languageName: node
+  linkType: hard
+
 "@prisma/engines-version@npm:5.14.0-25.e9771e62de70f79a5e1c604a2d7c8e2a0a874b48":
   version: 5.14.0-25.e9771e62de70f79a5e1c604a2d7c8e2a0a874b48
   resolution: "@prisma/engines-version@npm:5.14.0-25.e9771e62de70f79a5e1c604a2d7c8e2a0a874b48"
   checksum: 10c0/4700c69171b9a51e628496665c44810304bf3de210ad16443b3c5faddd82d92b26f50e0b559035b6f3bc2a4a064a19778808268301e500760f171d8aa4067ae6
+  languageName: node
+  linkType: hard
+
+"@prisma/engines-version@npm:5.19.1-2.69d742ee20b815d88e17e54db4a2a7a3b30324e3":
+  version: 5.19.1-2.69d742ee20b815d88e17e54db4a2a7a3b30324e3
+  resolution: "@prisma/engines-version@npm:5.19.1-2.69d742ee20b815d88e17e54db4a2a7a3b30324e3"
+  checksum: 10c0/9bf4ad5b199054fe56a96ddbda1b835e7f103d690d2b7d04c159f29399261356516ec8881e8caf637bd4523395ccc4ce450013a0c9a8a3ffa16d2fc15b93bfa8
   languageName: node
   linkType: hard
 
@@ -4916,6 +5119,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/engines@npm:5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/engines@npm:5.19.1"
+  dependencies:
+    "@prisma/debug": "npm:5.19.1"
+    "@prisma/engines-version": "npm:5.19.1-2.69d742ee20b815d88e17e54db4a2a7a3b30324e3"
+    "@prisma/fetch-engine": "npm:5.19.1"
+    "@prisma/get-platform": "npm:5.19.1"
+  checksum: 10c0/d12893935d842fea1c5344e3ab0f769b01ec1c71a91bec3ac9ceb58838fe7f745d226d5b8b9ac386ad503c56773272586bb73188d592ec8d4e05f43285009155
+  languageName: node
+  linkType: hard
+
 "@prisma/fetch-engine@npm:5.14.0":
   version: 5.14.0
   resolution: "@prisma/fetch-engine@npm:5.14.0"
@@ -4924,6 +5139,17 @@ __metadata:
     "@prisma/engines-version": "npm:5.14.0-25.e9771e62de70f79a5e1c604a2d7c8e2a0a874b48"
     "@prisma/get-platform": "npm:5.14.0"
   checksum: 10c0/732b9c19ffe6ea4ed19e67fbcae0dff2f624595c725aa6d1deeadb0ac3054be0808af6a480b2e6620b3b20f6429661cb31e3feb195e78969792d2924d45e01df
+  languageName: node
+  linkType: hard
+
+"@prisma/fetch-engine@npm:5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/fetch-engine@npm:5.19.1"
+  dependencies:
+    "@prisma/debug": "npm:5.19.1"
+    "@prisma/engines-version": "npm:5.19.1-2.69d742ee20b815d88e17e54db4a2a7a3b30324e3"
+    "@prisma/get-platform": "npm:5.19.1"
+  checksum: 10c0/670d3f604549c4778d32febe56d948896b5c16dad5b51814c5b168a6007c9782d453cebee43cb81ddd58c9e9538811ea1a793516420ecf2c84ae4c3b4ed34f6c
   languageName: node
   linkType: hard
 
@@ -4942,6 +5168,15 @@ __metadata:
   dependencies:
     "@prisma/debug": "npm:5.14.0"
   checksum: 10c0/2763157532cb4a0e2aac030509a7289900d349b19c35403a4c1a97dcef2a932737edcaa013756a26fb222597519d356ede50f48832122e99cf8fe4e530cbfca1
+  languageName: node
+  linkType: hard
+
+"@prisma/get-platform@npm:5.19.1":
+  version: 5.19.1
+  resolution: "@prisma/get-platform@npm:5.19.1"
+  dependencies:
+    "@prisma/debug": "npm:5.19.1"
+  checksum: 10c0/a53b5c894cf4074af6164d9c503e387aba92c518ad7bad82be40f834a0030270c60f6149b20951c3e1db32bd836f582053e63c4bf7099461f0160dd5956f063e
   languageName: node
   linkType: hard
 
@@ -5160,6 +5395,25 @@ __metadata:
     graphql: "npm:16.8.1"
     typescript: "npm:5.4.5"
   checksum: 10c0/df5877d219f3b94b4566e592a4a70e9dd09f6b5fdc0b5acb873d508c24c778b07f09f921df017fcc7cc42951338111b8252002d96fec9b73faba98bb86e1785c
+  languageName: node
+  linkType: hard
+
+"@redwoodjs/cli-data-migrate@npm:7.7.4":
+  version: 7.7.4
+  resolution: "@redwoodjs/cli-data-migrate@npm:7.7.4"
+  dependencies:
+    "@redwoodjs/babel-config": "npm:7.7.4"
+    "@redwoodjs/project-config": "npm:7.7.4"
+    chalk: "npm:4.1.2"
+    dotenv-defaults: "npm:5.0.2"
+    execa: "npm:5.1.1"
+    fs-extra: "npm:11.2.0"
+    listr2: "npm:6.6.1"
+    terminal-link: "npm:2.1.1"
+    yargs: "npm:17.7.2"
+  bin:
+    up: dist/bin.js
+  checksum: 10c0/c275e4cfda515520d585d497cfa5253e535fd0e6f891e36119522eff7210a7f3a8cdec6d4e0590a445e975b7d362c92de9b2b75403b254152b55a3bb9d78b07a
   languageName: node
   linkType: hard
 
@@ -6258,12 +6512,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 22.2.0
-  resolution: "@types/node@npm:22.2.0"
+"@types/node@npm:*, @types/node@npm:>=12.12.47, @types/node@npm:>=13.7.0":
+  version: 22.5.2
+  resolution: "@types/node@npm:22.5.2"
   dependencies:
-    undici-types: "npm:~6.13.0"
-  checksum: 10c0/c17900b34faecfec204f72970bd658d0c217aaf739c1bf7690c969465b6b26b77a8be1cd9ba735aadbd1dd20b5c3e4f406ec33528bf7c6eec90744886c5d5608
+    undici-types: "npm:~6.19.2"
+  checksum: 10c0/624a7fd76229eacc6c158eb3b9afd55b811d7f01976c5f92c630d5b9d47047cc218928c343988484a165ac400e5eb6fe70ea300fc7242deeb0e920c7724290f6
   languageName: node
   linkType: hard
 
@@ -6273,15 +6527,6 @@ __metadata:
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/f374b763c744e8f16e4f38cf6e2c0eef31781ec9228c9e43a6f267880fea420fab0a238b59f10a7cb3444e49547c5e3785787e371fc242307310995b21988812
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:>=12.12.47, @types/node@npm:>=13.7.0":
-  version: 22.5.2
-  resolution: "@types/node@npm:22.5.2"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10c0/624a7fd76229eacc6c158eb3b9afd55b811d7f01976c5f92c630d5b9d47047cc218928c343988484a165ac400e5eb6fe70ea300fc7242deeb0e920c7724290f6
   languageName: node
   linkType: hard
 
@@ -6435,7 +6680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.0.0, @types/ws@npm:^8.5.5":
+"@types/ws@npm:^8.0.0, @types/ws@npm:^8.5.4, @types/ws@npm:^8.5.5":
   version: 8.5.12
   resolution: "@types/ws@npm:8.5.12"
   dependencies:
@@ -7488,7 +7733,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "api@workspace:api"
   dependencies:
+    "@libsql/client": "npm:^0.10.0"
     "@redwoodjs/api": "npm:7.7.4"
+    "@redwoodjs/api-server": "npm:7.7.4"
     "@redwoodjs/graphql-server": "npm:7.7.4"
   languageName: unknown
   linkType: soft
@@ -7840,6 +8087,15 @@ __metadata:
   version: 1.0.6
   resolution: "async-each@npm:1.0.6"
   checksum: 10c0/d4e45e8f077e20e015952c065ceae75f82b30ee2d4a8e56a5c454ae44331aaa009d8c94fe043ba254c177bffae9f6ebeefebb7daf9f7ce4d27fac0274dc328ae
+  languageName: node
+  linkType: hard
+
+"async-mutex@npm:0.5.0":
+  version: 0.5.0
+  resolution: "async-mutex@npm:0.5.0"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  checksum: 10c0/9096e6ad6b674c894d8ddd5aa4c512b09bb05931b8746ebd634952b05685608b2b0820ed5c406e6569919ff5fe237ab3c491e6f2887d6da6b6ba906db3ee9c32
   languageName: node
   linkType: hard
 
@@ -9996,6 +10252,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"data-uri-to-buffer@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "data-uri-to-buffer@npm:4.0.1"
+  checksum: 10c0/20a6b93107597530d71d4cb285acee17f66bcdfc03fd81040921a81252f19db27588d87fc8fc69e1950c55cfb0bf8ae40d0e5e21d907230813eb5d5a7f9eb45b
+  languageName: node
+  linkType: hard
+
 "data-urls@npm:^3.0.2":
   version: 3.0.2
   resolution: "data-urls@npm:3.0.2"
@@ -10336,6 +10599,13 @@ __metadata:
   version: 6.1.0
   resolution: "detect-indent@npm:6.1.0"
   checksum: 10c0/dd83cdeda9af219cf77f5e9a0dc31d828c045337386cfb55ce04fad94ba872ee7957336834154f7647b89b899c3c7acc977c57a79b7c776b506240993f97acc7
+  languageName: node
+  linkType: hard
+
+"detect-libc@npm:2.0.2":
+  version: 2.0.2
+  resolution: "detect-libc@npm:2.0.2"
+  checksum: 10c0/a9f4ffcd2701525c589617d98afe5a5d0676c8ea82bcc4ed6f3747241b79f781d36437c59a5e855254c864d36a3e9f8276568b6b531c28d6e53b093a15703f11
   languageName: node
   linkType: hard
 
@@ -11947,6 +12217,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fetch-blob@npm:^3.1.2, fetch-blob@npm:^3.1.4":
+  version: 3.2.0
+  resolution: "fetch-blob@npm:3.2.0"
+  dependencies:
+    node-domexception: "npm:^1.0.0"
+    web-streams-polyfill: "npm:^3.0.3"
+  checksum: 10c0/60054bf47bfa10fb0ba6cb7742acec2f37c1f56344f79a70bb8b1c48d77675927c720ff3191fa546410a0442c998d27ab05e9144c32d530d8a52fbe68f843b69
+  languageName: node
+  linkType: hard
+
 "figgy-pudding@npm:^3.5.1":
   version: 3.5.2
   resolution: "figgy-pudding@npm:3.5.2"
@@ -12253,6 +12533,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"formdata-polyfill@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "formdata-polyfill@npm:4.0.10"
+  dependencies:
+    fetch-blob: "npm:^3.1.2"
+  checksum: 10c0/5392ec484f9ce0d5e0d52fb5a78e7486637d516179b0eb84d81389d7eccf9ca2f663079da56f761355c0a65792810e3b345dc24db9a8bbbcf24ef3c8c88570c6
+  languageName: node
+  linkType: hard
+
 "forwarded@npm:0.2.0":
   version: 0.2.0
   resolution: "forwarded@npm:0.2.0"
@@ -12359,6 +12648,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fsevents@npm:2.3.3, fsevents@npm:^2.3.2, fsevents@npm:~2.3.2":
+  version: 2.3.3
+  resolution: "fsevents@npm:2.3.3"
+  dependencies:
+    node-gyp: "npm:latest"
+  checksum: 10c0/a1f0c44595123ed717febbc478aa952e47adfc28e2092be66b8ab1635147254ca6cfe1df792a8997f22716d4cbafc73309899ff7bfac2ac3ad8cf2e4ecc3ec60
+  conditions: os=darwin
+  languageName: node
+  linkType: hard
+
 "fsevents@npm:^1.2.7":
   version: 1.2.13
   resolution: "fsevents@npm:1.2.13"
@@ -12370,12 +12669,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@npm:^2.3.2, fsevents@npm:~2.3.2":
+"fsevents@patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>, fsevents@patch:fsevents@npm%3A^2.3.2#optional!builtin<compat/fsevents>, fsevents@patch:fsevents@npm%3A~2.3.2#optional!builtin<compat/fsevents>":
   version: 2.3.3
-  resolution: "fsevents@npm:2.3.3"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"
   dependencies:
     node-gyp: "npm:latest"
-  checksum: 10c0/a1f0c44595123ed717febbc478aa952e47adfc28e2092be66b8ab1635147254ca6cfe1df792a8997f22716d4cbafc73309899ff7bfac2ac3ad8cf2e4ecc3ec60
   conditions: os=darwin
   languageName: node
   linkType: hard
@@ -12386,15 +12684,6 @@ __metadata:
   dependencies:
     bindings: "npm:^1.5.0"
     nan: "npm:^2.12.1"
-  conditions: os=darwin
-  languageName: node
-  linkType: hard
-
-"fsevents@patch:fsevents@npm%3A^2.3.2#optional!builtin<compat/fsevents>, fsevents@patch:fsevents@npm%3A~2.3.2#optional!builtin<compat/fsevents>":
-  version: 2.3.3
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"
-  dependencies:
-    node-gyp: "npm:latest"
   conditions: os=darwin
   languageName: node
   linkType: hard
@@ -14674,6 +14963,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js-base64@npm:^3.7.5":
+  version: 3.7.7
+  resolution: "js-base64@npm:3.7.7"
+  checksum: 10c0/3c905a7e78b601e4751b5e710edd0d6d045ce2d23eb84c9df03515371e1b291edc72808dc91e081cb9855aef6758292a2407006f4608ec3705373dd8baf2f80f
+  languageName: node
+  linkType: hard
+
 "js-levenshtein@npm:^1.1.6":
   version: 1.1.6
   resolution: "js-levenshtein@npm:1.1.6"
@@ -15107,6 +15403,74 @@ __metadata:
     prelude-ls: "npm:^1.2.1"
     type-check: "npm:~0.4.0"
   checksum: 10c0/effb03cad7c89dfa5bd4f6989364bfc79994c2042ec5966cb9b95990e2edee5cd8969ddf42616a0373ac49fac1403437deaf6e9050fbbaa3546093a59b9ac94e
+  languageName: node
+  linkType: hard
+
+"libsql@npm:^0.3.15, libsql@npm:^0.3.19":
+  version: 0.3.19
+  resolution: "libsql@npm:0.3.19"
+  dependencies:
+    "@libsql/darwin-arm64": "npm:0.3.19"
+    "@libsql/darwin-x64": "npm:0.3.19"
+    "@libsql/linux-arm64-gnu": "npm:0.3.19"
+    "@libsql/linux-arm64-musl": "npm:0.3.19"
+    "@libsql/linux-x64-gnu": "npm:0.3.19"
+    "@libsql/linux-x64-musl": "npm:0.3.19"
+    "@libsql/win32-x64-msvc": "npm:0.3.19"
+    "@neon-rs/load": "npm:^0.0.4"
+    detect-libc: "npm:2.0.2"
+    libsql: "npm:^0.3.15"
+  dependenciesMeta:
+    "@libsql/darwin-arm64":
+      optional: true
+    "@libsql/darwin-x64":
+      optional: true
+    "@libsql/linux-arm64-gnu":
+      optional: true
+    "@libsql/linux-arm64-musl":
+      optional: true
+    "@libsql/linux-x64-gnu":
+      optional: true
+    "@libsql/linux-x64-musl":
+      optional: true
+    "@libsql/win32-x64-msvc":
+      optional: true
+  checksum: 10c0/ce93d5eec5f8ae632e160647c1440fae818fd05a10542539010ff1e7439e0cf1a035fa33319276f16f1a3e9f3855d555ac38b4e6e91512ae8e36feba7c16d613
+  conditions: (os=darwin | os=linux | os=win32) & (cpu=x64 | cpu=arm64 | cpu=wasm32)
+  languageName: node
+  linkType: hard
+
+"libsql@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "libsql@npm:0.4.1"
+  dependencies:
+    "@libsql/darwin-arm64": "npm:0.4.1"
+    "@libsql/darwin-x64": "npm:0.4.1"
+    "@libsql/linux-arm64-gnu": "npm:0.4.1"
+    "@libsql/linux-arm64-musl": "npm:0.4.1"
+    "@libsql/linux-x64-gnu": "npm:0.4.1"
+    "@libsql/linux-x64-musl": "npm:0.4.1"
+    "@libsql/win32-x64-msvc": "npm:0.4.1"
+    "@neon-rs/load": "npm:^0.0.4"
+    detect-libc: "npm:2.0.2"
+    libsql: "npm:^0.3.19"
+  dependenciesMeta:
+    "@libsql/darwin-arm64":
+      optional: true
+    "@libsql/darwin-x64":
+      optional: true
+    "@libsql/linux-arm64-gnu":
+      optional: true
+    "@libsql/linux-arm64-musl":
+      optional: true
+    "@libsql/linux-x64-gnu":
+      optional: true
+    "@libsql/linux-x64-musl":
+      optional: true
+    "@libsql/win32-x64-msvc":
+      optional: true
+  checksum: 10c0/5b7290e7c82ed2bbce3b692c9a7e37f476110bc27b89e163682afc3b827a4b5856488f28d9fdece5391d442acc82d6e21cc6492981b01fbdc5a1f93f083e0800
+  conditions: (os=darwin | os=linux | os=win32) & (cpu=x64 | cpu=arm64 | cpu=wasm32)
   languageName: node
   linkType: hard
 
@@ -16257,6 +16621,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-domexception@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "node-domexception@npm:1.0.0"
+  checksum: 10c0/5e5d63cda29856402df9472335af4bb13875e1927ad3be861dc5ebde38917aecbf9ae337923777af52a48c426b70148815e890a5d72760f1b4d758cc671b1a2b
+  languageName: node
+  linkType: hard
+
 "node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.7":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
@@ -16268,6 +16639,17 @@ __metadata:
     encoding:
       optional: true
   checksum: 10c0/b55786b6028208e6fbe594ccccc213cab67a72899c9234eb59dba51062a299ea853210fcf526998eaa2867b0963ad72338824450905679ff0fa304b8c5093ae8
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "node-fetch@npm:3.3.2"
+  dependencies:
+    data-uri-to-buffer: "npm:^4.0.0"
+    fetch-blob: "npm:^3.1.4"
+    formdata-polyfill: "npm:^4.0.10"
+  checksum: 10c0/f3d5e56190562221398c9f5750198b34cf6113aa304e34ee97c94fd300ec578b25b2c2906edba922050fce983338fde0d5d34fcb0fc3336ade5bd0e429ad7538
   languageName: node
   linkType: hard
 
@@ -17723,6 +18105,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prisma@npm:^5.19.1":
+  version: 5.19.1
+  resolution: "prisma@npm:5.19.1"
+  dependencies:
+    "@prisma/engines": "npm:5.19.1"
+    fsevents: "npm:2.3.3"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    prisma: build/index.js
+  checksum: 10c0/efbe4966fc5450e8c3c7e09f8e9950c2068e90f44b1cbb3584f4e48d7188a4d5230ec8fb12c3b9ba75fa7407fe45c0527123579e121a31ef652512f39c29c2d9
+  languageName: node
+  linkType: hard
+
 "proc-log@npm:^4.1.0, proc-log@npm:^4.2.0":
   version: 4.2.0
   resolution: "proc-log@npm:4.2.0"
@@ -17762,6 +18159,13 @@ __metadata:
   version: 1.0.1
   resolution: "promise-inflight@npm:1.0.1"
   checksum: 10c0/d179d148d98fbff3d815752fa9a08a87d3190551d1420f17c4467f628214db12235ae068d98cd001f024453676d8985af8f28f002345646c4ece4600a79620bc
+  languageName: node
+  linkType: hard
+
+"promise-limit@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "promise-limit@npm:2.7.0"
+  checksum: 10c0/ce220a7e11c8d0541940a3d99cc424bd16a18451b295a263f6dbaa998585d2d1afa71fcb7bb29078a61e214d2f13d96e9b082e96e8e357fbe5c5936ef2459cba
   languageName: node
   linkType: hard
 
@@ -18768,9 +19172,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
+    "@libsql/client": "npm:^0.10.0"
+    "@prisma/adapter-libsql": "npm:^5.19.1"
+    "@prisma/client": "npm:^5.19.1"
+    "@redwoodjs/cli-data-migrate": "npm:7.7.4"
     "@redwoodjs/core": "npm:7.7.4"
     "@redwoodjs/project-config": "npm:7.7.4"
     firebase: "npm:^10.13.1"
+    prisma: "npm:^5.19.1"
   languageName: unknown
   linkType: soft
 
@@ -20722,13 +21131,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.13.0":
-  version: 6.13.0
-  resolution: "undici-types@npm:6.13.0"
-  checksum: 10c0/2de55181f569c77a4f08063f8bf2722fcbb6ea312a26a9e927bd1f5ea5cf3a281c5ddf23155061db083e0a25838f54813543ff13b0ac34d230d5c1205ead66c1
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~6.19.2":
   version: 6.19.8
   resolution: "undici-types@npm:6.19.8"
@@ -21278,7 +21680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-streams-polyfill@npm:^3.2.1":
+"web-streams-polyfill@npm:^3.0.3, web-streams-polyfill@npm:^3.2.1":
   version: 3.3.3
   resolution: "web-streams-polyfill@npm:3.3.3"
   checksum: 10c0/64e855c47f6c8330b5436147db1c75cb7e7474d924166800e8e2aab5eb6c76aac4981a84261dd2982b3e754490900b99791c80ae1407a9fa0dcff74f82ea3a7f
@@ -21293,9 +21695,11 @@ __metadata:
     "@redwoodjs/router": "npm:7.7.4"
     "@redwoodjs/vite": "npm:7.7.4"
     "@redwoodjs/web": "npm:7.7.4"
+    "@redwoodjs/web-server": "npm:7.7.4"
     "@types/react": "npm:^18.2.55"
     "@types/react-dom": "npm:^18.2.19"
     firebase: "npm:^10.13.1"
+    humanize-string: "npm:2.1.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
   languageName: unknown
