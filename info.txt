@@ -1,2 +1,0 @@
-in the terminal, run 'npm install' before running the server. 
-this will install all the dependencies mentioned in the package.json file that our program is using.
