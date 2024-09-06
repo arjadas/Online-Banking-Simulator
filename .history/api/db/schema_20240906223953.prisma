@@ -1,0 +1,121 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = "native"
+}
+
+model Transaction {
+  transaction_id      Int                     @id @default(autoincrement())
+  amount              Int
+  sender_acc          Int
+  recipient_acc       Int
+  sender_uid          String
+  recipient_uid       String
+  recipient_address   String
+  reference           String
+  description         String?
+  timestamp           DateTime
+  recc_transaction_id Int?
+  settled             Boolean
+  type                String @default("transfer") // Enum mapped to String
+
+  sender     Account               @relation("TransactionsSent", fields: [sender_acc], references: [acc])
+  recipient  Account               @relation("TransactionsReceived", fields: [recipient_acc], references: [acc])
+  recc_transaction RecurringTransaction? @relation(fields: [recc_transaction_id], references: [recc_transaction_id])
+}
+
+model Account {
+  acc                Int                     @id @default(autoincrement())
+  acc_name           String
+  uid                String
+  pay_id             String?
+  biller_code        Int?
+  crn                Int?
+  short_description  String
+  long_description   String?
+  opened_timestamp   DateTime
+
+  sentTransactions     Transaction[]          @relation("TransactionsSent")
+  receivedTransactions Transaction[]          @relation("TransactionsReceived")
+  sentRecurringTransactions     RecurringTransaction[] @relation("RecurringTransactionsSent")
+  receivedRecurringTransactions RecurringTransaction[] @relation("RecurringTransactionsReceived")
+}
+
+model RecurringTransaction {
+  recc_transaction_id Int       @id @default(autoincrement())
+  amount              Int
+  sender_acc          Int
+  recipient_acc       Int
+  sender_uid          String
+  recipient_uid       String
+  recipient_address   String
+  reference           String
+  description         String?
+  frequency           String
+
+  sender     Account @relation("RecurringTransactionsSent", fields: [sender_acc], references: [acc])
+  recipient  Account @relation("RecurringTransactionsReceived", fields: [recipient_acc], references: [acc])
+  transactions Transaction[]
+}
+
+model MockUser {
+  uid                String    @id
+  first_name         String?
+  surname            String?
+  description        String?
+  creation_timestamp DateTime
+}
+
+model DefaultTransaction {
+  def_transaction_id  Int     @id @default(autoincrement())
+  sender_uid          String
+  recipient_uid       String
+  sender_acc          Int
+  recipient_acc       Int
+  incoming            Boolean
+  amount              Int
+  recipient_address   String
+  reference           String
+  description         String?
+  frequency           String?
+}
+
+model UserPrevContact {
+  uid                 String
+  contact_acc         Int
+  contact_acc_name    String
+  contact_uid         String
+  contact_description String
+
+  @@id([uid, contact_acc])
+  user User @relation(fields: [uid], references: [uid])
+}
+
+model User {
+  uid                 String    @id
+  first_name          String
+  surname             String
+  email               String
+  role                String @default("student")
+  font_preference     String @default("small")
+  creation_timestamp  DateTime
+  last_login          DateTime?
+
+  previous_contacts   UserPrevContact[]
+  notifications       Notification[]
+}
+
+model Notification {
+  notification_id    String    @id
+  uid                String
+  timestamp          DateTime
+  type               String @default("message")
+  content            String
+  read               Boolean
+
+  user   User @relation(fields: [uid], references: [uid])
+}
