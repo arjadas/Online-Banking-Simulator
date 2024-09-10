@@ -1,0 +1,29 @@
+import { Prisma } from "@prisma/client";
+import { db } from "./db.server";
+
+ // Generate a random 9-digit number
+function generateRandomAcc() {
+    return Math.floor(100000000 + Math.random() * 900000000);
+}
+
+export async function openAccount(data: Prisma.AccountCreateInput) {
+    let acc: number = 0;
+    let isUnique = false;
+
+    while (!isUnique) {
+        acc = generateRandomAcc();
+        const existingAccount = await db.account.findUnique({
+            where: { acc },
+        });
+        if (!existingAccount) {
+            isUnique = true;
+        }
+    }
+
+    return await db.account.create({
+        data: {
+            ...data,
+            acc,
+        },
+    });
+}
