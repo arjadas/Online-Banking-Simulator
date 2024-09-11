@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Account" ADD COLUMN     "bsb" TEXT NOT NULL DEFAULT '123 456';
