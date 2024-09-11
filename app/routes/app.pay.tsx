@@ -1,6 +1,7 @@
 import { Button } from '@geist-ui/core';
-import { Shuffle, User, Grid as GridIcon } from '@geist-ui/react-icons';
+import { Shuffle, User, Grid as GridIcon, Calendar } from '@geist-ui/react-icons';
 import { useNavigate } from '@remix-run/react';
+import React, { useCallback } from 'react';
 
 const containerStyle: any = {
   position: 'absolute',
@@ -22,6 +23,13 @@ const buttonContainerStyle: any = {
 const buttonStyle = {
   width: 400,
   height: 75,
+  fontSize: 18,
+  gap: 16,
+};
+
+const buttonStyle = {
+  width: '400px',
+  height: '75px',
   fontSize: 18,
 };
 
