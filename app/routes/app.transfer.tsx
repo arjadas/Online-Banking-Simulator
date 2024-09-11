@@ -21,10 +21,11 @@ export const action: ActionFunction = async ({ request }) => {
     const result = await db.$transaction(async (prisma) => {
       // Fetch the accounts
       const fromAccount = await prisma.account.findFirst({
-        where: { acc: fromAcc, uid: user.uid },
+        where: { acc: fromAcc },
       });
+      
       const toAccount = await prisma.account.findFirst({
-        where: { acc: toAcc, uid: user.uid },
+        where: { acc: toAcc },
       });
 
       if (!fromAccount || !toAccount) {

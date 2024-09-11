@@ -6,7 +6,7 @@ import React from 'react';
 const navItems = [
     { icon: <Home />, label: "Home", to: "/app/accounts" },
     { icon: <DollarSign />, label: "Pay", to: "/app/pay" },
-    { icon: <List />, label: "History", to: "/app/history" },
+    { icon: <List />, label: "History", to: "/app/transactions" },
     { icon: <Settings />, label: "Settings", to: "/app/settings" },
     { icon: <LogOut />, label: "Logout", to: "/logout" },
 ];

@@ -10,8 +10,8 @@ datasource db {
 model Transaction {
   transaction_id      Int                   @id @default(autoincrement())
   amount              Int
-  sender_acc          Int                   @map("sender_acc")
-  recipient_acc       Int                   @map("recipient_acc")
+  sender_acc          Int
+  recipient_acc       Int
   sender_uid          String
   recipient_uid       String
   recipient_address   Json?
@@ -29,7 +29,7 @@ model Transaction {
 
 model Account {
   acc                             Int                    @id @default(autoincrement())
-  bsb                             String                 @default("123 456")
+  bsb                             Int                    @default(123456)
   acc_name                        String
   uid                             String
   balance                         Int                    @default(0)
@@ -128,6 +128,7 @@ enum TransactionType {
   salary
   interest
   transfer
+  paySomeone
 }
 
 enum UserRole {

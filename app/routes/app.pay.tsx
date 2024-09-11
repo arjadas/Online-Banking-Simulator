@@ -11,43 +11,43 @@ const containerStyle: any = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: '20px',
+  padding: 20,
 };
 
 const buttonContainerStyle: any = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
+  gap: 16,
+};
+
+const buttonStyle = {
+  width: 400,
+  height: 75,
+  fontSize: 18,
+  gap: 16,
 };
 
 const buttonStyle = {
   width: '400px',
   height: '75px',
-  fontSize: '18px',
+  fontSize: 18,
 };
 
 export default function Pay() {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    navigate("/app/transfer");
-  };
-
   return (
     <div style={containerStyle}>
       <main>
         <div style={buttonContainerStyle}>
-          <Button style={buttonStyle} icon={<Shuffle />} onClick={handleClick} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <Button style={buttonStyle} auto scale={2} icon={<Shuffle  />} onClick={() => { navigate("/app/transfer") }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             Transfer between accounts
           </Button>
-          <Button style={buttonStyle} icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            Default Payments
-          </Button>
-          <Button style={buttonStyle} icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <Button style={buttonStyle} auto scale={2} icon={<User />} onClick={() => { navigate("/app/paySomeone") }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             Pay someone
           </Button>
-          <Button style={buttonStyle} icon={<Calendar />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            Schedule payments
+          <Button style={buttonStyle} auto scale={2} icon={<GridIcon />} onClick={() => { navigate("/app/accounts") }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+            Default Payments
           </Button>
         </div>
       </main>

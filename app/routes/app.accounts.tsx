@@ -82,7 +82,7 @@ export default function Dashboard() {
         <React.Fragment key={account.acc}>
           <AccountCard
             accountType={account.short_description}
-            bsb={account.bsb}
+            bsb={account.bsb.toString()}
             accountNumber={account.acc.toString()}
             balance={`$${account.balance.toFixed(2)}`}
           />
