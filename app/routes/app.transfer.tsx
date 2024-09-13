@@ -13,13 +13,11 @@ export const action: ActionFunction = async ({ request }) => {
   const amount = parseInt(formData.get('amount') as string);
   const description = formData.get('description') as string;
 
-  // Fetch the user session
+  // fetch the user session
   const user = await requireUserSession(request);
 
   try {
-    // Start a transaction
     const result = await db.$transaction(async (prisma) => {
-      // Fetch the accounts
       const fromAccount = await prisma.account.findFirst({
         where: { acc: fromAcc },
       });
@@ -40,7 +38,7 @@ export const action: ActionFunction = async ({ request }) => {
         throw new Error('Insufficient funds');
       }
 
-      // Update account balances
+      // update account balances
       await prisma.account.update({
         where: { acc: fromAccount.acc },
         data: { balance: { decrement: amount } },
@@ -51,7 +49,7 @@ export const action: ActionFunction = async ({ request }) => {
         data: { balance: { increment: amount } },
       });
 
-      // Create a new transaction
+      // create a new transaction
       const newTransaction = await prisma.transaction.create({
         data: {
           amount,

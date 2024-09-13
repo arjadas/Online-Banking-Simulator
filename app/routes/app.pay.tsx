@@ -27,12 +27,6 @@ const buttonStyle = {
   gap: 16,
 };
 
-const buttonStyle = {
-  width: '400px',
-  height: '75px',
-  fontSize: 18,
-};
-
 export default function Pay() {
   const navigate = useNavigate();
 

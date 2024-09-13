@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "TransactionType" AS ENUM ('salary', 'interest', 'transfer');
+CREATE TYPE "TransactionType" AS ENUM ('salary', 'interest', 'transfer', 'paySomeone');
 
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('administrator', 'student');
@@ -18,7 +18,7 @@ CREATE TABLE "Transaction" (
     "recipient_acc" INTEGER NOT NULL,
     "sender_uid" TEXT NOT NULL,
     "recipient_uid" TEXT NOT NULL,
-    "recipient_address" TEXT NOT NULL,
+    "recipient_address" JSONB,
     "reference" TEXT NOT NULL,
     "description" TEXT,
     "timestamp" TIMESTAMP(3) NOT NULL,
@@ -32,8 +32,10 @@ CREATE TABLE "Transaction" (
 -- CreateTable
 CREATE TABLE "Account" (
     "acc" SERIAL NOT NULL,
+    "bsb" INTEGER NOT NULL DEFAULT 123456,
     "acc_name" TEXT NOT NULL,
     "uid" TEXT NOT NULL,
+    "balance" INTEGER NOT NULL DEFAULT 0,
     "pay_id" TEXT,
     "biller_code" INTEGER,
     "crn" INTEGER,
@@ -52,10 +54,10 @@ CREATE TABLE "RecurringTransaction" (
     "recipient_acc" INTEGER NOT NULL,
     "sender_uid" TEXT NOT NULL,
     "recipient_uid" TEXT NOT NULL,
-    "recipient_address" TEXT NOT NULL,
+    "recipient_address" JSONB NOT NULL,
     "reference" TEXT NOT NULL,
     "description" TEXT,
-    "frequency" TEXT NOT NULL,
+    "frequency" JSONB NOT NULL,
 
     CONSTRAINT "RecurringTransaction_pkey" PRIMARY KEY ("recc_transaction_id")
 );
@@ -64,7 +66,8 @@ CREATE TABLE "RecurringTransaction" (
 CREATE TABLE "MockUser" (
     "uid" TEXT NOT NULL,
     "first_name" TEXT,
-    "surname" TEXT,
+    "middle_names" TEXT,
+    "last_name" TEXT,
     "description" TEXT,
     "creation_timestamp" TIMESTAMP(3) NOT NULL,
 
@@ -80,10 +83,10 @@ CREATE TABLE "DefaultTransaction" (
     "recipient_acc" INTEGER NOT NULL,
     "incoming" BOOLEAN NOT NULL,
     "amount" INTEGER NOT NULL,
-    "recipient_address" TEXT NOT NULL,
+    "recipient_address" JSONB NOT NULL,
     "reference" TEXT NOT NULL,
     "description" TEXT,
-    "frequency" TEXT,
+    "frequency" JSONB NOT NULL,
 
     CONSTRAINT "DefaultTransaction_pkey" PRIMARY KEY ("def_transaction_id")
 );
@@ -103,7 +106,8 @@ CREATE TABLE "UserPrevContact" (
 CREATE TABLE "User" (
     "uid" TEXT NOT NULL,
     "first_name" TEXT NOT NULL,
-    "surname" TEXT NOT NULL,
+    "middle_names" TEXT,
+    "last_name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "role" "UserRole" NOT NULL,
     "font_preference" "FontPreference",
