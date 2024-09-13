@@ -23,6 +23,7 @@ const buttonStyle = {
   width: 400,
   height: 75,
   fontSize: 18,
+  gap: 16,
 };
 
 export default function Pay() {
