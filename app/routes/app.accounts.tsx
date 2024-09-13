@@ -26,7 +26,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   // Fetch the user details and related data from Prisma
   // eslint-disable-next-line prefer-const
-  let [userData, userAccounts] = await Promise.all([
+  const getMeUser = async () => {return await Promise.all([
     db.user.findUnique({
       where: { uid: user.uid },
       include: {
@@ -39,11 +39,14 @@ export const loader: LoaderFunction = async ({ request }) => {
     db.account.findMany({
       where: { uid: user.uid },
     }),
-  ]);
+  ]); }
+
+  let [userData, userAccounts] = await getMeUser();
 
   if (!userData) {
-    console.error("User, not found! Creating new user..")
-    await createUser(user.uid, user.email, user.first_name, user.last_name);
+    console.error("User, not found! Creating new user..", user)
+    await createUser(user.uid, user.email, "Plan", "B");
+    [userData, userAccounts] = await getMeUser();
   }
 
   userData = userData!

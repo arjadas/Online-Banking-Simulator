@@ -5,7 +5,7 @@ import { db } from "./db.server";
 export async function createUser(uid: string, email: string, first_name: string, last_name: string) {
     try {
         const date = new Date();
-        await db.user.create({
+        const user = await db.user.create({
             data: {
                 uid,
                 email,
@@ -49,6 +49,7 @@ export async function createUser(uid: string, email: string, first_name: string,
             opened_timestamp: date,
         });
 
+        return user;
     } catch (error) {
         console.error(error);
         throw new Error("Failed to create user");
