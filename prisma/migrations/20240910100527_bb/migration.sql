@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Account" ALTER COLUMN "pay_id" DROP NOT NULL,
-ALTER COLUMN "pay_id" SET DATA TYPE TEXT;

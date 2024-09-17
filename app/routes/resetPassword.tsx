@@ -1,4 +1,4 @@
-import { ActionFunction, json, redirect } from "@remix-run/node";
+import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useSearchParams } from "@remix-run/react";
 import { resetPassword } from "~/auth.server";
 
@@ -6,7 +6,7 @@ type ActionData = {
   error?: string;
 };
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request } : { request: Request }) => {
   const formData = await request.formData();
   const newPassword = formData.get("password") as string;
   const oobCode = formData.get("oobCode") as string; // OOB Code from the reset link

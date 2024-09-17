@@ -1,11 +1,12 @@
 import React from 'react';
 import { useLoaderData } from "@remix-run/react";
-import { json, LoaderFunction } from "@remix-run/node";
+import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { Text, Spacer, Grid, Card } from '@geist-ui/core';
 import { requireUserSession } from "../auth.server";
 import AccountCard from '../components/AccountCard';
 import { Account } from '@prisma/client';
 import { db } from "../util/db.server";
+import { createUser } from '~/util/userUtil';
 
 type MeUser = {
   uid: string;
@@ -19,12 +20,13 @@ type MeUser = {
   }>;
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
-  
+
   // Fetch the user details and related data from Prisma
-  const [userData, userAccounts] = await Promise.all([
+  // eslint-disable-next-line prefer-const
+  const getMeUser = async () => {return await Promise.all([
     db.user.findUnique({
       where: { uid: user.uid },
       include: {
@@ -37,11 +39,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     db.account.findMany({
       where: { uid: user.uid },
     }),
-  ]);
+  ]); }
+
+  let [userData, userAccounts] = await getMeUser();
 
   if (!userData) {
-    throw new Response("User not found", { status: 404 });
+    console.error("User, not found! Creating new user..", user)
+    await createUser(user.uid, user.email, "Plan", "B");
+    [userData, userAccounts] = await getMeUser();
   }
+
+  userData = userData!
 
   return json({
     me: {
@@ -61,7 +69,7 @@ export default function Dashboard() {
     userAccounts: Account[];
   }>();
 
-  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
   return (
     <>
@@ -78,7 +86,7 @@ export default function Dashboard() {
 
       <Spacer h={2} />
 
-      {accounts.map((account) => (
+      {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
         <React.Fragment key={account.acc}>
           <AccountCard
             accountType={account.short_description}

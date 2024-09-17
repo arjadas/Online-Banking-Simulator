@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
 import { GeistProvider, CssBaseline, Page, Text, Card, Select, Input, Button, Spacer } from '@geist-ui/react';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
-import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
+import { json, LoaderFunction, ActionFunction } from "@remix-run/cloudflare";
 import { db } from "../util/db.server";
 import { requireUserSession } from "../auth.server";
 import { Account, TransactionType } from '@prisma/client';
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request } : { request: Request }) => {
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
   const amount = parseInt(formData.get('amount') as string);
   const description = formData.get('description') as string;
 
-  // Fetch the user session
+  // fetch the user session
   const user = await requireUserSession(request);
 
   try {
-    // Start a transaction
     const result = await db.$transaction(async (prisma) => {
-      // Fetch the accounts
       const fromAccount = await prisma.account.findFirst({
         where: { acc: fromAcc },
       });
@@ -40,7 +38,7 @@ export const action: ActionFunction = async ({ request }) => {
         throw new Error('Insufficient funds');
       }
 
-      // Update account balances
+      // update account balances
       await prisma.account.update({
         where: { acc: fromAccount.acc },
         data: { balance: { decrement: amount } },
@@ -51,7 +49,7 @@ export const action: ActionFunction = async ({ request }) => {
         data: { balance: { increment: amount } },
       });
 
-      // Create a new transaction
+      // create a new transaction
       const newTransaction = await prisma.transaction.create({
         data: {
           amount,
@@ -77,7 +75,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
 
@@ -153,7 +151,7 @@ const TransferBetweenAccounts = () => {
                   placeholder="Select account"
                   width="100%"
                   onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
-                  {accounts.map((account) => (
+                  {accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
                       {account.short_description}
                     </Select.Option>
@@ -167,7 +165,7 @@ const TransferBetweenAccounts = () => {
                   placeholder="Select account"
                   width="100%"
                   onChange={handleToAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
-                  {accounts.map((account) => (
+                  {accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
                       {account.short_description}
                     </Select.Option>

@@ -1,5 +1,5 @@
 import { FontPreference, UserRole } from "@prisma/client";
-import { ActionFunction, json, redirect } from "@remix-run/node";
+import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { signup, commitSession, getSession } from "~/auth.server";
 import { db } from "~/util/db.server";
@@ -46,7 +46,7 @@ async function createUser(uid: string, email: string, first_name: string, last_n
     }
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request }: { request: Request }) => {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
