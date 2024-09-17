@@ -2,19 +2,18 @@ import React, { useState } from 'react';
 import { GeistProvider, CssBaseline, Page, Text, Card, Select, Input, Button, Spacer } from '@geist-ui/react';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import { json, LoaderFunction, ActionFunction } from "@remix-run/cloudflare";
-import { db } from "../util/db.server";
+import { getPrismaClient } from "../util/db.server";
 import { requireUserSession } from "../auth.server";
 import { Account, TransactionType } from '@prisma/client';
 
-export const action: ActionFunction = async ({ request } : { request: Request }) => {
+export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
   const amount = parseInt(formData.get('amount') as string);
   const description = formData.get('description') as string;
-
-  // fetch the user session
   const user = await requireUserSession(request);
+  const db = getPrismaClient(context);
 
   try {
     const result = await db.$transaction(async (prisma) => {
@@ -75,11 +74,11 @@ export const action: ActionFunction = async ({ request } : { request: Request })
   }
 };
 
-export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
-  // Ensure the user is authenticated
+export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await requireUserSession(request);
+  const db = getPrismaClient(context);
 
-  // Fetch the user details and related data from Prisma
+  // fetch the user details and related data from Prisma
   const [userAccounts] = await Promise.all([
     db.account.findMany({
       where: { uid: user.uid },
@@ -151,7 +150,8 @@ const TransferBetweenAccounts = () => {
                   placeholder="Select account"
                   width="100%"
                   onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
-                  {accounts.map((account: Account) => (
+                  {// @ts-ignore
+                  accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
                       {account.short_description}
                     </Select.Option>
@@ -165,7 +165,8 @@ const TransferBetweenAccounts = () => {
                   placeholder="Select account"
                   width="100%"
                   onChange={handleToAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
-                  {accounts.map((account: Account) => (
+                  {// @ts-ignore
+                  accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
                       {account.short_description}
                     </Select.Option>

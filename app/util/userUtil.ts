@@ -1,10 +1,11 @@
 import { FontPreference, UserRole } from "@prisma/client";
 import { openAccount } from "./accountUtil";
-import { db } from "./db.server";
+import { getPrismaClient } from "./db.server";
 
-export async function createUser(uid: string, email: string, first_name: string, last_name: string) {
+export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
     try {
         const date = new Date();
+        const db = getPrismaClient(context);
         const user = await db.user.create({
             data: {
                 uid,
@@ -19,7 +20,7 @@ export async function createUser(uid: string, email: string, first_name: string,
         });
 
         // Open "Simple Saver" account
-        await openAccount({
+        await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             pay_id: email,
@@ -30,7 +31,7 @@ export async function createUser(uid: string, email: string, first_name: string,
         });
 
         // Open "Delightful Debit" account
-        await openAccount({
+        await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             short_description: "Delightful Debit",
@@ -40,7 +41,7 @@ export async function createUser(uid: string, email: string, first_name: string,
         });
 
         // Open "Clever Credit" account
-        await openAccount({
+        await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             short_description: "Clever Credit",
@@ -50,8 +51,7 @@ export async function createUser(uid: string, email: string, first_name: string,
         });
 
         return user;
-    } catch (error) {
-        console.error(error);
-        throw new Error("Failed to create user");
+    } catch (error: any) {
+        throw new Error(`Failed to create user ${error.message}`);
     }
 }

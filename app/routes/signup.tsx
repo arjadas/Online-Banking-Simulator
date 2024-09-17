@@ -1,66 +1,26 @@
 import { FontPreference, UserRole } from "@prisma/client";
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData } from "@remix-run/react";
-import { signup, commitSession, getSession } from "~/auth.server";
-import { db } from "~/util/db.server";
+import { Form, useActionData, useSubmit, useNavigation } from "@remix-run/react";
+import { commitSession, getSession } from "~/auth.server";
+import { getPrismaClient } from "~/util/db.server";
 import { openAccount } from "~/util/accountUtil";
+import { signup } from "~/auth.client";
+import { useEffect, useState } from "react";
+import { createUser } from "~/util/userUtil";
 
-async function createUser(uid: string, email: string, first_name: string, last_name: string) {
-    try {
-        const date = new Date();
-        await db.user.create({
-            data: {
-                uid,
-                email,
-                first_name: first_name,
-                last_name: last_name,
-                role: UserRole.student,
-                font_preference: FontPreference.medium,
-                creation_timestamp: date,
-                last_login: date,
-            },
-        });
-
-        // Open "Simple Saver" account
-        await openAccount({
-            acc_name: `${first_name} ${last_name}`,
-            uid: uid,
-            pay_id: email,
-            short_description: "Simple Saver",
-            long_description: "A simulated savings account.",
-            opened_timestamp: date,
-        });
-
-        // Open "Clever Credit" account
-        await openAccount({
-            acc_name: `${first_name} ${last_name}`,
-            uid: uid,
-            short_description: "Clever Credit",
-            long_description: "Associated with your emulated bank card.",
-            opened_timestamp: date,
-        });
-
-    } catch (error) {
-        console.error(error);
-        throw new Error("Failed to create user");
-    }
-}
-
-export const action: ActionFunction = async ({ request }: { request: Request }) => {
+export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
     const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
     const first_name = formData.get("first_name") as string;
     const last_name = formData.get("last_name") as string;
+    const uid = formData.get("uid") as string;
 
     try {
-        // Create a user in firebase auth and set current session
-        const user = await signup(email, password);
-        const session = await getSession(request);
-        session.set("user", user);
-
         // Prisma database mutations
-        await createUser(user.uid, email, first_name, last_name);
+        await createUser(context, uid, email, first_name, last_name);
+
+        const session = await getSession(request);
+        session.set("user", { uid, email });
 
         return redirect("/", {
             headers: {
@@ -68,19 +28,45 @@ export const action: ActionFunction = async ({ request }: { request: Request }) 
             },
         });
     } catch (error: any) {
-        return json({
-            error: error.toString(),
-        });
+        console.error("Error details:", error);
+        return json({ error: error.message, context: JSON.stringify(context.cloudflare.env, null, 2) });
     }
 };
 
 export default function Signup() {
     const actionData = useActionData<any>();
+    const submit = useSubmit();
+    const navigation = useNavigation();
+    const [clientError, setClientError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (actionData?.error) {
+            setClientError(JSON.stringify(actionData));
+        }
+    }, [actionData]);
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+
+        try {
+            const user = await signup(
+                formData.get("email") as string,
+                formData.get("password") as string
+            );
+
+            formData.append("uid", user.uid);
+            submit(formData, { method: "post", action: "/signup" });
+        } catch (error: any) {
+            setClientError(error.message);
+        }
+    };
 
     return (
         <div>
             <h1>Sign Up</h1>
-            <Form method="post">
+            <Form method="post" onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="first_name">First Name</label>
                     <input type="text" name="first_name" required />
@@ -97,10 +83,15 @@ export default function Signup() {
                     <label htmlFor="password">Password</label>
                     <input type="password" name="password" required />
                 </div>
-                <button type="submit">Sign up</button>
+                <button type="submit" disabled={navigation.state === "submitting"}>
+                    {navigation.state === "submitting" ? "Signing up..." : "Sign up"}
+                </button>
             </Form>
-            {actionData?.error && <p>{actionData.error}</p>}
+            {clientError && (
+                <div>
+                    <p>Error: {clientError}</p>
+                </div>
+            )}
         </div>
     );
 }
-

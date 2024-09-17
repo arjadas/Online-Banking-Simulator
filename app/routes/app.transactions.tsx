@@ -3,11 +3,12 @@ import { useLoaderData } from "@remix-run/react";
 import { Text, Spacer, Grid, Card, Select } from '@geist-ui/core';
 import { Account, Transaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { db } from "../util/db.server";
+import { getPrismaClient } from "../util/db.server";
 import { requireUserSession } from "../auth.server";
 
-export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
+export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await requireUserSession(request);
+  const db = getPrismaClient(context);
 
   const [transactions, accounts] = await Promise.all([
     db.transaction.findMany({
@@ -54,7 +55,8 @@ export default function Transactions() {
       {/* filter dropdown */}
       <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <Select.Option value="all">All Accounts</Select.Option>
-        {accounts.map((account: Account) => (
+        {// @ts-ignore 
+        accounts.map((account: Account) => (
           <Select.Option key={account.acc} value={account.acc.toString()}>
             {account.short_description} (BSB: {account.bsb})
           </Select.Option>

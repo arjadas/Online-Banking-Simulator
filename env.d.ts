@@ -8,5 +8,8 @@ declare namespace NodeJS {
       VITE_FIREBASE_APP_ID: string;
       VITE_FIREBASE_MEASUREMENT_ID: string;
       VITE_SESSION_SECRET: string;
+      VITE_DIRECT_URL: string;
+      VITE_LOCAL_DATABASE_URL: string;
+      VITE_DATABASE_URL: string;
     }
   }
