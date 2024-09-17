@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { GeistProvider, CssBaseline, Page, Text, Card, Select, Input, Button, Spacer } from '@geist-ui/react';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
-import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
+import { json, LoaderFunction, ActionFunction } from "@remix-run/cloudflare";
 import { db } from "../util/db.server";
 import { requireUserSession } from "../auth.server";
 import { Account, TransactionType } from '@prisma/client';
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request } : { request: Request }) => {
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
@@ -77,7 +77,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
 
@@ -153,7 +153,7 @@ const TransferBetweenAccounts = () => {
                   placeholder="Select account"
                   width="100%"
                   onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
-                  {accounts.map((account) => (
+                  {accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
                       {account.short_description}
                     </Select.Option>
@@ -167,7 +167,7 @@ const TransferBetweenAccounts = () => {
                   placeholder="Select account"
                   width="100%"
                   onChange={handleToAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
-                  {accounts.map((account) => (
+                  {accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
                       {account.short_description}
                     </Select.Option>

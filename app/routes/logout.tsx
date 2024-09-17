@@ -1,7 +1,7 @@
-import { LoaderFunction } from '@remix-run/node';
+import { LoaderFunction } from '@remix-run/cloudflare';
 import { handleSignOut, signOutUser } from '../auth.server';
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
     await signOutUser();
     return handleSignOut(request);
 };

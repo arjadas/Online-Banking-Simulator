@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLoaderData } from "@remix-run/react";
-import { json, LoaderFunction } from "@remix-run/node";
+import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { Text, Spacer, Grid, Card } from '@geist-ui/core';
 import { requireUserSession } from "../auth.server";
 import AccountCard from '../components/AccountCard';
@@ -19,7 +19,7 @@ type MeUser = {
   }>;
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
   
@@ -61,7 +61,7 @@ export default function Dashboard() {
     userAccounts: Account[];
   }>();
 
-  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
   return (
     <>
@@ -78,7 +78,7 @@ export default function Dashboard() {
 
       <Spacer h={2} />
 
-      {accounts.map((account) => (
+      {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
         <React.Fragment key={account.acc}>
           <AccountCard
             accountType={account.short_description}
