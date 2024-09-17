@@ -9,6 +9,9 @@ import { startTransition, StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 
 startTransition(() => {
+  // added by Aden Diamond for a workaround to a seemingly unreported bug.
+  window.__remixContext.url = window.location.pathname!
+
   hydrateRoot(
     document,
     <StrictMode>

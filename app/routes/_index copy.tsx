@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Account, Transaction as AccountTransaction } from "@prisma/client";
-import { json, LoaderFunction } from "@remix-run/node";
+import { Account, Transaction as AccountTransaction, Notification } from "@prisma/client";
+import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { requireUserSession } from "~/auth.server";
 import { db } from "~/util/db.server";
@@ -17,7 +17,7 @@ type MeUser = {
   }>;
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request } ) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
   
@@ -71,7 +71,7 @@ export default function Dashboard() {
       
       <h2>Your Accounts</h2>
       <ul>
-        {accounts.map((account) => (
+        {accounts.map((account: Account) => (
           <li key={account.acc}>
             {account.acc_name}: {account.short_description}
           </li>
@@ -89,7 +89,7 @@ export default function Dashboard() {
 
       <h2>Unread Notifications</h2>
       <ul>
-        {user.notifications.map((notification) => (
+        {user.notifications.map((notification: Notification) => (
           <li key={notification.notification_id}>
             {notification.content} ({new Date(notification.timestamp).toLocaleDateString()})
           </li>
