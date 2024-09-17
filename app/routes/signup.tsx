@@ -5,10 +5,6 @@ import { signup, commitSession, getSession } from "~/auth.server";
 import { db } from "~/util/db.server";
 import { openAccount } from "~/util/accountUtil";
 
-interface ActionData {
-    error?: string;
-}
-
 async function createUser(uid: string, email: string, first_name: string, last_name: string) {
     try {
         const date = new Date();
@@ -72,12 +68,12 @@ export const action: ActionFunction = async ({ request }) => {
             },
         });
     } catch (error: any) {
-        return json<ActionData>({ error: error.message });
+        return json({ error: error.toString() });
     }
 };
 
 export default function Signup() {
-    const actionData = useActionData<ActionData>();
+    const actionData = useActionData<any>();
 
     return (
         <div>
