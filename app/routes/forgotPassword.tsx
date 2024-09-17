@@ -1,6 +1,6 @@
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
-import { sendResetPasswordEmail } from "~/auth.server";
+import { sendResetPasswordEmail } from "~/auth.client";
 
 type ActionData = {
   error?: string;

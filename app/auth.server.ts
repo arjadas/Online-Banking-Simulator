@@ -1,69 +1,62 @@
 import { confirmPasswordReset, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "~/firebase";
-import { createCookieSessionStorage, redirect } from "@remix-run/cloudflare";
+import { Session, SessionData, createWorkersKVSessionStorage, createCookieSessionStorage, redirect } from "@remix-run/cloudflare";
+import { SessionStorage } from "@remix-run/cloudflare";
 
-// Cookie session management
 const sessionSecret = import.meta.env.VITE_SESSION_SECRET;
 if (!sessionSecret) {
-  throw new Error("SESSION_SECRET must be set in your environment variables.");
+  throw new Error("VITE_SESSION_SECRET must be set in your environment variables.");
+}
+declare global {
+  const MY_KV_NAMESPACE: KVNamespace | undefined;
 }
 
-const storage = createCookieSessionStorage({
-  cookie: {
-    name: "firebase_session",
-    secure: process.env.NODE_ENV === "production",
-    secrets: [sessionSecret],
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    httpOnly: true,
-  },
-});
+let sessionStorage: SessionStorage<SessionData, SessionData>;
+//TODO secret
+if (false) {
+  sessionStorage = createWorkersKVSessionStorage({
+    kv: MY_KV_NAMESPACE!,
+    cookie: {
+      name: "firebase_session",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    },
+  });
+} else {
+
+  // use an in-memory or cookie-based storage in development
+  sessionStorage = createCookieSessionStorage({
+    cookie: {
+      name: "firebase_session",
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    },
+  });
+}
 
 export async function getSession(request: Request) {
-  const cookie = request.headers.get("Cookie");
-  return storage.getSession(cookie);
+  return await sessionStorage.getSession(request.headers.get("Cookie"));
 }
 
-export async function commitSession(session: any) {
-  return storage.commitSession(session);
+export async function commitSession(session: Session<SessionData, SessionData>) {
+  return await sessionStorage.commitSession(session);
 }
 
-export async function destroySession(session: any) {
-  return storage.destroySession(session);
+export async function destroySession(session: Session<SessionData, SessionData>) {
+  return await sessionStorage.destroySession(session);
 }
+
+export default { getSession, commitSession, destroySession };
 
 export async function requireUserSession(request: Request) {
   const session = await getSession(request);
-  const user = session.get("user");
-
-  if (!user) {
-    throw redirect("/login");
-  }
-
-  return user;
-}
-
-export async function login(email: string, password: string) {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  return userCredential.user;
-}
-
-export async function signup(email: string, password: string) {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  return userCredential.user;
-}
-
-export async function sendResetPasswordEmail(email: string) {
-  await sendPasswordResetEmail(auth, email);
-}
-
-export async function resetPassword(oobCode: string, newPassword: string) {
-  await confirmPasswordReset(auth, oobCode, newPassword);
-}
-
-export async function signOutUser() {
-  await signOut(auth);
+  return session.get("user");
 }
 
 export async function handleSignOut(request: Request) {

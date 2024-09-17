@@ -1,23 +1,26 @@
 import { PrismaClient } from '@prisma/client/edge';
 import { withAccelerate } from '@prisma/extension-accelerate'
 
-let db: PrismaClient;
+let db: any = null;
 
-declare global {
-    // eslint-disable-next-line no-var
-    var __db: PrismaClient | undefined;
-}
+export function getPrismaClient(context: any): PrismaClient {
+    const db_url = context.cloudflare.env.VITE_DATABASE_URL;
 
-if (process.env.NODE_ENV == 'production') {
-    // @ts-ignore
-    db = new PrismaClient().$extends(withAccelerate())
-    db.$connect();
-} else {
-    if (!global.__db) {
-        global.__db = new PrismaClient();
-        global.__db.$connect();
+    if (!db) {
+        if (db_url) {
+            db = new PrismaClient({
+                datasources: {
+                    db: {
+                        url: db_url,
+                    },
+                },
+            }).$extends(withAccelerate());
+        } else {
+            db = new PrismaClient().$extends(withAccelerate());
+        }
     }
-    db = global.__db;
-}
 
-export { db };
+    db.$connect();
+
+    return db!;
+}

@@ -5,9 +5,9 @@ import { Account, TransactionType } from '@prisma/client';
 import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import { requireUserSession } from '../auth.server';
-import { db } from '../util/db.server';
+import { getPrismaClient } from '../util/db.server';
 
-export const action: ActionFunction = async ({ request } : { request: Request }) => {
+export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
     const fromAcc = parseInt(formData.get('fromAcc') as string);
     const recipientAddress = formData.get('recipientAddress') as string;
@@ -24,6 +24,7 @@ export const action: ActionFunction = async ({ request } : { request: Request })
     }
 
     const user = await requireUserSession(request);
+    const db = getPrismaClient(context);
 
     try {
         const result = await db.$transaction(async (prisma) => {
@@ -96,9 +97,10 @@ export const action: ActionFunction = async ({ request } : { request: Request })
     }
 };
 
-export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
+export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
     // Ensure the user is authenticated
     const user = await requireUserSession(request);
+    const db = getPrismaClient(context);
 
     // Fetch the user details and related data from Prisma
     const [userAccounts] = await Promise.all([
@@ -233,7 +235,8 @@ const PaySomeone = () => {
                         <Text h4>From Account</Text>
                         <div style={{ width: '48%' }}>
                             <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
-                                {accounts.map((account: Account) => (
+                                {// @ts-ignore
+                                accounts.map((account: Account) => (
                                     <Select.Option key={account.acc} value={account.acc.toString()}>
                                         {account.short_description}
                                     </Select.Option>

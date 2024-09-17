@@ -5,7 +5,7 @@ import { Text, Spacer, Grid, Card } from '@geist-ui/core';
 import { requireUserSession } from "../auth.server";
 import AccountCard from '../components/AccountCard';
 import { Account } from '@prisma/client';
-import { db } from "../util/db.server";
+import { getPrismaClient } from "../util/db.server";
 import { createUser } from '~/util/userUtil';
 
 type MeUser = {
@@ -20,32 +20,39 @@ type MeUser = {
   }>;
 };
 
-export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
+export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
+  const db = getPrismaClient(context);
 
   // Fetch the user details and related data from Prisma
   // eslint-disable-next-line prefer-const
-  const getMeUser = async () => {return await Promise.all([
-    db.user.findUnique({
-      where: { uid: user.uid },
-      include: {
-        notifications: {
-          where: { read: false },
-          take: 5,
+  const getMeUser = async () => {
+    return await Promise.all([
+      db.user.findUnique({
+        where: { uid: user.uid },
+        include: {
+          notifications: {
+            where: { read: false },
+            take: 5,
+          },
         },
-      },
-    }),
-    db.account.findMany({
-      where: { uid: user.uid },
-    }),
-  ]); }
+        // @ts-ignore
+        cacheStrategy: { swr: 60, ttl: 60 },
+      }),
+      db.account.findMany({
+        where: { uid: user.uid },
+        // @ts-ignore
+        cacheStrategy: { swr: 60, ttl: 60 },
+      }),
+    ]);
+  }
 
   let [userData, userAccounts] = await getMeUser();
 
   if (!userData) {
     console.error("User, not found! Creating new user..", user)
-    await createUser(user.uid, user.email, "Plan", "B");
+    await createUser(context, user.uid, user.email, "Plan", "B");
     [userData, userAccounts] = await getMeUser();
   }
 
