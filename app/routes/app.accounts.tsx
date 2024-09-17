@@ -6,6 +6,7 @@ import { requireUserSession } from "../auth.server";
 import AccountCard from '../components/AccountCard';
 import { Account } from '@prisma/client';
 import { db } from "../util/db.server";
+import { createUser } from '~/util/userUtil';
 
 type MeUser = {
   uid: string;
@@ -22,9 +23,10 @@ type MeUser = {
 export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
   // Ensure the user is authenticated
   const user = await requireUserSession(request);
-  
+
   // Fetch the user details and related data from Prisma
-  const [userData, userAccounts] = await Promise.all([
+  // eslint-disable-next-line prefer-const
+  const getMeUser = async () => {return await Promise.all([
     db.user.findUnique({
       where: { uid: user.uid },
       include: {
@@ -37,11 +39,17 @@ export const loader: LoaderFunction = async ({ request } : { request: Request })
     db.account.findMany({
       where: { uid: user.uid },
     }),
-  ]);
+  ]); }
+
+  let [userData, userAccounts] = await getMeUser();
 
   if (!userData) {
-    throw new Response("User not found", { status: 404 });
+    console.error("User, not found! Creating new user..", user)
+    await createUser(user.uid, user.email, "Plan", "B");
+    [userData, userAccounts] = await getMeUser();
   }
+
+  userData = userData!
 
   return json({
     me: {

@@ -25,6 +25,9 @@ export default defineConfig({
       'fs': 'browserify-fs', // Example for 'fs' polyfill, adjust as necessary
     },
   },
+  server: {
+    port: 3000,
+  },
   build: {
     target: 'esnext', // Ensure modern build targets for better polyfill support
   },
