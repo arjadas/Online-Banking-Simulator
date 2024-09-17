@@ -1,4 +1,4 @@
-import { ActionFunction, json, redirect } from "@remix-run/node";
+import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData } from "@remix-run/react";
 import { login, commitSession, getSession } from "~/auth.server";
 
@@ -6,7 +6,7 @@ type ActionData = {
   error?: string;
 };
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request } : { request: Request }) => {
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -22,7 +22,7 @@ export const action: ActionFunction = async ({ request }) => {
       },
     });
   } catch (error: any) {
-    return json<ActionData>({ error: error.message });
+    return json<ActionData>({ error: error.toString() });
   }
 };
 

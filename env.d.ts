@@ -7,6 +7,6 @@ declare namespace NodeJS {
       VITE_FIREBASE_MESSAGING_SENDER_ID: string;
       VITE_FIREBASE_APP_ID: string;
       VITE_FIREBASE_MEASUREMENT_ID: string;
-      SESSION_SECRET: string;
+      VITE_SESSION_SECRET: string;
     }
   }

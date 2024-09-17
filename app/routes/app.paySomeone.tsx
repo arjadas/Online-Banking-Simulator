@@ -2,13 +2,12 @@ import React, { Dispatch, SetStateAction, useState } from 'react';
 import { Page, Card, Button, Input, Textarea, Text } from '@geist-ui/react';
 import { Select, Tabs } from '@geist-ui/core';
 import { Account, TransactionType } from '@prisma/client';
-import { ActionFunction, LoaderFunction, json } from '@remix-run/node';
+import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import { requireUserSession } from '../auth.server';
 import { db } from '../util/db.server';
-import { from } from '@apollo/client';
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request } : { request: Request }) => {
     const formData = await request.formData();
     const fromAcc = parseInt(formData.get('fromAcc') as string);
     const recipientAddress = formData.get('recipientAddress') as string;
@@ -97,7 +96,7 @@ export const action: ActionFunction = async ({ request }) => {
     }
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request } : { request: Request }) => {
     // Ensure the user is authenticated
     const user = await requireUserSession(request);
 
@@ -234,7 +233,7 @@ const PaySomeone = () => {
                         <Text h4>From Account</Text>
                         <div style={{ width: '48%' }}>
                             <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
-                                {accounts.map((account) => (
+                                {accounts.map((account: Account) => (
                                     <Select.Option key={account.acc} value={account.acc.toString()}>
                                         {account.short_description}
                                     </Select.Option>

@@ -1,4 +1,4 @@
-import { ActionFunction, json } from "@remix-run/node";
+import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { sendResetPasswordEmail } from "~/auth.server";
 
@@ -7,7 +7,7 @@ type ActionData = {
   success?: string;
 };
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request } : { request: Request }) => {
   const formData = await request.formData();
   const email = formData.get("email") as string;
 
