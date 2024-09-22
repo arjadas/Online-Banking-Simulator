@@ -1,0 +1,81 @@
+body {
+  background-color:rgb(133, 155, 163);
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; 
+}
+
+input {
+  width: 500px;
+  padding: 0.50rem;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #000000;
+  border-top-left-radius: 5px;
+  border-top-right-radius:5px;
+  position: relative;
+  bottom: 5px;
+}
+
+.sign {
+  font-weight: normal;
+  position: relative;
+  right: 540px;
+  bottom : 150px;
+  font-size: 25px;
+
+}
+
+ .first-name-container{
+  position:relative;
+  bottom:15px;
+}
+
+.last-name-container{
+  position: relative;
+  bottom:5px;
+  
+  
+}
+
+
+.emailS-container{
+  position:relative;
+  top:5px;
+}
+  
+
+.passwordS-container {
+  position:relative;
+  top:15px;
+} 
+
+.sign-up-button { 
+  width: 200px;
+  height: 30px;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  border-radius: 8px;
+  background-color: rgb(27, 103, 202);
+  display: flex;         
+  justify-content: center; 
+  align-items: center;   
+  text-align: center; 
+  position: relative;
+  left:150px;
+  top:35px;
+  border:none;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+  
+ 
+}
+input::placeholder {
+  color:#000000;
+  opacity: 1;
+  font-weight: 500;
+  
+}

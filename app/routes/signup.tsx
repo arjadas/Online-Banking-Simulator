@@ -7,6 +7,7 @@ import { openAccount } from "~/util/accountUtil";
 import { signup } from "~/auth.client";
 import { useEffect, useState } from "react";
 import { createUser } from "~/util/userUtil";
+import "../styles/signup.css";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
@@ -65,27 +66,25 @@ export default function Signup() {
 
     return (
         <div>
-            <h1>Sign Up</h1>
+            <h1 className="sign">Sign Up</h1>
             <Form method="post" onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="first_name">First Name</label>
-                    <input type="text" name="first_name" required />
+                <div className="first-name-container">
+                    <input type="text" name="first_name" placeholder="First Name" required />
+                </div>
+                <div className="last-name-container">
+                    <input type="text" name="last_name" placeholder="Last Name"  required />
+                </div>
+                <div className="emailS-container">
+                    <input type="email" name="email" placeholder="Enter Email" required />
+                </div>
+                <div className="passwordS-container">
+                    <input type="password" name="password" placeholder="Enter Password" required />
                 </div>
                 <div>
-                    <label htmlFor="last_name">Last Name</label>
-                    <input type="text" name="last_name" required />
-                </div>
-                <div>
-                    <label htmlFor="email">Email</label>
-                    <input type="email" name="email" required />
-                </div>
-                <div>
-                    <label htmlFor="password">Password</label>
-                    <input type="password" name="password" required />
-                </div>
-                <button type="submit" disabled={navigation.state === "submitting"}>
+                <button type="submit" className="sign-up-button" disabled={navigation.state === "submitting"}>
                     {navigation.state === "submitting" ? "Signing up..." : "Sign up"}
                 </button>
+                </div>
             </Form>
             {clientError && (
                 <div>
