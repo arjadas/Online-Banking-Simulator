@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import { useLoaderData } from "@remix-run/react";
-import { Text, Spacer, Grid, Card, Select, Button, Collapse, Input } from '@geist-ui/core';
+import { Text, Spacer, Grid, Card, Select, Button, Collapse, Input, Image } from '@geist-ui/core';
 import { Account, Transaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { getPrismaClient } from "../util/db.server";
@@ -65,6 +65,8 @@ export default function Transactions() {
   const [expandedTransactions, setExpandedTransactions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const userAccountIds = accounts.map((account) => account.acc);
+
   // Filter transactions based on selected account or search query
   const filteredTransactions = transactions.filter((tx) => {
     const accountMatches = filteredAccount === 'all' || tx.sender_acc === filteredAccount || tx.recipient_acc === filteredAccount;
@@ -89,6 +91,13 @@ export default function Transactions() {
       }
       return newSet;
     });
+  };
+
+  // Determine the correct icon based on whether the transaction is internal or external
+  const getTransactionIcon = (recipientAcc: number) => {
+    return userAccountIds.includes(recipientAcc) 
+      ? '/icons/same-user-tr-icon.png'  // second icon (internal transaction)
+      : '/icons/diff-user-tr-icon.png'; // first icon (external transaction)
   };
 
   return (
@@ -130,9 +139,17 @@ export default function Transactions() {
       {filteredTransactions.map((transaction) => (
         <Card key={transaction.transaction_id} width="100%">
           <Grid.Container gap={2}>
-            <Grid xs={18}>
+            <Grid xs={18} alignItems="center">
               {/* Adding spaces between each attribute */}
-              <Text small>
+              <Text small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                {/* Icon before "From" */}
+                <Image 
+                  src={getTransactionIcon(transaction.recipient_acc)} 
+                  alt="Transaction Icon" 
+                  width={2} 
+                  height={2}
+                  style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }}
+                />
                 From: {transaction.sender.short_description} &nbsp;&nbsp;
                 To: {transaction.recipient.short_description} &nbsp;&nbsp;
                 Amount: ${transaction.amount} &nbsp;&nbsp;
