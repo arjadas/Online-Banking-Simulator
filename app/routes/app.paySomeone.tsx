@@ -6,6 +6,7 @@ import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import { requireUserSession } from '../auth.server';
 import { getPrismaClient } from '../util/db.server';
+import "../styles/app.paySomeone.css";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
@@ -215,23 +216,35 @@ const PaySomeone = () => {
     };
 
     return (
-        <Page>
+        <Page className="pagepay">
             <Page.Header>
                 <Text h1 style={{ marginBottom: 20 }}>Transaction Form</Text>
             </Page.Header>
-            <Page.Content>
-                <Card shadow width="100%" style={{ maxWidth: 400, margin: '0 auto', padding: 20 }}>
+            <Page.Content >
+                {/* <Card shadow width="100%" style={{ maxWidth: 400, margin: '0 auto', padding: 20 }}> */}
                     <Form method="post">
                         <Text h4>Schedule</Text>
                         <Tabs initialValue="now" hideDivider>
                             <Tabs.Item label="Now" value="now" />
                             <Tabs.Item label="Later" value="later">
-                                <Text>Later Ui here</Text>
+                                <div>
+                                    <div className="amount">
+                                    <input type="number" name="amount" placeholder="Amount" required />   
+                                    </div>
+                                    <div className='desc'>
+                                    <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                                    </div>
+                                    <div className='date'>
+                                    <input type="date" name="payment-date" placeholder="Payment Date" required />   
+                                    </div>
+                                </div>
                             </Tabs.Item>
                             <Tabs.Item label="Recurring" value="recurring">
                                 <Text>Recurring Ui here</Text>
                             </Tabs.Item>
                         </Tabs>
+
+                    <div className='temp'>
                         <Text h4>From Account</Text>
                         <div style={{ width: '48%' }}>
                             <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
@@ -243,6 +256,7 @@ const PaySomeone = () => {
                                 ))}
                             </Select>
                         </div>
+                    </div>
                         <input type="hidden" name="fromAcc" value={fromAcc || ''} />
                         <Tabs initialValue="acc-bsb" hideDivider style={{ marginTop: 20 }}>
                             <Tabs.Item label="ACC / BSB" value="acc-bsb">
@@ -288,9 +302,9 @@ const PaySomeone = () => {
                                     onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                             </Tabs.Item>
                         </Tabs>
-                        <input type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
+                        <input className="PaySomeone-Box" type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
                         <Text h4 style={{ marginTop: 10 }}>Amount</Text>
-                        <Input width="100%" placeholder="Enter amount" aria-label="Amount" name="amount" value={amount.toFixed(2)} onChange={handleAmountChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                        <Input  className="PaySomeone-Box" width="100%" placeholder="Enter amount" aria-label="Amount" name="amount" value={amount.toFixed(2)} onChange={handleAmountChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                         <Text h4 style={{ marginTop: 10 }}>Reference</Text>
                         <Textarea width="100%" placeholder="Enter reference" aria-label="Reference" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                         <Text h4 style={{ marginTop: 10 }}>Description</Text>
@@ -314,7 +328,8 @@ const PaySomeone = () => {
                             )}
                         </div>
                     )}
-                </Card>
+               {/*  </Card> */}
+               
             </Page.Content>
         </Page>
     );
