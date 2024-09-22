@@ -1,5 +1,6 @@
 body {
-  background-color: rgb(133, 155, 163);
+ /*  background-color: rgb(133, 155, 163); */
+   background: repeating-linear-gradient(yellow,rgb(255, 255, 255));
   font-family: 'Arial', sans-serif;
   display: flex;
   justify-content: center;
@@ -40,7 +41,7 @@ input {
 
 
 .sign-up {
-  
+
   width: 500px;
   border: 1px solid black; 
   padding: 0.50rem; 
