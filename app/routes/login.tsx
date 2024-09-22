@@ -3,6 +3,7 @@ import { Form, Link, useActionData, useSubmit, useNavigation } from "@remix-run/
 import { commitSession, getSession } from "~/auth.server";
 import { login } from "~/auth.client";
 import { useState, useEffect } from "react";
+import "../styles/login.css";
 
 type ActionData = {
   error?: string;
@@ -57,26 +58,28 @@ export default function Login() {
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1 className="login">Login</h1>
       <Form method="post" onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input type="email" name="email" required />
+        <div className="email-container">
+          <input type="email" name="email" placeholder="Enter Email" required />
         </div>
-        <div>
-          <label htmlFor="password">Password</label>
-          <input type="password" name="password" required />
+        <div className="password-container">
+          <input type="password" name="password" placeholder="Enter Password"required />
         </div>
-        <button type="submit" disabled={navigation.state === "submitting"}>
-          {navigation.state === "submitting" ? "Logging in..." : "Log in"}
+        <div className = "forgot-password">
+          <Link to="/forgot-password">Forgot Password?</Link>
+        </div>        
+        <button type="submit" className = "submit-button" disabled={navigation.state === "submitting"}>
+          {navigation.state === "submitting" ? "Submitting..." : "Submit"}
         </button>
       </Form>
       {clientError && <p>Error: {clientError}</p>}
       {actionData?.error && <p>Error: {actionData.error}</p>}
-      <div>
-        <Link to="/signup">Don&apos;t have an account? Sign up</Link>
-        <Link to="/forgot-password">Forgot your password?</Link>
+      <div className = "sign-up">
+      Don't have an account? &nbsp;
+      <Link to="/signup" className="sign-link">Sign up</Link>
       </div>
-    </div>
+      </div>
+   
   );
 }
