@@ -1,10 +1,12 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import { useLoaderData } from "@remix-run/react";
-import { Text, Spacer, Grid, Card, Select, Button, Collapse, Input, Image } from '@geist-ui/core';
+import { Text, Spacer, Grid, Card, Select, Button, Collapse, Input } from '@geist-ui/core';
 import { Account, Transaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { getPrismaClient } from "../util/db.server";
 import { requireUserSession } from "../auth.server";
+import { Shuffle } from '@geist-ui/icons';
+import { User } from '@geist-ui/icons';
 
 // Function to format the date into "Day, Month Date (X days ago)"
 const formatDate = (transactionDate: Date) => {
@@ -96,8 +98,8 @@ export default function Transactions() {
   // Determine the correct icon based on whether the transaction is internal or external
   const getTransactionIcon = (recipientAcc: number) => {
     return userAccountIds.includes(recipientAcc) 
-      ? '/icons/same-user-tr-icon.png'  // second icon (internal transaction)
-      : '/icons/diff-user-tr-icon.png'; // first icon (external transaction)
+      ? <Shuffle size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle'}} />
+      : <User size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
   };
 
   return (
@@ -143,14 +145,8 @@ export default function Transactions() {
               {/* Adding spaces between each attribute */}
               <Text small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                 {/* Icon before "From" */}
-                <Image 
-                  src={getTransactionIcon(transaction.recipient_acc)} 
-                  alt="Transaction Icon" 
-                  width={2} 
-                  height={2}
-                  style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }}
-                />
-                From: {transaction.sender.short_description} &nbsp;&nbsp;
+                {getTransactionIcon(transaction.recipient_acc)}
+                &nbsp;&nbsp;From: {transaction.sender.short_description} &nbsp;&nbsp;
                 To: {transaction.recipient.short_description} &nbsp;&nbsp;
                 Amount: ${transaction.amount} &nbsp;&nbsp;
                 Date: {formatDate(new Date(transaction.timestamp))}
