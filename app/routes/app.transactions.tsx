@@ -123,13 +123,16 @@ export default function Transactions() {
       {/* Search Bar and Download PDF Button */}
       <Grid.Container justify="space-between" alignItems="center">
         <Grid>
-          <Button auto onClick={handleDownloadPDF}>Download PDF Statement</Button>
+          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF}>Download PDF Statement</Button>
         </Grid>
         <Grid>
-          <Input 
-            placeholder="Search Transaction" 
-            width="300px" 
-            onChange={e => setSearchQuery(e.target.value)} 
+          <Input
+            placeholder="Search Transaction"
+            type="secondary"
+            ghost
+            auto
+            scale={0.7}
+            onChange={e => setSearchQuery(e.target.value)}
             clearable
           />
         </Grid>
@@ -146,14 +149,14 @@ export default function Transactions() {
               <Text small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                 {/* Icon before "From" */}
                 {getTransactionIcon(transaction.recipient_acc)}
-                &nbsp;&nbsp;From: {transaction.sender.short_description} &nbsp;&nbsp;
-                To: {transaction.recipient.short_description} &nbsp;&nbsp;
-                Amount: ${transaction.amount} &nbsp;&nbsp;
-                Date: {formatDate(new Date(transaction.timestamp))}
+                &nbsp;&nbsp;<strong>From:</strong> {transaction.sender.short_description} &nbsp;&nbsp;
+                <strong>To:</strong> {transaction.recipient.short_description} &nbsp;&nbsp;
+                <strong>Amount:</strong> ${transaction.amount} &nbsp;&nbsp;
+                <strong>Date:</strong> {formatDate(new Date(transaction.timestamp))}
               </Text>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
-              <Button auto size="small" onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
+              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
                 {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
               </Button>
             </Grid>
@@ -164,20 +167,19 @@ export default function Transactions() {
               <Grid.Container gap={1} alignItems="flex-start">
                 {/* Boundaries for text overflow handling */}
                 <Grid xs={24} md={6}>
-                  <Text small>Sender Account:&nbsp;</Text>
+                  <Text small><strong>Sender Account:</strong>&nbsp;</Text>
                   <Text small>{transaction.sender_acc}</Text>
                 </Grid>
                 <Grid xs={24} md={6}>
-                  <Text small>Recipient Account:&nbsp;</Text>
+                  <Text small><strong>Recipient Account:</strong>&nbsp;</Text>
                   <Text small>{transaction.recipient_acc}</Text>
                 </Grid>
                 <Grid xs={24} md={6}>
-                  <Text small>Reference:&nbsp;</Text>
+                  <Text small><strong>Reference:</strong>&nbsp;</Text>
                   <Text small>{transaction.reference}</Text>
                 </Grid>
                 <Grid xs={24} md={6}>
-                  {/* Handling description */}
-                  <Text small>Description:&nbsp;</Text>
+                  <Text small><strong>Description:</strong>&nbsp;</Text>
                   <Text small>{transaction.description || "No Description Provided"}</Text>
                 </Grid>
               </Grid.Container>
