@@ -5,18 +5,17 @@ import { Account, Transaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { getPrismaClient } from "../util/db.server";
 import { requireUserSession } from "../auth.server";
-import { Shuffle } from '@geist-ui/icons';
-import { User } from '@geist-ui/icons';
+import { Shuffle, User, ArrowDownCircle, Search } from '@geist-ui/icons';
 
-// Function to format the date into "Day, Month Date (X days ago)"
+// Function to format the date as "Day, 23rd Sep (Today)" for display
 const formatDate = (transactionDate: Date) => {
   const now = new Date();
   const differenceInDays = Math.floor((now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
+    day: 'numeric',
     month: 'short',
-    day: 'numeric'
   };
 
   let formattedDate = new Intl.DateTimeFormat('en-US', options).format(transactionDate);
@@ -30,6 +29,15 @@ const formatDate = (transactionDate: Date) => {
   }
 
   return formattedDate;
+};
+
+// Function to convert a date into "DD/MM/YYYY" for search comparison
+const formatSearchDate = (date: Date) => {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`; // Australian date format
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
@@ -75,7 +83,7 @@ export default function Transactions() {
     const queryMatches = !searchQuery || 
       tx.sender.short_description.toLowerCase().includes(searchQuery.toLowerCase()) || 
       tx.recipient.short_description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      new Date(tx.timestamp).toLocaleDateString().includes(searchQuery);
+      formatSearchDate(new Date(tx.timestamp)).includes(searchQuery); // Match DD/MM/YYYY format for search
     return accountMatches && queryMatches;
   });
 
@@ -123,10 +131,14 @@ export default function Transactions() {
       {/* Search Bar and Download PDF Button */}
       <Grid.Container justify="space-between" alignItems="center">
         <Grid>
-          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF}>Download PDF Statement</Button>
+          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF}>
+            <strong>Download PDF Statement</strong> &nbsp;
+            <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
+          </Button>
         </Grid>
         <Grid>
           <Input
+            icon={<Search />}
             placeholder="Search Transaction"
             type="secondary"
             ghost
