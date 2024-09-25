@@ -41,7 +41,7 @@ export default function App() {
       </head>
       <body>
         <Provider store={store}>
-          <CssBaseline />
+         {/*  <CssBaseline /> */}
           <Outlet />
           <ScrollRestoration />
           <Scripts />
