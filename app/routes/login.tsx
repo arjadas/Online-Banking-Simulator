@@ -1,4 +1,6 @@
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
+import { Page, Card, Button, Input, Textarea, Text } from '@geist-ui/react';
+import { Select, Tabs } from '@geist-ui/core';
 import { Form, Link, useActionData, useSubmit, useNavigation } from "@remix-run/react";
 import { commitSession, getSession } from "~/auth.server";
 import { login } from "~/auth.client";
@@ -58,13 +60,30 @@ export default function Login() {
 
   return (
     <div>
-      <h1 className="login">Login</h1>
-      <Form method="post" onSubmit={handleSubmit}>
+     
+     <h1 style={{
+        fontWeight: 'bold',
+        fontSize: '25px',
+        position:'relative',
+        right:'120px',
+        top:'40px'
+      }}>Login</h1>
+    <Card 
+    style={{ width: '800px', height: '600px',display: 'flex',
+      alignItems: 'center', 
+    flexDirection: 'column', 
+    justifyContent: 'center',
+    marginTop: '70px' 
+     }} >
+      <Form  style={{display: 'flex',
+      alignItems: 'center', 
+    flexDirection: 'column', 
+    justifyContent: 'flex-start'}}method="post" onSubmit={handleSubmit}>
         <div className="email-container">
-          <input type="email" name="email" placeholder="Enter Email" required />
+          <input className= "login-page-input" type="email" name="email" placeholder="Enter Email" required />
         </div>
         <div className="password-container">
-          <input type="password" name="password" placeholder="Enter Password"required />
+          <input className= "login-page-input" type="password" name="password" placeholder="Enter Password"required />
         </div>
         <div className = "forgot-password">
           <Link to="/forgot-password">Forgot Password?</Link>
@@ -72,13 +91,14 @@ export default function Login() {
         <button type="submit" className = "submit-button" disabled={navigation.state === "submitting"}>
           {navigation.state === "submitting" ? "Submitting..." : "Submit"}
         </button>
-      </Form>
-      {clientError && <p>Error: {clientError}</p>}
-      {actionData?.error && <p>Error: {actionData.error}</p>}
-      <div className = "sign-up">
+        <div className = "sign-up">
       Don't have an account? &nbsp;
       <Link to="/signup" className="sign-link">Sign up</Link>
       </div>
+      </Form>
+      {clientError && <p>Error: {clientError}</p>}
+      {actionData?.error && <p>Error: {actionData.error}</p>}
+      </Card>
       </div>
    
   );

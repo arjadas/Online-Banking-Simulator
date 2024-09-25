@@ -1,6 +1,5 @@
 body {
- /*  background-color: rgb(133, 155, 163); */
-   background: repeating-linear-gradient(yellow,rgb(255, 255, 255));
+  background: repeating-linear-gradient(rgb(0, 174, 255), white);
   font-family: 'Arial', sans-serif;
   display: flex;
   justify-content: center;
@@ -9,12 +8,13 @@ body {
 }
 
 
-input {
+.login-page-input {
   width: 500px;
   padding: 0.50rem;
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #ffffff;
+  background-color: rgb(182, 192, 197);
+  border-top: 2px solid rgb(182, 192, 197);
+  border-left: 2px solid rgb(182, 192, 197);
+  border-right: 2px solid rgb(182, 192, 197);
   border-bottom: 2px solid #000000;
   border-top-left-radius: 5px;
   border-top-right-radius:5px;
@@ -22,8 +22,9 @@ input {
   bottom: 5px;
 }
 .email-container{
-  position:relative;
+    position:relative;
   bottom:5px;
+
 }
 
 .password-container {
@@ -41,7 +42,7 @@ input {
 
 
 .sign-up {
-
+  background-color: rgb(155, 220, 241);
   width: 500px;
   border: 1px solid black; 
   padding: 0.50rem; 
@@ -59,13 +60,13 @@ input {
    
 }
 .sign-link{
-  color: rgb(18, 120, 255);
+  color: rgb(0, 128, 255);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }
 .sign-link:hover {
-  color:rgb(18, 120, 255);
+  color:rgb(0, 128, 255);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px; 
@@ -78,14 +79,13 @@ input {
   font-weight: bold;
   font-size: 14px;
   border-radius: 8px;
-  background-color: rgb(27, 103, 202);
+  background-color: rgb(0, 128, 255);
   display: flex;         
   justify-content: center; 
   align-items: center;   
   text-align: center; 
   position: relative;
-  left:150px;
-  top:20px;
+  top:20px; 
   box-shadow: 0px 5px 10px rgb(0,0,0,0.5);
   
 }
@@ -95,7 +95,7 @@ input {
   font-weight: bold;
   font-size: 14px;
   position: relative;
-  left:5px;
+  right:180px;
   top:5px;
 
 }
@@ -104,5 +104,9 @@ input::placeholder {
   color:#000000;
   opacity: 1;
   font-weight: 500;
+  
+}
+.Lcard{
+  width:"1000px";
   
 }
