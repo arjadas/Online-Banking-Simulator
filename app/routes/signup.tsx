@@ -4,9 +4,12 @@ import { Form, useActionData, useSubmit, useNavigation } from "@remix-run/react"
 import { commitSession, getSession } from "~/auth.server";
 import { getPrismaClient } from "~/util/db.server";
 import { openAccount } from "~/util/accountUtil";
+import { Page, Card, Button, Input, Textarea, Text } from '@geist-ui/react';
+import { Select, Tabs } from '@geist-ui/core';
 import { signup } from "~/auth.client";
 import { useEffect, useState } from "react";
 import { createUser } from "~/util/userUtil";
+import { Link } from 'react-router-dom';
 import "../styles/signup.css";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
@@ -66,8 +69,23 @@ export default function Signup() {
 
     return (
         <div>
-            <h1 className="sign">Sign Up</h1>
-            <Form method="post" onSubmit={handleSubmit}>
+            <h1 style={{
+            fontWeight: 'bold',
+            fontSize: '25px',
+            position:'relative',
+            right:'120px',
+            top:'40px'
+            }}className="sign">Sign Up</h1>
+            <Card style={{ width: '800px', height: '700px',display: 'flex',
+                alignItems: 'center', 
+                flexDirection: 'column', 
+                justifyContent: 'center',
+                 marginTop: '70px' 
+                }}>
+            <Form style={{display: 'flex',
+                 alignItems: 'center', 
+                flexDirection: 'column', 
+                justifyContent: 'flex-start'}}method="post" onSubmit={handleSubmit}>
                 <div className="first-name-container">
                     <input type="text" name="first_name" placeholder="First Name" required />
                 </div>
@@ -85,12 +103,17 @@ export default function Signup() {
                     {navigation.state === "submitting" ? "Signing up..." : "Sign up"}
                 </button>
                 </div>
+                <div className = "log-in">
+                    Already have an account? &nbsp;
+                    <Link to="/login" className="login-link">Login</Link>
+                    </div>
             </Form>
             {clientError && (
                 <div>
                     <p>Error: {clientError}</p>
                 </div>
             )}
+            </Card>
         </div>
     );
 }

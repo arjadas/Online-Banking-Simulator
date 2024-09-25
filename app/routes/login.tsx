@@ -69,7 +69,7 @@ export default function Login() {
         top:'40px'
       }}>Login</h1>
     <Card 
-    style={{ width: '800px', height: '600px',display: 'flex',
+    style={{ width: '800px', height: '700px',display: 'flex',
       alignItems: 'center', 
     flexDirection: 'column', 
     justifyContent: 'center',
