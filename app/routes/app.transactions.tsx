@@ -163,7 +163,7 @@ export default function Transactions() {
                 {getTransactionIcon(transaction.recipient_acc)}
                 &nbsp;&nbsp;<strong>From:</strong> {transaction.sender.short_description} &nbsp;&nbsp;
                 <strong>To:</strong> {transaction.recipient.short_description} &nbsp;&nbsp;
-                <strong>Amount:</strong> ${transaction.amount} &nbsp;&nbsp;
+                <strong>Amount:</strong> ${transaction.amount.toFixed(2)} &nbsp;&nbsp;
                 <strong>Date:</strong> {formatDate(new Date(transaction.timestamp))}
               </Text>
             </Grid>
