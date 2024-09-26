@@ -72,7 +72,7 @@ export default function Transactions() {
   }>();
 
   const [filteredAccount, setFilteredAccount] = useState<number | 'all'>('all');
-  const [expandedTransactions, setExpandedTransactions] = useState<Set<string>>(new Set());
+  const [expandedTransactions, setExpandedTransactions] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const userAccountIds = accounts.map((account) => account.acc);
@@ -80,9 +80,9 @@ export default function Transactions() {
   // Filter transactions based on selected account or search query
   const filteredTransactions = transactions.filter((tx) => {
     const accountMatches = filteredAccount === 'all' || tx.sender_acc === filteredAccount || tx.recipient_acc === filteredAccount;
-    const queryMatches = !searchQuery || 
-      tx.sender.short_description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      tx.recipient.short_description.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const queryMatches = !searchQuery ||
+      tx.sender.short_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.recipient.short_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       formatSearchDate(new Date(tx.timestamp)).includes(searchQuery); // Match DD/MM/YYYY format for search
     return accountMatches && queryMatches;
   });
@@ -91,7 +91,7 @@ export default function Transactions() {
     // Code to handle PDF download (you can integrate a backend route for this functionality)
   };
 
-  const toggleTransactionDetails = (transactionId: string) => {
+  const toggleTransactionDetails = (transactionId: number) => {
     setExpandedTransactions(prev => {
       const newSet = new Set(prev);
       if (newSet.has(transactionId)) {
@@ -105,8 +105,8 @@ export default function Transactions() {
 
   // Determine the correct icon based on whether the transaction is internal or external
   const getTransactionIcon = (recipientAcc: number) => {
-    return userAccountIds.includes(recipientAcc) 
-      ? <Shuffle size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle'}} />
+    return userAccountIds.includes(recipientAcc)
+      ? <Shuffle size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
       : <User size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
   };
 
@@ -119,11 +119,11 @@ export default function Transactions() {
       <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <Select.Option value="all">All Accounts</Select.Option>
         {// @ts-ignore 
-        accounts.map((account: Account) => (
-          <Select.Option key={account.acc} value={account.acc.toString()}>
-            {account.short_description} (BSB: {account.bsb})
-          </Select.Option>
-        ))}
+          accounts.map((account: Account) => (
+            <Select.Option key={account.acc} value={account.acc.toString()}>
+              {account.short_description} (BSB: {account.bsb})
+            </Select.Option>
+          ))}
       </Select>
 
       <Spacer h={2} />
@@ -131,7 +131,7 @@ export default function Transactions() {
       {/* Search Bar and Download PDF Button */}
       <Grid.Container justify="space-between" alignItems="center">
         <Grid>
-          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF}>
+          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <strong>Download PDF Statement</strong> &nbsp;
             <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
           </Button>
@@ -141,12 +141,9 @@ export default function Transactions() {
             icon={<Search />}
             placeholder="Search Transaction"
             type="secondary"
-            ghost
-            auto
             scale={0.7}
             onChange={e => setSearchQuery(e.target.value)}
-            clearable
-          />
+            clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined}          />
         </Grid>
       </Grid.Container>
 
@@ -168,7 +165,7 @@ export default function Transactions() {
               </Text>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
-              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
+              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
               </Button>
             </Grid>

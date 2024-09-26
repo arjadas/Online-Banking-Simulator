@@ -1,11 +1,11 @@
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Page, Card, Button, Input, Textarea, Text } from '@geist-ui/react';
+import { Page, Card, Button, Input, Textarea, Text, Image } from '@geist-ui/react';
 import { Select, Tabs } from '@geist-ui/core';
 import { Form, Link, useActionData, useSubmit, useNavigation } from "@remix-run/react";
 import { commitSession, getSession } from "~/auth.server";
 import { login } from "~/auth.client";
 import { useState, useEffect } from "react";
-import "../styles/login.css";
+//import "../styles/login.css";
 
 type ActionData = {
   error?: string;
@@ -59,47 +59,25 @@ export default function Login() {
   };
 
   return (
-    <div>
-     
-     <h1 style={{
-        fontWeight: 'bold',
-        fontSize: '25px',
-        position:'relative',
-        right:'120px',
-        top:'40px'
-      }}>Login</h1>
-    <Card 
-    style={{ width: '800px', height: '700px',display: 'flex',
-      alignItems: 'center', 
-    flexDirection: 'column', 
-    justifyContent: 'center',
-    marginTop: '70px' 
-     }} >
-      <Form  style={{display: 'flex',
-      alignItems: 'center', 
-    flexDirection: 'column', 
-    justifyContent: 'flex-start'}}method="post" onSubmit={handleSubmit}>
-        <div className="email-container">
-          <input className= "login-page-input" type="email" name="email" placeholder="Enter Email" required />
-        </div>
-        <div className="password-container">
-          <input className= "login-page-input" type="password" name="password" placeholder="Enter Password"required />
-        </div>
-        <div className = "forgot-password">
-          <Link to="/forgot-password">Forgot Password?</Link>
-        </div>        
-        <button type="submit" className = "submit-button" disabled={navigation.state === "submitting"}>
-          {navigation.state === "submitting" ? "Submitting..." : "Submit"}
-        </button>
-        <div className = "sign-up">
-      Don't have an account? &nbsp;
-      <Link to="/signup" className="sign-link">Sign up</Link>
-      </div>
-      </Form>
-      {clientError && <p>Error: {clientError}</p>}
-      {actionData?.error && <p>Error: {actionData.error}</p>}
+    <div style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "column",
+      height: "100vh"
+    }} >
+      <Image width="400px" style={{ textAlign: "center", paddingBottom: 30 }} src="logo.png" />
+      <Card width="400px" style={{ padding: 10 }}>
+        <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+          <Input.Password name="password" clearable placeholder="Password" required width="100%" />
+          <Button htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Log in</Button>
+        </Form>
+        {clientError && <Text type="error" marginTop="20px">{clientError}</Text>}
+        <Text p>Don&apos;t have an account? <Link to="/signup">Sign up</Link></Text>
+        <Link to="/forgot-password"><Text p>Forgot your password?</Text></Link>
       </Card>
-      </div>
-   
+    </div>
+
   );
 }
