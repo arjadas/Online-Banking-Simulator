@@ -143,7 +143,7 @@ export default function Transactions() {
             type="secondary"
             scale={0.7}
             onChange={e => setSearchQuery(e.target.value)}
-            clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined}          />
+            clearable crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          />
         </Grid>
       </Grid.Container>
 
@@ -165,13 +165,14 @@ export default function Transactions() {
               </Text>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
-              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-                {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
+              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id.toString())} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                {expandedTransactions.has(transaction.transaction_id.toString()) ? 'Hide Details' : 'View Details'}
+
               </Button>
             </Grid>
           </Grid.Container>
 
-          {expandedTransactions.has(transaction.transaction_id) && (
+          {expandedTransactions.has(transaction.transaction_id.toString()) && (
             <Collapse title="Transaction Details" initialVisible>
               <Grid.Container gap={1} alignItems="flex-start">
                 {/* Boundaries for text overflow handling */}
