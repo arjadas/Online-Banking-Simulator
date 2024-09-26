@@ -131,7 +131,7 @@ export default function Transactions() {
       {/* Search Bar and Download PDF Button */}
       <Grid.Container justify="space-between" alignItems="center">
         <Grid>
-          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF}>
+          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <strong>Download PDF Statement</strong> &nbsp;
             <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
           </Button>
@@ -141,12 +141,9 @@ export default function Transactions() {
             icon={<Search />}
             placeholder="Search Transaction"
             type="secondary"
-            ghost
-            auto
             scale={0.7}
             onChange={e => setSearchQuery(e.target.value)}
-            clearable
-          />
+            clearable crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          />
         </Grid>
       </Grid.Container>
 
@@ -168,13 +165,13 @@ export default function Transactions() {
               </Text>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
-              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
-                {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
+              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id.toString())} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                {expandedTransactions.has(transaction.transaction_id.toString()) ? 'Hide Details' : 'View Details'}
               </Button>
             </Grid>
           </Grid.Container>
 
-          {expandedTransactions.has(transaction.transaction_id) && (
+          {expandedTransactions.has(transaction.transaction_id.toString()) && (
             <Collapse title="Transaction Details" initialVisible>
               <Grid.Container gap={1} alignItems="flex-start">
                 {/* Boundaries for text overflow handling */}
