@@ -1,26 +1,24 @@
-body{
-  background: repeating-linear-gradient(yellow,white);
-}
-
 input::placeholder {
-  color:#000000;
+  color: #000000;
   opacity: 1;
   font-weight: 500;
-  
+
 }
-.desc{
-  background-color: white ;
+
+.desc {
+  background-color: white;
   width: 500px;
-  bottom:5px;
-  top:5px;
+  bottom: 5px;
+  top: 5px;
   border-top-left-radius: 5px;
-  border-top-right-radius:5px;
+  border-top-right-radius: 5px;
   border-bottom: 2px solid #000000;
 
 }
-.amount{
+
+.amount {
   position: relative;
-  bottom:5px;
+  bottom: 5px;
 
 }
 
@@ -31,17 +29,17 @@ input {
   padding: 0.50rem;
   border-bottom: 2px solid #000000;
   border-top-left-radius: 5px;
-  border-top-right-radius:5px;
+  border-top-right-radius: 5px;
   position: relative;
   bottom: 5px;
 }
 
 .temp {
   position: relative;
-  top:20px;
+  top: 20px;
 }
 
-.date{
-  position:relative;
-  top:10px;
+.date {
+  position: relative;
+  top: 10px;
 }

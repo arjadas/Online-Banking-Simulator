@@ -82,8 +82,8 @@ export default function Dashboard() {
     <>
       <Spacer h={2} />
 
-      <Text small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-      <Text h2>Hi {user.first_name}</Text>
+      <Text style={{color: 'black'}} small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+      <Text style={{color: 'black'}} h2>Hi {user.first_name}</Text>
 
       <Spacer h={1} />
 
