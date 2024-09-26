@@ -4,9 +4,13 @@ import { Form, useActionData, useSubmit, useNavigation } from "@remix-run/react"
 import { commitSession, getSession } from "~/auth.server";
 import { getPrismaClient } from "~/util/db.server";
 import { openAccount } from "~/util/accountUtil";
+import { Page, Card, Button, Input, Textarea, Text } from '@geist-ui/react';
+import { Select, Tabs } from '@geist-ui/core';
 import { signup } from "~/auth.client";
 import { useEffect, useState } from "react";
 import { createUser } from "~/util/userUtil";
+import { Link } from 'react-router-dom';
+import "../styles/signup.css";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
@@ -65,33 +69,51 @@ export default function Signup() {
 
     return (
         <div>
-            <h1>Sign Up</h1>
-            <Form method="post" onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="first_name">First Name</label>
-                    <input type="text" name="first_name" required />
+            <h1 style={{
+            fontWeight: 'bold',
+            fontSize: '25px',
+            position:'relative',
+            right:'120px',
+            top:'40px'
+            }}className="sign">Sign Up</h1>
+            <Card style={{ width: '800px', height: '700px',display: 'flex',
+                alignItems: 'center', 
+                flexDirection: 'column', 
+                justifyContent: 'center',
+                 marginTop: '70px' 
+                }}>
+            <Form style={{display: 'flex',
+                 alignItems: 'center', 
+                flexDirection: 'column', 
+                justifyContent: 'flex-start'}}method="post" onSubmit={handleSubmit}>
+                <div className="first-name-container">
+                    <input type="text" name="first_name" placeholder="First Name" required />
+                </div>
+                <div className="last-name-container">
+                    <input type="text" name="last_name" placeholder="Last Name"  required />
+                </div>
+                <div className="emailS-container">
+                    <input type="email" name="email" placeholder="Enter Email" required />
+                </div>
+                <div className="passwordS-container">
+                    <input type="password" name="password" placeholder="Enter Password" required />
                 </div>
                 <div>
-                    <label htmlFor="last_name">Last Name</label>
-                    <input type="text" name="last_name" required />
-                </div>
-                <div>
-                    <label htmlFor="email">Email</label>
-                    <input type="email" name="email" required />
-                </div>
-                <div>
-                    <label htmlFor="password">Password</label>
-                    <input type="password" name="password" required />
-                </div>
-                <button type="submit" disabled={navigation.state === "submitting"}>
+                <button type="submit" className="sign-up-button" disabled={navigation.state === "submitting"}>
                     {navigation.state === "submitting" ? "Signing up..." : "Sign up"}
                 </button>
+                </div>
+                <div className = "log-in">
+                    Already have an account? &nbsp;
+                    <Link to="/login" className="login-link">Login</Link>
+                    </div>
             </Form>
             {clientError && (
                 <div>
                     <p>Error: {clientError}</p>
                 </div>
             )}
+            </Card>
         </div>
     );
 }
