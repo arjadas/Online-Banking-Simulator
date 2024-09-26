@@ -99,7 +99,7 @@ const TransferBetweenAccounts = () => {
   const { userAccounts: accounts } = useLoaderData<{ userAccounts: Account[] }>();
   const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
   const [toAcc, setToAcc] = useState<number | undefined>(undefined);
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
 
   const handleFromAccChange = (value: string | string[]) => {
@@ -112,22 +112,23 @@ const TransferBetweenAccounts = () => {
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let inputValue = event.target.value;
-    inputValue = inputValue.replace(/[^0-9.]/g, '');
-    //TODO fix this
 
-    // Ensure only one decimal point is allowed
+    // Remove any non-numeric characters except for the decimal point
+    inputValue = inputValue.replace(/[^0-9.]/g, '');
+
+    // Ensure there's only one decimal point
     const parts = inputValue.split('.');
     if (parts.length > 2) {
       inputValue = parts[0] + '.' + parts.slice(1).join('');
     }
 
-    // Format the number to 2 decimal places
-    if (inputValue) {
-      const amount = parseInt(inputValue.replace('.', ''))
-      setAmount(amount);
-    } else {
-      setAmount(0);
+    // Handle decimals and prevent multiple trailing zeros
+    if (parts.length === 2 && parts[1].length > 2) {
+      inputValue = parts[0] + '.' + parts[1].slice(0, 2);  // Limit to two decimal places
     }
+
+    // Update the amount state with the properly formatted input
+    setAmount(inputValue);
   };
 
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +150,10 @@ const TransferBetweenAccounts = () => {
                 <Select
                   placeholder="Select account"
                   width="100%"
-                  onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
+                  onChange={handleFromAccChange}
+                  onPointerEnterCapture={undefined}
+                  onPointerLeaveCapture={undefined}
+                >
                   {// @ts-ignore
                   accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
@@ -164,7 +168,10 @@ const TransferBetweenAccounts = () => {
                 <Select
                   placeholder="Select account"
                   width="100%"
-                  onChange={handleToAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  >
+                  onChange={handleToAccChange}
+                  onPointerEnterCapture={undefined}
+                  onPointerLeaveCapture={undefined}
+                >
                   {// @ts-ignore
                   accounts.map((account: Account) => (
                     <Select.Option key={account.acc} value={account.acc.toString()}>
@@ -181,9 +188,13 @@ const TransferBetweenAccounts = () => {
               clearable
               placeholder="Enter amount"
               width="100%"
-              value={amount.toFixed(2)}
+              value={amount}
               onChange={handleAmountChange}
-              name="amount" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+              name="amount"
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
+              crossOrigin={undefined}
+            />
             <Spacer h={1} />
             <Input
               clearable
@@ -191,9 +202,22 @@ const TransferBetweenAccounts = () => {
               width="100%"
               value={description}
               onChange={handleDescriptionChange}
-              name="description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+              name="description"
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
+              crossOrigin={undefined}
+            />
             <Spacer h={1} />
-            <Button type="secondary" htmlType="submit" width="100%" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Transfer</Button>
+            <Button
+              type="secondary"
+              htmlType="submit"
+              width="100%"
+              placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
+            >
+              Transfer
+            </Button>
           </Form>
           {actionData && (
             <div style={{ marginTop: '20px' }}>

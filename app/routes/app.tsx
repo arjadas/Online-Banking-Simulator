@@ -1,5 +1,5 @@
 
-import { Page, Text, Grid, } from '@geist-ui/core';
+import { Page, Text, Grid, Image } from '@geist-ui/core';
 import { Outlet } from "@remix-run/react";
 import DynamicTabs from '../components/DynamicTabs';
 
@@ -9,7 +9,7 @@ export default function AppLayout() {
       <Page.Header>
         <Grid.Container gap={2} justify="space-between" alignItems="center">
           <Grid>
-            <Text h2>Learn to Bank</Text>
+            <Image height="200px" style={{padding: 0 }} src="/logo.png" />
           </Grid>
           <Grid>
             <Grid.Container gap={4}>
