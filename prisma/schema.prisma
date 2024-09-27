@@ -1,12 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("VITE_DATABASE_URL")
-  directUrl         = env("VITE_DIRECT_URL")
-  shadowDatabaseUrl = env("VITE_SHADOW_DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Transaction {
@@ -16,14 +15,14 @@ model Transaction {
   recipient_acc       Int
   sender_uid          String
   recipient_uid       String
-  recipient_address   Json?
+  recipient_address   String?
   reference           String
   description         String?
   timestamp           DateTime
   recc_transaction    RecurringTransaction? @relation(fields: [recc_transaction_id], references: [recc_transaction_id])
   recc_transaction_id Int?
   settled             Boolean
-  type                TransactionType
+  type                String
 
   sender    Account @relation("transactionSender", fields: [sender_acc], references: [acc])
   recipient Account @relation("transactionRecipient", fields: [recipient_acc], references: [acc])
@@ -54,10 +53,10 @@ model RecurringTransaction {
   recipient_acc       Int
   sender_uid          String
   recipient_uid       String
-  recipient_address   Json
+  recipient_address   String
   reference           String
   description         String?
-  frequency           Json
+  frequency           String
 
   sender    Account @relation("reccTransactionSender", fields: [sender_acc], references: [acc])
   recipient Account @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
@@ -82,31 +81,30 @@ model DefaultTransaction {
   recipient_acc      Int
   incoming           Boolean
   amount             Int
-  recipient_address  Json
+  recipient_address  String
   reference          String
   description        String?
-  frequency          Json
+  frequency          String
 }
 
 model UserPrevContact {
-  uid                 String
-  contact_acc         Int
-  contact_acc_name    String
-  contact_uid         String
-  contact_description String
-  user                User   @relation(fields: [uid], references: [uid])
-
-  @@id([uid, contact_acc])
+  user_prev_contact_id Int    @id @default(autoincrement())
+  uid                  String
+  contact_acc          Int
+  contact_acc_name     String
+  contact_uid          String
+  contact_description  String
+  user                 User   @relation(fields: [uid], references: [uid])
 }
 
 model User {
-  uid                String          @id
+  uid                String    @id
   first_name         String
   middle_names       String?
   last_name          String
   email              String
-  role               UserRole
-  font_preference    FontPreference?
+  role               String
+  font_preference    String?
   creation_timestamp DateTime
   last_login         DateTime?
 
@@ -116,36 +114,12 @@ model User {
 }
 
 model Notification {
-  notification_id String           @id
+  notification_id String   @id
   uid             String
   timestamp       DateTime
-  type            NotificationType
+  type            String
   content         String
   read            Boolean
 
   user User @relation(fields: [uid], references: [uid])
-}
-
-enum TransactionType {
-  salary
-  interest
-  transfer
-  paySomeone
-}
-
-enum UserRole {
-  administrator
-  student
-}
-
-enum FontPreference {
-  small
-  medium
-  large
-}
-
-enum NotificationType {
-  transaction
-  reminder
-  message
 }

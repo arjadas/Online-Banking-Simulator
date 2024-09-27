@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { GeistProvider, CssBaseline, Page, Text, Card, Select, Input, Button, Spacer } from '@geist-ui/react';
+import { Button, Card, Input, Page, Select, Spacer, Text } from '@geist-ui/react';
+import { PrismaD1 } from '@prisma/adapter-d1';
+import { Account } from '@prisma/client';
+import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
-import { json, LoaderFunction, ActionFunction } from "@remix-run/cloudflare";
-import { getPrismaClient } from "../util/db.server";
+import React, { useState } from 'react';
 import { requireUserSession } from "../auth.server";
-import { Account, TransactionType } from '@prisma/client';
+import { getPrismaClient } from '~/util/db.server';
+import ResizableText from '~/components/ResizableText';
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
@@ -13,6 +15,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const amount = parseInt(formData.get('amount') as string);
   const description = formData.get('description') as string;
   const user = await requireUserSession(request);
+  const adapter = new PrismaD1(context.cloudflare.env.DB);
   const db = getPrismaClient(context);
 
   try {
@@ -20,7 +23,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       const fromAccount = await prisma.account.findFirst({
         where: { acc: fromAcc },
       });
-      
+
       const toAccount = await prisma.account.findFirst({
         where: { acc: toAcc },
       });
@@ -49,7 +52,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       });
 
       // create a new transaction
-      const newTransaction = await prisma.transaction.create({
+      /*const newTransaction = await prisma.transaction.create({
         data: {
           amount,
           sender_acc: fromAccount.acc,
@@ -64,10 +67,10 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         },
       });
 
-      return { fromAcc, toAcc, newTransaction };
+      return { fromAcc, toAcc, newTransaction };*/
     });
 
-    return json({ success: true, ...result });
+    //   return json({ success: true, ...result });
   } catch (error) {
     console.error('Transfer error:', error);
     return json({ success: false, error: (error as Error).message }, { status: 400 });
@@ -76,6 +79,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await requireUserSession(request);
+  const adapter = new PrismaD1(context.cloudflare.env.DB);
   const db = getPrismaClient(context);
 
   // fetch the user details and related data from Prisma
@@ -137,16 +141,14 @@ const TransferBetweenAccounts = () => {
 
   return (
     <Page>
-      <Page.Header>
-        <Text h1 style={{ marginBottom: '20px' }}>Transfer Between Accounts</Text>
-      </Page.Header>
       <Page.Content>
-        <Card shadow width="100%" style={{ maxWidth: '720px', margin: '0 auto' }}>
+        <Card shadow width="100%" style={{ maxWidth: '720px', margin: '0 auto' }} padding={1}>
+        <ResizableText h2 style={{ marginBottom: '20px' }}>Transfer Between Accounts</ResizableText>
           <Form method="post">
-            <Text h3>Choose Accounts</Text>
+            <ResizableText h3>Choose Accounts</ResizableText>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ width: '48%' }}>
-                <Text small>From</Text>
+                <ResizableText small>From</ResizableText>
                 <Select
                   placeholder="Select account"
                   width="100%"
@@ -155,16 +157,16 @@ const TransferBetweenAccounts = () => {
                   onPointerLeaveCapture={undefined}
                 >
                   {// @ts-ignore
-                  accounts.map((account: Account) => (
-                    <Select.Option key={account.acc} value={account.acc.toString()}>
-                      {account.short_description}
-                    </Select.Option>
-                  ))}
+                    accounts.map((account: Account) => (
+                      <Select.Option key={account.acc} value={account.acc.toString()}>
+                        {account.short_description}
+                      </Select.Option>
+                    ))}
                 </Select>
                 <input type="hidden" name="fromAcc" value={fromAcc || ''} />
               </div>
               <div style={{ width: '48%' }}>
-                <Text small>To</Text>
+                <ResizableText small>To</ResizableText>
                 <Select
                   placeholder="Select account"
                   width="100%"
@@ -173,17 +175,17 @@ const TransferBetweenAccounts = () => {
                   onPointerLeaveCapture={undefined}
                 >
                   {// @ts-ignore
-                  accounts.map((account: Account) => (
-                    <Select.Option key={account.acc} value={account.acc.toString()}>
-                      {account.short_description}
-                    </Select.Option>
-                  ))}
+                    accounts.map((account: Account) => (
+                      <Select.Option key={account.acc} value={account.acc.toString()}>
+                        {account.short_description}
+                      </Select.Option>
+                    ))}
                 </Select>
                 <input type="hidden" name="toAcc" value={toAcc || ''} />
               </div>
             </div>
             <Spacer h={1} />
-            <Text h3>Transfer Amount</Text>
+            <ResizableText h3>Transfer Amount</ResizableText>
             <Input
               clearable
               placeholder="Enter amount"
@@ -222,9 +224,9 @@ const TransferBetweenAccounts = () => {
           {actionData && (
             <div style={{ marginTop: '20px' }}>
               {actionData.success ? (
-                <Text type="success">Transfer successful!</Text>
+                <ResizableText type="success">Transfer successful!</ResizableText>
               ) : (
-                <Text type="error">Transfer failed: {actionData.error}</Text>
+                <ResizableText type="error">Transfer failed: {actionData.error}</ResizableText>
               )}
             </div>
           )}

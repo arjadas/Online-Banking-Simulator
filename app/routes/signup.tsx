@@ -1,15 +1,13 @@
-import { FontPreference, UserRole } from "@prisma/client";
+import { CssBaseline } from '@geist-ui/core';
+import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useSubmit, useNavigation } from "@remix-run/react";
-import { commitSession, getSession } from "~/auth.server";
-import { getPrismaClient } from "~/util/db.server";
-import { openAccount } from "~/util/accountUtil";
-import { Page, Card, Button, Input, Image, Text } from '@geist-ui/react';
-import { Select, Tabs } from '@geist-ui/core';
-import { signup } from "~/auth.client";
+import { Form, useActionData, useNavigation, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { createUser } from "~/util/userUtil";
 import { Link } from 'react-router-dom';
+import { signup } from "~/auth.client";
+import { commitSession, getSession } from "~/auth.server";
+import ResizableText from '~/components/ResizableText';
+import { createUser } from "~/util/userUtil";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
@@ -76,7 +74,7 @@ export default function Signup() {
         }}>
             <Image width="400px" style={{ textAlign: "center", paddingBottom: 30 }} src="logo.png" />
             <Card width="400px">
-                <Text h3 style={{ textAlign: "center" }}>Sign Up</Text>
+                <ResizableText h3 style={{ textAlign: "center" }}>Sign Up</ResizableText>
                 <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <Input name="first_name" placeholder="First Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <Input name="last_name" placeholder="Last Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
@@ -84,8 +82,8 @@ export default function Signup() {
                     <Input.Password name="password" clearable placeholder="Password" required width="100%" />
                     <Button htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Sign up</Button>
                 </Form>
-                {clientError && <Text type="error" marginTop="20px">{clientError}</Text>}
-                <Link to="/login"><Text p>Go back</Text></Link>
+                {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
+                <Link to="/login"><ResizableText p>Go back</ResizableText></Link>
             </Card>
         </div>
     );

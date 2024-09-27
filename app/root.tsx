@@ -1,27 +1,25 @@
-import { LoaderFunction, json, redirect } from "@remix-run/cloudflare";
-import { Provider } from 'react-redux';
+import { LoaderFunction, redirect } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
-  useLoaderData,
+  ScrollRestoration
 } from "@remix-run/react";
-import { CssBaseline } from "@geist-ui/core";
-import { getSession } from "./auth.server";
-import "./tailwind.css";
+import { Provider } from 'react-redux';
+import { requireUserSession } from "./auth.server";
 import store from './store';
+import "./tailwind.css";
+import { CssBaseline } from "@geist-ui/core";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React from "react";
 
 export const loader: LoaderFunction = async ({ request }: { request: Request }) => {
-  const session = await getSession(request);
-  const user = session.get("user");
+  const user = await requireUserSession(request);
   const url = new URL(request.url);
 
   // Handle initial request
   if (url.pathname === "/") {
+    console.log("Root:", request.headers.get("Cookie"), user?.uid);
     if (user) {
       return redirect("/app/accounts");
     } else {
