@@ -1,10 +1,11 @@
-import { FontPreference, UserRole } from "@prisma/client";
+import { PrismaD1 } from '@prisma/adapter-d1';
 import { openAccount } from "./accountUtil";
-import { getPrismaClient } from "./db.server";
+import { getPrismaClient } from '~/util/db.server';
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
     try {
         const date = new Date();
+        const adapter = new PrismaD1(context.cloudflare.env.DB);
         const db = getPrismaClient(context);
         const user = await db.user.create({
             data: {
@@ -12,8 +13,8 @@ export async function createUser(context: any, uid: string, email: string, first
                 email,
                 first_name: first_name,
                 last_name: last_name,
-                role: UserRole.student,
-                font_preference: FontPreference.medium,
+                role: 'student',
+                font_preference: null,
                 creation_timestamp: date,
                 last_login: date,
             },

@@ -1,12 +1,14 @@
-import React, { Dispatch, SetStateAction, useState } from 'react';
-import { Page, Card, Button, Input, Textarea, Text } from '@geist-ui/react';
 import { Select, Tabs } from '@geist-ui/core';
-import { Account, TransactionType } from '@prisma/client';
+import { Button, Input, Page, Text, Textarea } from '@geist-ui/react';
+import { PrismaD1 } from '@prisma/adapter-d1';
 import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
+import React, { useState } from 'react';
 import { requireUserSession } from '../auth.server';
-import { getPrismaClient } from '../util/db.server';
+import { getPrismaClient } from '~/util/db.server';
 import "../styles/app.paySomeone.css";
+import { Account } from '@prisma/client';
+import ResizableText from '~/components/ResizableText';
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
@@ -25,6 +27,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     }
 
     const user = await requireUserSession(request);
+    const adapter = new PrismaD1(context.cloudflare.env.DB);
     const db = getPrismaClient(context);
 
     try {
@@ -81,7 +84,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
                     description,
                     timestamp: new Date(),
                     settled: true,
-                    type: TransactionType.paySomeone,
+                    type: 'pay-someone',
                     recipient_address: recipientAddress,
                     sender: { connect: { acc: fromAccount.acc } },
                     recipient: { connect: { acc: toAccount.acc } }
@@ -101,6 +104,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
     // Ensure the user is authenticated
     const user = await requireUserSession(request);
+    const adapter = new PrismaD1(context.cloudflare.env.DB);
     const db = getPrismaClient(context);
 
     // Fetch the user details and related data from Prisma
@@ -218,118 +222,118 @@ const PaySomeone = () => {
     return (
         <Page className="pagepay">
             <Page.Header>
-                <Text h1 style={{ marginBottom: 20 }}>Transaction Form</Text>
+                <ResizableText h1 style={{ marginBottom: 20 }}>Transaction Form</ResizableText>
             </Page.Header>
             <Page.Content >
                 {/* <Card shadow width="100%" style={{ maxWidth: 400, margin: '0 auto', padding: 20 }}> */}
-                    <Form method="post">
-                        <Text h4>Schedule</Text>
-                        <Tabs initialValue="now" hideDivider>
-                            <Tabs.Item label="Now" value="now" />
-                            <Tabs.Item label="Later" value="later">
-                                <div>
-                                    <div className="amount">
-                                    <input type="number" name="amount" placeholder="Amount" required />   
-                                    </div>
-                                    <div className='desc'>
-                                    <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                                    </div>
-                                    <div className='date'>
-                                    <input type="date" name="payment-date" placeholder="Payment Date" required />   
-                                    </div>
+                <Form method="post">
+                    <ResizableText h4>Schedule</ResizableText>
+                    <Tabs initialValue="now" hideDivider>
+                        <Tabs.Item label="Now" value="now" />
+                        <Tabs.Item label="Later" value="later">
+                            <div>
+                                <div className="amount">
+                                    <input type="number" name="amount" placeholder="Amount" required />
                                 </div>
-                            </Tabs.Item>
-                            <Tabs.Item label="Recurring" value="recurring">
-                                <Text>Recurring Ui here</Text>
-                            </Tabs.Item>
-                        </Tabs>
+                                <div className='desc'>
+                                    <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                                </div>
+                                <div className='date'>
+                                    <input type="date" name="payment-date" placeholder="Payment Date" required />
+                                </div>
+                            </div>
+                        </Tabs.Item>
+                        <Tabs.Item label="Recurring" value="recurring">
+                            <ResizableText>Recurring Ui here</ResizableText>
+                        </Tabs.Item>
+                    </Tabs>
 
                     <div className='temp'>
-                        <Text h4>From Account</Text>
+                        <ResizableText h4>From Account</ResizableText>
                         <div style={{ width: '48%' }}>
                             <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
                                 {// @ts-ignore
-                                accounts.map((account: Account) => (
-                                    <Select.Option key={account.acc} value={account.acc.toString()}>
-                                        {account.short_description}
-                                    </Select.Option>
-                                ))}
+                                    accounts.map((account: Account) => (
+                                        <Select.Option key={account.acc} value={account.acc.toString()}>
+                                            {account.short_description}
+                                        </Select.Option>
+                                    ))}
                             </Select>
                         </div>
                     </div>
-                        <input type="hidden" name="fromAcc" value={fromAcc || ''} />
-                        <Tabs initialValue="acc-bsb" hideDivider style={{ marginTop: 20 }}>
-                            <Tabs.Item label="ACC / BSB" value="acc-bsb">
-                                <Text h4>Account Name</Text>
-                                <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                                <Text h4 style={{ marginTop: 10 }}>Account Number</Text>
-                                <Input
-                                    width="100%"
-                                    placeholder="Enter account number"
-                                    aria-label="Account Number"
-                                    value={recipientAddress.acc == -1 ? '' : recipientAddress.acc.toString()}
-                                    onChange={handleAccChange}
-                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                                <Text h4 style={{ marginTop: 10 }}>BSB</Text>
-                                <Input
-                                    width="100%"
-                                    placeholder="Enter bsb"
-                                    aria-label="BSB"
-                                    value={recipientAddress.bsb == -1 ? '' : recipientAddress.bsb.toString()}
-                                    onChange={handleBsbChange}
-                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                            </Tabs.Item>
-                            <Tabs.Item label="PayID" value="pay-id">
-                                <Text h4>PayID</Text>
-                                <Input width="100%" placeholder="Enter PayID" aria-label="PayID" onChange={handlePayIdChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                            </Tabs.Item>
-                            <Tabs.Item label="BPay" value="b-pay">
-                                <Text h4>Biller Code</Text>
-                                <Input
-                                    width="100%"
-                                    placeholder="Enter biller code"
-                                    aria-label="Biller Code"
-                                    value={recipientAddress.billerCode == -1 ? '' : recipientAddress.billerCode.toString()}
-                                    onChange={handleBillerCodeChange}
-                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                                <Text h4 style={{ marginTop: 10 }}>CRN</Text>
-                                <Input
-                                    width="100%"
-                                    placeholder="Enter CRN"
-                                    aria-label="CRN"
-                                    value={recipientAddress.crn == -1 ? '' : recipientAddress.crn.toString()}
-                                    onChange={handleCrnChange}
-                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                            </Tabs.Item>
-                        </Tabs>
-                        <input className="PaySomeone-Box" type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
-                        <Text h4 style={{ marginTop: 10 }}>Amount</Text>
-                        <Input  className="PaySomeone-Box" width="100%" placeholder="Enter amount" aria-label="Amount" name="amount" value={amount.toFixed(2)} onChange={handleAmountChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                        <Text h4 style={{ marginTop: 10 }}>Reference</Text>
-                        <Textarea width="100%" placeholder="Enter reference" aria-label="Reference" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                        <Text h4 style={{ marginTop: 10 }}>Description</Text>
-                        <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                        <div style={{
-                            display: 'flex',
-                            gap: 20,
-                            justifyContent: 'flex-end',
-                            marginTop: 20
-                        }}>
-                            <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Cancel</Button>
-                            <Button auto htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Confirm</Button>
-                        </div>
-                    </Form>
-                    {actionData && (
-                        <div style={{ marginTop: '20px' }}>
-                            {actionData.success ? (
-                                <Text type="success">Transfer successful!</Text>
-                            ) : (
-                                <Text type="error">Transfer failed: {actionData.error}</Text>
-                            )}
-                        </div>
-                    )}
-               {/*  </Card> */}
-               
+                    <input type="hidden" name="fromAcc" value={fromAcc || ''} />
+                    <Tabs initialValue="acc-bsb" hideDivider style={{ marginTop: 20 }}>
+                        <Tabs.Item label="ACC / BSB" value="acc-bsb">
+                            <ResizableText h4>Account Name</ResizableText>
+                            <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <ResizableText h4 style={{ marginTop: 10 }}>Account Number</ResizableText>
+                            <Input
+                                width="100%"
+                                placeholder="Enter account number"
+                                aria-label="Account Number"
+                                value={recipientAddress.acc == -1 ? '' : recipientAddress.acc.toString()}
+                                onChange={handleAccChange}
+                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <ResizableText h4 style={{ marginTop: 10 }}>BSB</ResizableText>
+                            <Input
+                                width="100%"
+                                placeholder="Enter bsb"
+                                aria-label="BSB"
+                                value={recipientAddress.bsb == -1 ? '' : recipientAddress.bsb.toString()}
+                                onChange={handleBsbChange}
+                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                        </Tabs.Item>
+                        <Tabs.Item label="PayID" value="pay-id">
+                            <ResizableText h4>PayID</ResizableText>
+                            <Input width="100%" placeholder="Enter PayID" aria-label="PayID" onChange={handlePayIdChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                        </Tabs.Item>
+                        <Tabs.Item label="BPay" value="b-pay">
+                            <ResizableText h4>Biller Code</ResizableText>
+                            <Input
+                                width="100%"
+                                placeholder="Enter biller code"
+                                aria-label="Biller Code"
+                                value={recipientAddress.billerCode == -1 ? '' : recipientAddress.billerCode.toString()}
+                                onChange={handleBillerCodeChange}
+                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <ResizableText h4 style={{ marginTop: 10 }}>CRN</ResizableText>
+                            <Input
+                                width="100%"
+                                placeholder="Enter CRN"
+                                aria-label="CRN"
+                                value={recipientAddress.crn == -1 ? '' : recipientAddress.crn.toString()}
+                                onChange={handleCrnChange}
+                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                        </Tabs.Item>
+                    </Tabs>
+                    <input className="PaySomeone-Box" type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
+                    <ResizableText h4 style={{ marginTop: 10 }}>Amount</ResizableText>
+                    <Input className="PaySomeone-Box" width="100%" placeholder="Enter amount" aria-label="Amount" name="amount" value={amount.toFixed(2)} onChange={handleAmountChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                    <ResizableText h4 style={{ marginTop: 10 }}>Reference</ResizableText>
+                    <Textarea width="100%" placeholder="Enter reference" aria-label="Reference" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                    <ResizableText h4 style={{ marginTop: 10 }}>Description</ResizableText>
+                    <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                    <div style={{
+                        display: 'flex',
+                        gap: 20,
+                        justifyContent: 'flex-end',
+                        marginTop: 20
+                    }}>
+                        <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Cancel</Button>
+                        <Button auto htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Confirm</Button>
+                    </div>
+                </Form>
+                {actionData && (
+                    <div style={{ marginTop: '20px' }}>
+                        {actionData.success ? (
+                            <ResizableText type="success">Transfer successful!</ResizableText>
+                        ) : (
+                            <ResizableText type="error">Transfer failed: {actionData.error}</ResizableText>
+                        )}
+                    </div>
+                )}
+                {/*  </Card> */}
+
             </Page.Content>
         </Page>
     );

@@ -1,28 +1,34 @@
-import { Account } from '@prisma/client';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export type TransferState = { fromAcc: number | null, toAcc: number | null, amount: number | null, formattedAmount: string, description: string };
 
 interface AppState {
     enabled: boolean;
+    isDarkTheme: boolean;
     transferState: TransferState;
+    textScale: number;
 }
 
 export const initialState: AppState = {
     enabled: true,
+    isDarkTheme: false,
     transferState: {
         fromAcc: null,
         toAcc: null,
         amount: null,
         formattedAmount: "",
         description: "",
-    }
+    },
+    textScale: 100,
 };
 
 const appSlice = createSlice({
     name: 'app',
     initialState,
     reducers: {
+        setTextScale(state, action: PayloadAction<number>) {
+            state.textScale = action.payload;
+        },
         setEnabled(state, action: PayloadAction<boolean>) {
             state.enabled = action.payload;
         },
@@ -58,5 +64,5 @@ const appSlice = createSlice({
     },
 });
 
-export const { setEnabled, setTransferStateFromAccount, setTransferStateToAccount, setTransferStateAmount, setTransferStateDescription } = appSlice.actions;
+export const { setTextScale, setEnabled, setTransferStateFromAccount, setTransferStateToAccount, setTransferStateAmount, setTransferStateDescription } = appSlice.actions;
 export default appSlice.reducer;

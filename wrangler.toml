@@ -4,7 +4,17 @@ compatibility_date = "2024-09-09"
 pages_build_output_dir = "./build/client"
 compatibility_flags = [ "nodejs_compat_v2" ]
 
+[[d1_databases]]
+binding = "DB"
+database_name = "learn-to-bank"
+database_id = "9a1156c4-12e9-4292-8ab3-198355650df6"
+
 ######## PREVIEW environment config ########
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "learn-to-bank"
+database_id = "9a1156c4-12e9-4292-8ab3-198355650df6"
 
 [env.preview.vars]
 VITE_FIREBASE_API_KEY="AIzaSyArgMsHrQipciY8o_wB4_3t3YLmqwjK8ME"
@@ -39,3 +49,8 @@ VITE_DIRECT_URL="postgresql://neondb_owner:h82SkJxWXqsY@ep-still-fire-a711028j-p
 [[env.production.kv_namespaces]]
 binding = "firebase_storage"
 id = "f2826afd4c764a229a642e2746c2a1ea"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "learn-to-bank"
+database_id = "9a1156c4-12e9-4292-8ab3-198355650df6"

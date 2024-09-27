@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { useLoaderData } from "@remix-run/react";
-import { Text, Spacer, Grid, Card, Select, Button, Collapse, Input } from '@geist-ui/core';
+import { Button, Card, Collapse, Grid, Input, Select, Spacer, Text } from '@geist-ui/core';
+import { ArrowDownCircle, Search, Shuffle, User } from '@geist-ui/icons';
+import { PrismaD1 } from '@prisma/adapter-d1';
 import { Account, Transaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { getPrismaClient } from "../util/db.server";
+import { useLoaderData } from "@remix-run/react";
+import { useState } from 'react';
 import { requireUserSession } from "../auth.server";
-import { Shuffle, User, ArrowDownCircle, Search } from '@geist-ui/icons';
+import { getPrismaClient } from '~/util/db.server';
+import ResizableText from '~/components/ResizableText';
 
 // Function to format the date as "Day, 23rd Sep (Today)" for display
 const formatDate = (transactionDate: Date) => {
@@ -42,6 +44,7 @@ const formatSearchDate = (date: Date) => {
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await requireUserSession(request);
+  const adapter = new PrismaD1(context.cloudflare.env.DB);
   const db = getPrismaClient(context);
 
   const [transactions, accounts] = await Promise.all([
@@ -113,7 +116,7 @@ export default function Transactions() {
   return (
     <>
       <Spacer h={2} />
-      <Text h2>Transaction History</Text>
+      <ResizableText h2>Transaction History</ResizableText>
 
       {/* Filter dropdown */}
       <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
@@ -143,7 +146,7 @@ export default function Transactions() {
             type="secondary"
             scale={0.7}
             onChange={e => setSearchQuery(e.target.value)}
-            clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined}          />
+            clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
         </Grid>
       </Grid.Container>
 
@@ -155,14 +158,14 @@ export default function Transactions() {
           <Grid.Container gap={2}>
             <Grid xs={18} alignItems="center">
               {/* Adding spaces between each attribute */}
-              <Text small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+              <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                 {/* Icon before "From" */}
                 {getTransactionIcon(transaction.recipient_acc)}
                 &nbsp;&nbsp;<strong>From:</strong> {transaction.sender.short_description} &nbsp;&nbsp;
                 <strong>To:</strong> {transaction.recipient.short_description} &nbsp;&nbsp;
                 <strong>Amount:</strong> ${transaction.amount.toFixed(2)} &nbsp;&nbsp;
                 <strong>Date:</strong> {formatDate(new Date(transaction.timestamp))}
-              </Text>
+              </ResizableText>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
               <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
@@ -176,20 +179,20 @@ export default function Transactions() {
               <Grid.Container gap={1} alignItems="flex-start">
                 {/* Boundaries for text overflow handling */}
                 <Grid xs={24} md={6}>
-                  <Text small><strong>Sender Account:</strong>&nbsp;</Text>
-                  <Text small>{transaction.sender_acc}</Text>
+                  <ResizableText small><strong>Sender Account:</strong>&nbsp;</ResizableText>
+                  <ResizableText small>{transaction.sender_acc}</ResizableText>
                 </Grid>
                 <Grid xs={24} md={6}>
-                  <Text small><strong>Recipient Account:</strong>&nbsp;</Text>
-                  <Text small>{transaction.recipient_acc}</Text>
+                  <ResizableText small><strong>Recipient Account:</strong>&nbsp;</ResizableText>
+                  <ResizableText small>{transaction.recipient_acc}</ResizableText>
                 </Grid>
                 <Grid xs={24} md={6}>
-                  <Text small><strong>Reference:</strong>&nbsp;</Text>
-                  <Text small>{transaction.reference}</Text>
+                  <ResizableText small><strong>Reference:</strong>&nbsp;</ResizableText>
+                  <ResizableText small>{transaction.reference}</ResizableText>
                 </Grid>
                 <Grid xs={24} md={6}>
-                  <Text small><strong>Description:</strong>&nbsp;</Text>
-                  <Text small>{transaction.description || "No Description Provided"}</Text>
+                  <ResizableText small><strong>Description:</strong>&nbsp;</ResizableText>
+                  <ResizableText small>{transaction.description || "No Description Provided"}</ResizableText>
                 </Grid>
               </Grid.Container>
             </Collapse>

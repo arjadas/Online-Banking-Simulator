@@ -18,17 +18,11 @@ export default defineConfig({
     }),
     nodePolyfills(),
     tsconfigPaths(),
-  ], resolve: {
-    alias: {
-      // Provide any necessary aliases to resolve Node.js core modules
-      'path': 'path-browserify',
-      'fs': 'browserify-fs', // Example for 'fs' polyfill, adjust as necessary
-    },
-  },
+  ],
   server: {
-    port: 3000,
+    port: 3002,
   },
   build: {
-    target: 'esnext', // Ensure modern build targets for better polyfill support
+    target: 'esnext',
   },
 });

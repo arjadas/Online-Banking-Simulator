@@ -1,12 +1,13 @@
-import React from 'react';
-import { useLoaderData } from "@remix-run/react";
+import { Card, Grid, Spacer, Text } from '@geist-ui/core';
+import { Account } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { Text, Spacer, Grid, Card } from '@geist-ui/core';
+import { useLoaderData } from "@remix-run/react";
+import React from 'react';
+import { getPrismaClient } from '~/util/db.server';
+import { createUser } from '~/util/userUtil';
 import { requireUserSession } from "../auth.server";
 import AccountCard from '../components/AccountCard';
-import { Account } from '@prisma/client';
-import { getPrismaClient } from "../util/db.server";
-import { createUser } from '~/util/userUtil';
+import ResizableText from '../components/ResizableText';
 
 type MeUser = {
   uid: string;
@@ -19,104 +20,102 @@ type MeUser = {
     timestamp: Date;
   }>;
 };
-
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  // Ensure the user is authenticated
   const user = await requireUserSession(request);
   const db = getPrismaClient(context);
 
-  // Fetch the user details and related data from Prisma
-  // eslint-disable-next-line prefer-const
-  const getMeUser = async () => {
-    return await Promise.all([
-      db.user.findUnique({
-        where: { uid: user.uid },
-        include: {
-          notifications: {
-            where: { read: false },
-            take: 5,
+  try {
+    const getMeUser = async () => {
+      return await Promise.all([
+        db.user.findUnique({
+          where: { uid: user.uid },
+          include: {
+            notifications: {
+              where: { read: false },
+              take: 5,
+            },
           },
-        },
-        // @ts-ignore
-        //cacheStrategy: { swr: 60, ttl: 60 },
-      }),
-      db.account.findMany({
-        where: { uid: user.uid },
-        // @ts-ignore
-        //cacheStrategy: { swr: 60, ttl: 60 },
-      }),
-    ]);
+        }),
+        db.account.findMany({
+          where: { uid: user.uid },
+        }),
+      ]);
+
+    }
+
+    let [userData, userAccounts] = await getMeUser();
+
+    if (!userData) {
+      console.error("User, not found! Creating new user..", user)
+      await createUser(context, user.uid, user.email, "Plan", "B");
+      [userData, userAccounts] = await getMeUser();
+    }
+
+    userData = userData!
+    console.log("Prisma query successful");
+
+    return json({
+      me: {
+        uid: userData.uid,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        email: userData.email,
+        notifications: userData.notifications,
+      },
+      userAccounts,
+    });
+  } catch (error) {
+    console.error(error);
+    return json({ error: 'Failed to fetch users' }, { status: 500 });
   }
-
-  let [userData, userAccounts] = await getMeUser();
-
-  if (!userData) {
-    console.error("User, not found! Creating new user..", user)
-    await createUser(context, user.uid, user.email, "Plan", "B");
-    [userData, userAccounts] = await getMeUser();
-  }
-
-  userData = userData!
-
-  return json({
-    me: {
-      uid: userData.uid,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      email: userData.email,
-      notifications: userData.notifications,
-    },
-    userAccounts,
-  });
 };
 
 export default function Dashboard() {
-  const { me: user, userAccounts: accounts } = useLoaderData<{
+  const loaderData = useLoaderData<{
     me: MeUser;
     userAccounts: Account[];
-  }>();
+  } | null>();
 
-  const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
+  if (loaderData) {
+    const { me: user, userAccounts: accounts } = loaderData;
 
-  return (
-    <>
-      <Spacer h={2} />
+    const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
-      <Text style={{color: 'black'}} small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-      <Text style={{color: 'black'}} h2>Hi {user.first_name}</Text>
+    return (
+      <>
+        <Card padding={1}>
+          <ResizableText style={{ color: 'black' }} small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
+          <ResizableText style={{ color: 'black' }} h2>Hi {user.first_name}</ResizableText>
+          <ResizableText small>Next scheduled payment is in <ResizableText b>3 days</ResizableText></ResizableText>
+        </Card>
 
-      <Spacer h={1} />
+        <Spacer h={2} />
 
-      <Card>
-        <Text small>Next scheduled payment is in <Text b>3 days</Text></Text>
-      </Card>
+        {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
+          <React.Fragment key={account.acc}>
+            <AccountCard
+              accountType={account.short_description}
+              bsb={account.bsb.toString()}
+              accountNumber={account.acc.toString()}
+              balance={`$${account.balance.toFixed(2)}`}
+            />
+            <Spacer h={1} />
+          </React.Fragment>
+        ))}
 
-      <Spacer h={2} />
+        <Spacer h={2} />
 
-      {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
-        <React.Fragment key={account.acc}>
-          <AccountCard
-            accountType={account.short_description}
-            bsb={account.bsb.toString()}
-            accountNumber={account.acc.toString()}
-            balance={`$${account.balance.toFixed(2)}`}
-          />
-          <Spacer h={1} />
-        </React.Fragment>
-      ))}
-
-      <Spacer h={2} />
-
-      <Card width="100%">
-        <Grid.Container gap={2} justify="space-between" alignItems="center">
-          <Grid>
-            <Text h3>Total</Text>
-          </Grid>
-          <Grid>
-            <Text h3>${totalBalance.toFixed(2)}</Text>
-          </Grid>
-        </Grid.Container>
-      </Card>
-    </>
-  );
+        <Card width="100%">
+          <Grid.Container gap={2} justify="space-between" alignItems="center">
+            <Grid>
+              <ResizableText h3>Total</ResizableText >
+            </Grid>
+            <Grid>
+              <ResizableText h3>${totalBalance.toFixed(2)}</ResizableText>
+            </Grid>
+          </Grid.Container>
+        </Card>
+      </>
+    );
+  }
 }

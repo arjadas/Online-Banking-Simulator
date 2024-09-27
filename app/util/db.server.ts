@@ -1,26 +1,17 @@
-import { PrismaClient } from '@prisma/client/edge';
-import { withAccelerate } from '@prisma/extension-accelerate'
+import { PrismaD1 } from '@prisma/adapter-d1';
+import { PrismaClient } from '@prisma/client';
 
-let db: any = null;
+let prisma: any = null;
+
+export interface Env {
+    DB: D1Database
+}
 
 export function getPrismaClient(context: any): PrismaClient {
-    const db_url = context.cloudflare.env.VITE_DATABASE_URL;
-
-    if (!db) {
-        if (db_url) {
-            db = new PrismaClient({
-                datasources: {
-                    db: {
-                        url: db_url,
-                    },
-                },
-            }).$extends(withAccelerate());
-        } else {
-            db = new PrismaClient().$extends(withAccelerate());
-        }
+    if (!prisma) {
+        const adapter = new PrismaD1(context.cloudflare.env.DB)
+        prisma = new PrismaClient({ adapter })
     }
 
-    db.$connect();
-
-    return db!;
+    return prisma!;
 }
