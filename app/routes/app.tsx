@@ -44,7 +44,6 @@ export default function AppLayout() {
 
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
-      <CssBaseline />
       <Drawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} placement="right">
         <div style={{
           display: 'flex',

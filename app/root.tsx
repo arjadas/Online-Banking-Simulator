@@ -10,6 +10,7 @@ import { Provider } from 'react-redux';
 import { requireUserSession } from "./auth.server";
 import store from './store';
 import "./tailwind.css";
+import { CssBaseline } from "@geist-ui/core";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 export const loader: LoaderFunction = async ({ request }: { request: Request }) => {
@@ -38,9 +39,10 @@ export default function App() {
       </head>
       <body>
         <Provider store={store}>
-            <Outlet />
-            <ScrollRestoration />
-            <Scripts />
+          <CssBaseline />
+          <Outlet />
+          <ScrollRestoration />
+          <Scripts />
         </Provider>
       </body>
     </html>

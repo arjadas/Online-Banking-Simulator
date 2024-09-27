@@ -1,3 +1,4 @@
+import { CssBaseline } from '@geist-ui/core';
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useNavigation, useSubmit } from "@remix-run/react";

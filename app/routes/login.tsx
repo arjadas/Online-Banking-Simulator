@@ -4,7 +4,6 @@ import { Form, Link, useActionData, useNavigation, useSubmit } from "@remix-run/
 import { useEffect, useState } from "react";
 import { login } from "~/auth.client";
 import { commitSession, getSession } from "~/auth.server";
-import ResizableText from '~/components/ResizableText';
 //import "../styles/login.css";
 
 type ActionData = {
@@ -75,9 +74,9 @@ export default function Login() {
           <Input.Password name="password" clearable placeholder="Password" required width="100%" />
           <Button htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Log in</Button>
         </Form>
-        {clientError && <ResizableText style={{ marginTop: 10 }} type="error">{clientError}</ResizableText>}
-        <ResizableText p>Don&apos;t have an account? <Link to="/signup">Sign up</Link></ResizableText>
-        <Link to="/forgot-password"><ResizableText p>Forgot your password?</ResizableText></Link>
+        {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
+        <Text p>Don&apos;t have an account? <Link to="/signup">Sign up</Link></Text>
+        <Link to="/forgot-password"><Text p>Forgot your password?</Text></Link>
       </Card>
     </div>
 
