@@ -1,7 +1,7 @@
 
 import { Button, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
-import { MetaFunction, Outlet, useMatches, useNavigate } from "@remix-run/react";
+import { Link, MetaFunction, Outlet, useMatches, useNavigate } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
 import ResizableText from '~/components/ResizableText';
