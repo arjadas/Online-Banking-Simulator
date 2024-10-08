@@ -1,12 +1,11 @@
-import { Button, Card, Input, Page, Select, Spacer, Text } from '@geist-ui/react';
-import { PrismaD1 } from '@prisma/adapter-d1';
+import { Button, Card, Input, Page, Select, Spacer } from '@geist-ui/react';
 import { Account } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
-import { requireUserSession } from "../auth.server";
-import { getPrismaClient } from '~/util/db.server';
 import ResizableText from '~/components/ResizableText';
+import { getPrismaClient } from '~/util/db.server';
+import { requireUserSession } from "../auth.server";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
@@ -15,7 +14,6 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const amount = parseInt(formData.get('amount') as string);
   const description = formData.get('description') as string;
   const user = await requireUserSession(request);
-  const adapter = new PrismaD1(context.cloudflare.env.DB);
   const db = getPrismaClient(context);
 
   try {
@@ -75,7 +73,6 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await requireUserSession(request);
-  const adapter = new PrismaD1(context.cloudflare.env.DB);
   const db = getPrismaClient(context);
 
   // fetch the user details and related data from Prisma

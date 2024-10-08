@@ -1,14 +1,12 @@
 import { Card, Select, Tabs } from '@geist-ui/core';
 import { Button, Input, Page, Text, Textarea } from '@geist-ui/react';
-import { PrismaD1 } from '@prisma/adapter-d1';
+import { Account } from '@prisma/client';
 import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
-import { requireUserSession } from '../auth.server';
 import { getPrismaClient } from '~/util/db.server';
+import { requireUserSession } from '../auth.server';
 import "../styles/app.paySomeone.css";
-import { Account } from '@prisma/client';
-import ResizableText from '~/components/ResizableText';
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
@@ -54,7 +52,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         if (fromAccount.balance < amount) {
             throw new Error('Insufficient funds');
         }
-        console.log(reference, 34324)
+    
         // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
         // so it doesn't support transactions now, but when it does, this code will support it.
         const result = await db.$transaction([
