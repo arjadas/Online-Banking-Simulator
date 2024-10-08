@@ -1,4 +1,4 @@
-import { Select, Tabs } from '@geist-ui/core';
+import { Card, Select, Tabs } from '@geist-ui/core';
 import { Button, Input, Page, Text, Textarea } from '@geist-ui/react';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
@@ -26,54 +26,51 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     }
 
     const user = await requireUserSession(request);
-    const adapter = new PrismaD1(context.cloudflare.env.DB);
     const db = getPrismaClient(context);
 
     try {
-        const result = await db.$transaction(async (prisma) => {
-            console.log('fa', fromAcc);
-            const fromAccount = await prisma.account.findFirst({
-                where: { acc: fromAcc },
-            });
+        const fromAccount = await db.account.findFirst({
+            where: { acc: fromAcc },
+        });
 
-            if (!fromAccount) {
-                throw new Error('Sender account not found');
-            }
+        if (!fromAccount) {
+            throw new Error('Sender account not found');
+        }
 
-            const toAccount = await prisma.account.findFirst({
-                where: {
-                    pay_id: recipient.payId,
-                },
-            });
+        const toAccount = await db.account.findFirst({
+            where: {
+                pay_id: recipient.payId,
+            },
+        });
 
-            if (!toAccount) {
-                throw new Error('Recipient account not found');
-            }
+        if (!toAccount) {
+            throw new Error('Recipient account not found');
+        }
 
-            if (fromAcc == toAccount.acc) {
-                throw new Error('Cannot transfer to the same account');
-            }
+        if (fromAcc == toAccount.acc) {
+            throw new Error('Cannot transfer to the same account');
+        }
 
-            console.log(fromAccount.balance, amount);
-            if (fromAccount.balance < amount) {
-                throw new Error('Insufficient funds');
-            }
-
-            await prisma.account.update({
+        if (fromAccount.balance < amount) {
+            throw new Error('Insufficient funds');
+        }
+        console.log(reference, 34324)
+        // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
+        // so it doesn't support transactions now, but when it does, this code will support it.
+        const result = await db.$transaction([
+            db.account.update({
                 where: { acc: fromAccount.acc },
                 data: { balance: { decrement: amount } },
-            });
-
-            await prisma.account.update({
+            }),
+            db.account.update({
                 where: { acc: toAccount.acc },
-                data: { balance: { increment: amount } },
-            });
-
-            const newTransaction = await prisma.transaction.create({
+                data: { balance: { increment: amount }, },
+            }),
+            db.transaction.create({
                 data: {
                     amount,
                     sender_uid: user.uid,
-                    recipient_uid: 'nah',
+                    recipient_uid: toAccount.uid,
                     reference: reference,
                     description,
                     timestamp: new Date(),
@@ -83,10 +80,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
                     sender: { connect: { acc: fromAccount.acc } },
                     recipient: { connect: { acc: toAccount.acc } },
                 },
-            });
-
-            return { fromAcc, toAcc: toAccount.acc, newTransaction };
-        });
+            }),
+        ]);
 
         return json({ success: true, ...result });
     } catch (error) {
@@ -97,7 +92,6 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
     const user = await requireUserSession(request);
-    const adapter = new PrismaD1(context.cloudflare.env.DB);
     const db = getPrismaClient(context);
 
     const [userAccounts] = await Promise.all([
@@ -119,7 +113,7 @@ const PaySomeone = () => {
     const actionData: any = useActionData();
     const { userAccounts: accounts } = useLoaderData<{ userAccounts: Account[] }>();
     const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(0);
     const [recipientAddress, setRecipientAddress] = useState<{
         accountName: string,
         acc: number,
@@ -133,7 +127,7 @@ const PaySomeone = () => {
         bsb: -1,
         payId: '',
         billerCode: -1,
-        crn: -1,
+        crn: -1
     });
 
     const [reference, setReference] = useState('');
@@ -145,23 +139,22 @@ const PaySomeone = () => {
 
     const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         let inputValue = event.target.value;
-
-        // Remove any non-numeric characters except for the decimal point
         inputValue = inputValue.replace(/[^0-9.]/g, '');
+        //TODO fix this
 
-        // Ensure there's only one decimal point
+        // Ensure only one decimal point is allowed
         const parts = inputValue.split('.');
         if (parts.length > 2) {
             inputValue = parts[0] + '.' + parts.slice(1).join('');
         }
 
-        // Handle decimals and prevent multiple trailing zeros
-        if (parts.length === 2 && parts[1].length > 2) {
-            inputValue = parts[0] + '.' + parts[1].slice(0, 2);  // Limit to two decimal places
+        // Format the number to 2 decimal places
+        if (inputValue) {
+            const amount = parseInt(inputValue.replace('.', ''))
+            setAmount(amount);
+        } else {
+            setAmount(0);
         }
-
-        // Update the amount state with the properly formatted input
-        setAmount(inputValue);
     };
 
     const toDigits = (value: string): number => {
@@ -171,10 +164,10 @@ const PaySomeone = () => {
         } else {
             return 0;
         }
-    };
+    }
 
     const updateRecipientAddress = (key: string, value: string | number) => {
-        setRecipientAddress((prevState) => ({
+        setRecipientAddress(prevState => ({
             ...prevState,
             [key]: value,
         }));
@@ -204,53 +197,35 @@ const PaySomeone = () => {
         updateRecipientAddress('crn', toDigits(event.target.value));
     };
 
-    const handleReferenceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleReferenceChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setReference(event.target.value);
     };
 
-    const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setDescription(event.target.value);
     };
 
     return (
-        <Page className="pagepay">
+        <Page>
             <Page.Header>
-                <ResizableText h1 style={{ marginBottom: 20 }}>Transaction Form</ResizableText>
+                <Text h1 style={{ marginBottom: 20 }}>Transaction Form</Text>
             </Page.Header>
-            <Page.Content >
-                {/* <Card shadow width="100%" style={{ maxWidth: 400, margin: '0 auto', padding: 20 }}> */}
-                <Form method="post">
-                    <ResizableText h4>Schedule</ResizableText>
-                    <Tabs initialValue="now" hideDivider>
-                        <Tabs.Item label="Now" value="now" />
-                        <Tabs.Item label="Later" value="later">
-                            <div>
-                                <div className="amount">
-                                    <input type="number" name="amount" placeholder="Amount" required />
-                                </div>
-                                <div className='desc'>
-                                    <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                                </div>
-                                <div className='date'>
-                                    <input type="date" name="payment-date" placeholder="Payment Date" required />
-                                </div>
-                            </div>
-                        </Tabs.Item>
-                        <Tabs.Item label="Recurring" value="recurring">
-                            <ResizableText>Recurring Ui here</ResizableText>
-                        </Tabs.Item>
-                    </Tabs>
-
-                    <div className='temp'>
-                        <ResizableText h4>From Account</ResizableText>
+            <Page.Content>
+                <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
+                    <Form method="post">
+                        <Text h4>Schedule</Text>
+                        <Tabs initialValue="now" hideDivider>
+                            <Tabs.Item label="Now" value="now" />
+                            <Tabs.Item label="Later" value="later">
+                                <Text>Later Ui here</Text>
+                            </Tabs.Item>
+                            <Tabs.Item label="Recurring" value="recurring">
+                                <Text>Recurring Ui here</Text>
+                            </Tabs.Item>
+                        </Tabs>
+                        <Text h4>From Account</Text>
                         <div style={{ width: '48%' }}>
-                            <Select
-                                placeholder="Select account"
-                                width="100%"
-                                onChange={handleFromAccChange}
-                                onPointerEnterCapture={undefined}
-                                onPointerLeaveCapture={undefined}
-                            >
+                            <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
                                 {// @ts-ignore
                                     accounts.map((account: Account) => (
                                         <Select.Option key={account.acc} value={account.acc.toString()}>
@@ -259,80 +234,94 @@ const PaySomeone = () => {
                                     ))}
                             </Select>
                         </div>
-                    </div>
-                    <input type="hidden" name="fromAcc" value={fromAcc || ''} />
-                    <Tabs initialValue="acc-bsb" hideDivider style={{ marginTop: 20 }}>
-                        <Tabs.Item label="ACC / BSB" value="acc-bsb">
-                            <ResizableText h4>Account Name</ResizableText>
-                            <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                            <ResizableText h4 style={{ marginTop: 10 }}>Account Number</ResizableText>
-                            <Input
-                                width="100%"
-                                placeholder="Enter account number"
-                                aria-label="Account Number"
-                                value={recipientAddress.acc == -1 ? '' : recipientAddress.acc.toString()}
-                                onChange={handleAccChange}
-                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                            <ResizableText h4 style={{ marginTop: 10 }}>BSB</ResizableText>
-                            <Input
-                                width="100%"
-                                placeholder="Enter bsb"
-                                aria-label="BSB"
-                                value={recipientAddress.bsb == -1 ? '' : recipientAddress.bsb.toString()}
-                                onChange={handleBsbChange}
-                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                        </Tabs.Item>
-                        <Tabs.Item label="PayID" value="pay-id">
-                            <ResizableText h4>PayID</ResizableText>
-                            <Input width="100%" placeholder="Enter PayID" aria-label="PayID" onChange={handlePayIdChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                        </Tabs.Item>
-                        <Tabs.Item label="BPay" value="b-pay">
-                            <ResizableText h4>Biller Code</ResizableText>
-                            <Input
-                                width="100%"
-                                placeholder="Enter biller code"
-                                aria-label="Biller Code"
-                                value={recipientAddress.billerCode == -1 ? '' : recipientAddress.billerCode.toString()}
-                                onChange={handleBillerCodeChange}
-                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                            <ResizableText h4 style={{ marginTop: 10 }}>CRN</ResizableText>
-                            <Input
-                                width="100%"
-                                placeholder="Enter CRN"
-                                aria-label="CRN"
-                                value={recipientAddress.crn == -1 ? '' : recipientAddress.crn.toString()}
-                                onChange={handleCrnChange}
-                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                        </Tabs.Item>
-                    </Tabs>
-                    <input className="PaySomeone-Box" type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
-                    <ResizableText h4 style={{ marginTop: 10 }}>Amount</ResizableText>
-                    <Input className="PaySomeone-Box" width="100%" placeholder="Enter amount" aria-label="Amount" name="amount" value={amount} onChange={handleAmountChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                    <ResizableText h4 style={{ marginTop: 10 }}>Reference</ResizableText>
-                    <Textarea width="100%" placeholder="Enter reference" aria-label="Reference" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                    <ResizableText h4 style={{ marginTop: 10 }}>Description</ResizableText>
-                    <Textarea width="100%" placeholder="Enter description" aria-label="Description" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                    <div style={{
-                        display: 'flex',
-                        gap: 20,
-                        justifyContent: 'flex-end',
-                        marginTop: 20
-                    }}>
-                        <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Cancel</Button>
-                        <Button auto htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Confirm</Button>
-                    </div>
-                </Form>
-                {actionData && (
-                    <div style={{ marginTop: '20px' }}>
-                        {actionData.success ? (
-                            <ResizableText type="success">Transfer successful!</ResizableText>
-                        ) : (
-                            <ResizableText type="error">Transfer failed: {actionData.error}</ResizableText>
-                        )}
-                    </div>
-                )}
-                {/*  </Card> */}
-
+                        <input type="hidden" name="fromAcc" value={fromAcc || ''} />
+                        <Tabs initialValue="acc-bsb" hideDivider style={{ marginTop: 20 }}>
+                            <Tabs.Item label="ACC / BSB" value="acc-bsb">
+                                <Text h4>Account Name</Text>
+                                <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                                <Text h4 style={{ marginTop: 10 }}>Account Number</Text>
+                                <Input
+                                    width="100%"
+                                    placeholder="Enter account number"
+                                    aria-label="Account Number"
+                                    value={recipientAddress.acc == -1 ? '' : recipientAddress.acc.toString()}
+                                    onChange={handleAccChange}
+                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                                <Text h4 style={{ marginTop: 10 }}>BSB</Text>
+                                <Input
+                                    width="100%"
+                                    placeholder="Enter bsb"
+                                    aria-label="BSB"
+                                    value={recipientAddress.bsb == -1 ? '' : recipientAddress.bsb.toString()}
+                                    onChange={handleBsbChange}
+                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            </Tabs.Item>
+                            <Tabs.Item label="PayID" value="pay-id">
+                                <Text h4>PayID</Text>
+                                <Input width="100%" placeholder="Enter PayID" aria-label="PayID" onChange={handlePayIdChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            </Tabs.Item>
+                            <Tabs.Item label="BPay" value="b-pay">
+                                <Text h4>Biller Code</Text>
+                                <Input
+                                    width="100%"
+                                    placeholder="Enter biller code"
+                                    aria-label="Biller Code"
+                                    value={recipientAddress.billerCode == -1 ? '' : recipientAddress.billerCode.toString()}
+                                    onChange={handleBillerCodeChange}
+                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                                <Text h4 style={{ marginTop: 10 }}>CRN</Text>
+                                <Input
+                                    width="100%"
+                                    placeholder="Enter CRN"
+                                    aria-label="CRN"
+                                    value={recipientAddress.crn == -1 ? '' : recipientAddress.crn.toString()}
+                                    onChange={handleCrnChange}
+                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            </Tabs.Item>
+                        </Tabs>
+                        <input type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
+                        <Text h4 style={{ marginTop: 10 }}>Amount</Text>
+                        <Input width="100%" placeholder="Enter amount" aria-label="Amount" name="amount" value={amount.toFixed(2)} onChange={handleAmountChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                        <Text h4 style={{ marginTop: 10 }}>Reference</Text>
+                        <Textarea
+                            width="100%"
+                            placeholder="Enter reference"
+                            aria-label="Reference"
+                            name="reference"
+                            value={reference}
+                            onChange={handleReferenceChange}
+                            onPointerEnterCapture={undefined}
+                            onPointerLeaveCapture={undefined}
+                        /><Text h4 style={{ marginTop: 10 }}>Description</Text>
+                        <Textarea
+                            width="100%"
+                            placeholder="Enter description"
+                            aria-label="Description"
+                            name="description"
+                            value={description}
+                            onChange={handleDescriptionChange}
+                            onPointerEnterCapture={undefined}
+                            onPointerLeaveCapture={undefined}
+                        /><div style={{
+                            display: 'flex',
+                            gap: 20,
+                            justifyContent: 'flex-end',
+                            marginTop: 20
+                        }}>
+                            <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Cancel</Button>
+                            <Button auto htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Confirm</Button>
+                        </div>
+                    </Form>
+                    {actionData && (
+                        <div style={{ marginTop: '20px' }}>
+                            {actionData.success ? (
+                                <Text type="success">Transfer successful!</Text>
+                            ) : (
+                                <Text type="error">Transfer failed: {actionData.error}</Text>
+                            )}
+                        </div>
+                    )}
+                </Card>
             </Page.Content>
         </Page>
     );

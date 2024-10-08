@@ -19,40 +19,38 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const db = getPrismaClient(context);
 
   try {
-    const result = await db.$transaction(async (prisma) => {
-      const fromAccount = await prisma.account.findFirst({
-        where: { acc: fromAcc },
-      });
+    const fromAccount = await db.account.findFirst({
+      where: { acc: fromAcc },
+    });
 
-      const toAccount = await prisma.account.findFirst({
-        where: { acc: toAcc },
-      });
+    const toAccount = await db.account.findFirst({
+      where: { acc: toAcc },
+    });
 
-      if (!fromAccount || !toAccount) {
-        throw new Error('One or both accounts not found');
-      }
+    if (!fromAccount || !toAccount) {
+      throw new Error('One or both accounts not found');
+    }
 
-      if (fromAcc == toAcc) {
-        throw new Error('Cannot transfer into same account.');
-      }
+    if (fromAcc == toAcc) {
+      throw new Error('Cannot transfer into the same account.');
+    }
 
-      if (fromAccount.balance < amount) {
-        throw new Error('Insufficient funds');
-      }
+    if (fromAccount.balance < amount) {
+      throw new Error('Insufficient funds');
+    }
 
-      // update account balances
-      await prisma.account.update({
+    // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
+    // so it doesn't support transactions now, but when it does, this code will support it.
+    const result = await db.$transaction([
+      db.account.update({
         where: { acc: fromAccount.acc },
         data: { balance: { decrement: amount } },
-      });
-
-      await prisma.account.update({
+      }),
+      db.account.update({
         where: { acc: toAccount.acc },
         data: { balance: { increment: amount } },
-      });
-
-      // create a new transaction
-      /*const newTransaction = await prisma.transaction.create({
+      }),
+      db.transaction.create({
         data: {
           amount,
           sender_acc: fromAccount.acc,
@@ -63,14 +61,12 @@ export const action: ActionFunction = async ({ context, request }: { context: an
           description: description,
           timestamp: new Date(),
           settled: true,
-          type: TransactionType.transfer,
+          type: 'transfer',
         },
-      });
+      }),
+    ]);
 
-      return { fromAcc, toAcc, newTransaction };*/
-    });
-
-    //   return json({ success: true, ...result });
+    return json({ success: true, ...result });
   } catch (error) {
     console.error('Transfer error:', error);
     return json({ success: false, error: (error as Error).message }, { status: 400 });
@@ -143,7 +139,7 @@ const TransferBetweenAccounts = () => {
     <Page>
       <Page.Content>
         <Card shadow width="100%" style={{ maxWidth: '720px', margin: '0 auto' }} padding={1}>
-        <ResizableText h2 style={{ marginBottom: '20px' }}>Transfer Between Accounts</ResizableText>
+          <ResizableText h2 style={{ marginBottom: '20px' }}>Transfer Between Accounts</ResizableText>
           <Form method="post">
             <ResizableText h3>Choose Accounts</ResizableText>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
