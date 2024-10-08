@@ -1,7 +1,7 @@
 
 import { Button, Card, CssBaseline, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Text, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
-import { Outlet, useMatches, useNavigate } from "@remix-run/react";
+import { Link, Outlet, useMatches, useNavigate } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -16,7 +16,7 @@ const navItems = [
 
 //TODO set up second auth
 export default function AppLayout() {
-  const { isDarkTheme, textScale} = useSelector((state: RootState) => state.app);
+  const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
   const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
@@ -55,19 +55,40 @@ export default function AppLayout() {
           gap: 16,
         }}>
           <Drawer.Title>
-            <ResizableText h2 style={{margin: -10}}>Pay</ResizableText>
+            <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
           <Drawer.Subtitle>Instantiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
-          <Button style={buttonStyle} type='success-light' auto scale={2} icon={<Shuffle />} onClick={() => { navigate("/app/transfer"); }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            Transfer between accounts
-          </Button>
-          <Button style={buttonStyle} type='success-light' auto scale={2} icon={<User />} onClick={() => { navigate("/app/paySomeone"); }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            Pay someone
-          </Button>
-          <Button style={buttonStyle} type='success-light' auto scale={2} icon={<GridIcon />} onClick={() => { navigate("/app/accounts"); }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            Default Payments
-          </Button>
+          <Link to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
+            <Button
+              style={buttonStyle}
+              type='success-light'
+              auto
+              scale={2}
+              icon={<Shuffle />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              Transfer between accounts
+            </Button>
+          </Link>
+          <Link to="/app/paySomeone" prefetch="intent" style={{ textDecoration: 'none' }}>
+            <Button
+              style={buttonStyle}
+              type='success-light'
+              auto
+              scale={2}
+              icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              Pay someone
+            </Button>
+          </Link>
+          <Link to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
+            <Button
+              style={buttonStyle}
+              type='success-light'
+              auto
+              scale={2}
+              icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              Default Payments
+            </Button>
+          </Link>
         </div>
       </Drawer>
       <Page>
@@ -83,33 +104,27 @@ export default function AppLayout() {
                     initialValue={initialValue.toString()}
                     align="left"
                     onChange={handleTabChange}
-                    style={{
-                      //  '--tabs-indicator-color': '#0070f3',
-                      // '--tabs-active-color': '#0070f3',
-                      margin: 10
-                    } as any}
+                    style={{ margin: 10 } as any}
                   >
                     {navItems.map((item, index) => (
                       <Tabs.Item
                         key={index}
                         label={
-                          <>
-                            {React.cloneElement(item.icon, {
-                              size: 24,
-                              style: {
-                                //color: currentPath === item.to ? '#0070f3' : 'inherit'
-                              }
-                            })}
-                            <span style={{
-                              //color: currentPath === item.to ? '#0070f3' : 'inherit'
-                            }}>
-                              {item.label}
-                            </span>
-                          </>
+                          // has to be "intent" to be compatible with user session for some reason
+                          <Link to={item.to} prefetch="intent" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'inherit',
+                            textDecoration: 'none',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                          }}>
+                            {React.cloneElement(item.icon, { size: 24, color: 'black' })}
+                            <span style={{ color: 'black' }}>{item.label}</span>
+                          </Link>
                         }
                         value={index.toString()}
-                      >
-                      </Tabs.Item>
+                      />
                     ))}
                   </Tabs>
                   <Spacer h={1} />
