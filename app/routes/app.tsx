@@ -1,11 +1,18 @@
 
 import { Button, Card, CssBaseline, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Text, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
-import { Outlet, useMatches, useNavigate } from "@remix-run/react";
+import { Outlet, useMatches, useNavigate, MetaFunction } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import ResizableText from '~/components/ResizableText';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Learn to Bank" },
+    { name: "description", content: "Get a grasp on Australia's current online banking systems." },
+  ];
+};
 
 const navItems = [
   { icon: <Home />, label: "Home", to: "/app/accounts" },
