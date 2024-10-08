@@ -1,9 +1,8 @@
 import { CssBaseline } from '@geist-ui/core';
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useNavigation, useSubmit } from "@remix-run/react";
+import { Form, useActionData, useNavigation, useSubmit, Link } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
 import { signup } from "~/auth.client";
 import { commitSession, getSession } from "~/auth.server";
 import ResizableText from '~/components/ResizableText';
@@ -37,8 +36,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 export default function Signup() {
     const actionData = useActionData<any>();
     const submit = useSubmit();
-    const navigation = useNavigation();
     const [clientError, setClientError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (actionData?.error) {
@@ -51,6 +50,8 @@ export default function Signup() {
         const form = event.currentTarget;
         const formData = new FormData(form);
 
+        setLoading(true);
+
         try {
             const user = await signup(
                 formData.get("email") as string,
@@ -61,6 +62,8 @@ export default function Signup() {
             submit(formData, { method: "post", action: "/signup" });
         } catch (error: any) {
             setClientError(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -80,10 +83,16 @@ export default function Signup() {
                     <Input name="last_name" placeholder="Last Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <Input.Password name="password" clearable placeholder="Password" required width="100%" />
-                    <Button htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Sign up</Button>
+                    <Button
+                        htmlType="submit"
+                        type="secondary"
+                        loading={loading}
+                        disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                    >
+                        Sign up
+                    </Button>
                 </Form>
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
-                <Link to="/login"><ResizableText p>Go back</ResizableText></Link>
+                <Link to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></Link>
             </Card>
         </div>
     );

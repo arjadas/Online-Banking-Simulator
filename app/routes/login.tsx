@@ -4,7 +4,6 @@ import { Form, Link, useActionData, useNavigation, useSubmit } from "@remix-run/
 import { useEffect, useState } from "react";
 import { login } from "~/auth.client";
 import { commitSession, getSession } from "~/auth.server";
-//import "../styles/login.css";
 
 type ActionData = {
   error?: string;
@@ -18,8 +17,8 @@ export const action: ActionFunction = async ({ request }: { request: Request }) 
   try {
     const session = await getSession(request);
     session.set("user", { uid, email });
+    
 
-    //return json<ActionData>({ error: `${import.meta.env.VITE_SESSION_SECRET} ${await commitSession(session)} sd ${await session.get("user")?.uid} sd ${await session.data?.user?.uid} ${await (await getSession(request))?.data.user?.uid} ${await (await getSession(request))?.get("user")?.uid}` });
     return redirect("/", {
       headers: {
         "Set-Cookie": await commitSession(session),
@@ -33,8 +32,8 @@ export const action: ActionFunction = async ({ request }: { request: Request }) 
 export default function Login() {
   const actionData = useActionData<ActionData>();
   const [clientError, setClientError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const submit = useSubmit();
-  const navigation = useNavigation();
 
   useEffect(() => {
     if (actionData?.error) {
@@ -46,6 +45,8 @@ export default function Login() {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
+    
+    setLoading(true);
 
     try {
       const user = await login(
@@ -56,6 +57,8 @@ export default function Login() {
       submit(formData, { method: "post", action: "/login" });
     } catch (error: any) {
       setClientError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,13 +75,19 @@ export default function Login() {
         <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
           <Input.Password name="password" clearable placeholder="Password" required width="100%" />
-          <Button htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Log in</Button>
+          <Button 
+            htmlType="submit"
+            type="secondary"
+            loading={loading}
+            disabled={loading}
+            placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
+            Log in
+          </Button>
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
         <Text p>Don&apos;t have an account? <Link to="/signup">Sign up</Link></Text>
-        <Link to="/forgot-password"><Text p>Forgot your password?</Text></Link>
+        <Link to="/forgot-password" prefetch='render'><Text p>Forgot your password?</Text></Link>
       </Card>
     </div>
-
   );
 }
