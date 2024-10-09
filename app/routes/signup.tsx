@@ -39,6 +39,7 @@ export default function Signup() {
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [shake, setShake] = useState(false);
 
     useEffect(() => {
         if (actionData?.error) {
@@ -50,6 +51,8 @@ export default function Signup() {
         event.preventDefault();
         if (password !== confirmPassword) {
             setClientError("Password Does Not Match - Please Try Again.");
+            setShake(true);
+            setTimeout(() => setShake(false), 500); // Remove shake effect after animation
             return;
         }
 
@@ -111,6 +114,7 @@ export default function Signup() {
                         type="secondary"
                         loading={loading}
                         disabled={loading}
+                        className={shake ? "shake" : ""}
                     >
                         Sign up
                     </Button>
@@ -118,6 +122,16 @@ export default function Signup() {
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
                 <Link to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></Link>
             </Card>
+            <style jsx>{`
+                .shake {
+                    animation: shake 0.5s;
+                }
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    20%, 60% { transform: translateX(-10px); }
+                    40%, 80% { transform: translateX(10px); }
+                }
+            `}</style>
         </div>
     );
 }
