@@ -80,8 +80,11 @@ export default function Transactions() {
 
   const userAccountIds = accounts.map((account) => account.acc);
 
+  // Sort transactions by timestamp in descending order for most recent first
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   // Filter transactions based on selected account or search query
-  const filteredTransactions = transactions.filter((tx) => {
+  const filteredTransactions = sortedTransactions.filter((tx) => {
     const accountMatches = filteredAccount === 'all' || tx.sender_acc === filteredAccount || tx.recipient_acc === filteredAccount;
     const queryMatches = !searchQuery ||
       tx.sender.short_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
