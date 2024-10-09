@@ -13,7 +13,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: "/",
       sameSite: "lax",
-      secrets: [process.env.VITE_SESSION_SECRET],
+      secrets: [import.meta.env.VITE_SESSION_SECRET],
       secure: true,
     },
   });

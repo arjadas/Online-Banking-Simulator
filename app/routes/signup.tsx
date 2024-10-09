@@ -14,6 +14,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     const first_name = formData.get("first_name") as string;
     const last_name = formData.get("last_name") as string;
     const uid = formData.get("uid") as string;
+    console.log(231, context.cloudflare.env.firebase_storage);
 
     try {
         // Prisma database mutations
@@ -22,8 +23,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         // Store session data in KV
         return await createUserSession(context, uid, email, "/app/accounts");
     } catch (error: any) {
-        console.error("Error details:", error);
-        return json({ error: error.message, context: JSON.stringify(context.cloudflare.env, null, 2) });
+        return json({ error: error.message, context: context.cloudflare.env.firebase_storage });
     }
 };
 
