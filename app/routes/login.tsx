@@ -1,29 +1,22 @@
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
-import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Form, Link, useActionData, useNavigation, useSubmit } from "@remix-run/react";
+import { ActionFunction, json } from "@remix-run/cloudflare";
+import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { login } from "~/auth.client";
-import { commitSession, getSession } from "~/auth.server";
+import { createUserSession } from "~/auth.server";
+import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 
 type ActionData = {
   error?: string;
 };
+export const action: ActionFunction = async ({ request, context }: { request: Request, context: any }) => {
 
-export const action: ActionFunction = async ({ request }: { request: Request }) => {
   const formData = await request.formData();
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
 
   try {
-    const session = await getSession(request);
-    session.set("user", { uid, email });
-    
-
-    return redirect("/", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
+    return await createUserSession(context, uid, email, "/app/accounts");
   } catch (error: any) {
     return json<ActionData>({ error: error.toString() });
   }
@@ -45,7 +38,8 @@ export default function Login() {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
-    
+    let uid;
+
     setLoading(true);
 
     try {
@@ -53,14 +47,19 @@ export default function Login() {
         formData.get("email") as string,
         formData.get("password") as string
       );
+
       formData.append("uid", user.uid);
+      uid = user.uid;
       submit(formData, { method: "post", action: "/login" });
     } catch (error: any) {
       setClientError(error.message);
     } finally {
-      setLoading(false);
+      if (uid) {
+        localStorage.setItem('uid', uid);
+      }
     }
-  };
+    setLoading(false);
+  }
 
   return (
     <div style={{
@@ -75,7 +74,7 @@ export default function Login() {
         <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
           <Input.Password name="password" clearable placeholder="Password" required width="100%" />
-          <Button 
+          <Button
             htmlType="submit"
             type="secondary"
             loading={loading}
@@ -85,8 +84,8 @@ export default function Login() {
           </Button>
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
-        <Text p>Don&apos;t have an account? <Link to="/signup">Sign up</Link></Text>
-        <Link to="/forgot-password" prefetch='render'><Text p>Forgot your password?</Text></Link>
+        <Text p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></Text>
+        <AuthenticatedLink to="/forgot-password" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
       </Card>
     </div>
   );

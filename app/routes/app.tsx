@@ -1,9 +1,10 @@
 
 import { Button, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
-import { Link, MetaFunction, Outlet, useMatches, useNavigate } from "@remix-run/react";
+import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { RootState } from '../store';
 
@@ -66,7 +67,7 @@ export default function AppLayout() {
           </Drawer.Title>
           <Drawer.Subtitle>Instantiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
-          <Link to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
+          <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
               style={buttonStyle}
               type='success-light'
@@ -75,8 +76,8 @@ export default function AppLayout() {
               icon={<Shuffle />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
-          </Link>
-          <Link to="/app/paySomeone" prefetch="intent" style={{ textDecoration: 'none' }}>
+          </AuthenticatedLink>
+          <AuthenticatedLink to="/app/paySomeone" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
               style={buttonStyle}
               type='success-light'
@@ -85,8 +86,8 @@ export default function AppLayout() {
               icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>
-          </Link>
-          <Link to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
+          </AuthenticatedLink>
+          <AuthenticatedLink to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
               style={buttonStyle}
               type='success-light'
@@ -95,7 +96,7 @@ export default function AppLayout() {
               icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Default Payments
             </Button>
-          </Link>
+          </AuthenticatedLink>
         </div>
       </Drawer>
       <Page>
@@ -117,7 +118,6 @@ export default function AppLayout() {
                       <Tabs.Item
                         key={index}
                         label={
-                          // has to be "intent" to be compatible with user session for some reason
                           <Link to={item.to} prefetch="intent" style={{
                             display: 'flex',
                             alignItems: 'center',

@@ -1,14 +1,14 @@
-import { CssBaseline } from '@geist-ui/core';
-import { Button, Card, Image, Input, Text } from '@geist-ui/react';
+import { Button, Card, Image, Input } from '@geist-ui/react';
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useNavigation, useSubmit, Link } from "@remix-run/react";
+import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { signup } from "~/auth.client";
-import { commitSession, getSession } from "~/auth.server";
+import { createUserSession } from "~/auth.server";
+import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from "~/util/userUtil";
 
-export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
+export const action: ActionFunction = async ({ context, request }: { context: any; request: Request }) => {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const first_name = formData.get("first_name") as string;
@@ -19,14 +19,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         // Prisma database mutations
         await createUser(context, uid, email, first_name, last_name);
 
-        const session = await getSession(request);
-        session.set("user", { uid, email });
-
-        return redirect("/", {
-            headers: {
-                "Set-Cookie": await commitSession(session),
-            },
-        });
+        // Store session data in KV
+        return await createUserSession(context, uid, email, "/app/accounts");
     } catch (error: any) {
         console.error("Error details:", error);
         return json({ error: error.message, context: JSON.stringify(context.cloudflare.env, null, 2) });
@@ -92,7 +86,7 @@ export default function Signup() {
                     </Button>
                 </Form>
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
-                <Link to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></Link>
+                <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></AuthenticatedLink>
             </Card>
         </div>
     );

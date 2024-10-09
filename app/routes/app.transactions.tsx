@@ -7,7 +7,7 @@ import { useLoaderData } from "@remix-run/react";
 import { useState } from 'react';
 import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/util/db.server';
-import { requireUserSession } from "../auth.server";
+import { getUserSession } from "../auth.server";
 
 // Function to format the date as "Day, 23rd Sep (Today)" for display
 const formatDate = (transactionDate: Date) => {
@@ -43,7 +43,7 @@ const formatSearchDate = (date: Date) => {
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  const user = await requireUserSession(request);
+  const user = await getUserSession(context, request);
   const adapter = new PrismaD1(context.cloudflare.env.DB);
   const db = getPrismaClient(context);
 
@@ -51,8 +51,8 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     db.transaction.findMany({
       where: {
         OR: [
-          { sender_uid: user.uid },
-          { recipient_uid: user.uid }
+          { sender_uid: user!.uid },
+          { recipient_uid: user!.uid }
         ],
       },
       include: {
@@ -61,7 +61,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
       },
     }),
     db.account.findMany({
-      where: { uid: user.uid },
+      where: { uid: user!.uid },
     }),
   ]);
 

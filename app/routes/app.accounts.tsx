@@ -1,11 +1,11 @@
-import { Card, Grid, Spacer, Text } from '@geist-ui/core';
+import { Card, Grid, Spacer } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import React from 'react';
 import { getPrismaClient } from '~/util/db.server';
 import { createUser } from '~/util/userUtil';
-import { requireUserSession } from "../auth.server";
+import { getUserSession } from "../auth.server";
 import AccountCard from '../components/AccountCard';
 import ResizableText from '../components/ResizableText';
 
@@ -21,10 +21,16 @@ type MeUser = {
   }>;
 };
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  const user = await requireUserSession(request);
-  const db = getPrismaClient(context);
-
   try {
+    const user = await getUserSession(context, request);
+    const db = getPrismaClient(context);
+
+    if (!user) {
+      throw new Response("Unauthsdorized", { status: 401 });
+    } else {
+      console.log("User found!", user);
+    }
+
     const getMeUser = async () => {
       return await Promise.all([
         db.user.findUnique({
