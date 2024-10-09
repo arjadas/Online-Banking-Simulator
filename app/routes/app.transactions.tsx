@@ -59,6 +59,9 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         sender: true,
         recipient: true,
       },
+      orderBy: {
+        timestamp: 'desc',
+      },
     }),
     db.account.findMany({
       where: { uid: user.uid },
@@ -80,11 +83,8 @@ export default function Transactions() {
 
   const userAccountIds = accounts.map((account) => account.acc);
 
-  // Sort transactions by timestamp in descending order for most recent first
-  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
   // Filter transactions based on selected account or search query
-  const filteredTransactions = sortedTransactions.filter((tx) => {
+  const filteredTransactions = transactions.filter((tx) => {
     const accountMatches = filteredAccount === 'all' || tx.sender_acc === filteredAccount || tx.recipient_acc === filteredAccount;
     const queryMatches = !searchQuery ||
       tx.sender.short_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
