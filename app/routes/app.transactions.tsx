@@ -59,6 +59,9 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         sender: true,
         recipient: true,
       },
+      orderBy: {
+        timestamp: 'desc',
+      },
     }),
     db.account.findMany({
       where: { uid: user!.uid },
