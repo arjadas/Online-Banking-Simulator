@@ -20,6 +20,7 @@ type MeUser = {
     timestamp: Date;
   }>;
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await requireUserSession(request);
   const db = getPrismaClient(context);
@@ -40,18 +41,26 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
           where: { uid: user.uid },
         }),
       ]);
-
-    }
+    };
 
     let [userData, userAccounts] = await getMeUser();
 
     if (!userData) {
-      console.error("User, not found! Creating new user..", user)
+      console.error("User not found! Creating new user..", user);
       await createUser(context, user.uid, user.email, "Plan", "B");
       [userData, userAccounts] = await getMeUser();
     }
 
-    userData = userData!
+    // Generate a single PayID for the user
+    const payID = `04${Math.floor(10000000 + Math.random() * 90000000)}`; // 10 digits, starting with 04
+
+    // Assign the same PayID to each account
+    userAccounts = userAccounts.map(account => ({
+      ...account,
+      payID,
+    }));
+
+    userData = userData!;
     console.log("Prisma query successful");
 
     return json({
@@ -73,7 +82,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 export default function Dashboard() {
   const loaderData = useLoaderData<{
     me: MeUser;
-    userAccounts: Account[];
+    userAccounts: Array<Account & { payID: string }>;
   } | null>();
 
   if (loaderData) {
@@ -91,12 +100,13 @@ export default function Dashboard() {
 
         <Spacer h={2} />
 
-        {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
+        {accounts.map((account) => (
           <React.Fragment key={account.acc}>
             <AccountCard
               accountType={account.short_description}
               bsb={account.bsb.toString()}
               accountNumber={account.acc.toString()}
+              payID={account.short_description === "Delightful Debit" ? account.payID : undefined} // Display PayID only for "Delightful Debit"
               balance={`$${account.balance.toFixed(2)}`}
             />
             <Spacer h={1} />
