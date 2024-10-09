@@ -11,7 +11,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
-  const amount = parseInt(formData.get('amount') as string);
+  const amount = parseFloat(formData.get('amount') as string); // Ensuring decimal handling here
   const description = formData.get('description') as string;
   const user = await requireUserSession(request);
   const db = getPrismaClient(context);
@@ -37,8 +37,6 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       throw new Error('Insufficient funds');
     }
 
-    // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
-    // so it doesn't support transactions now, but when it does, this code will support it.
     const result = await db.$transaction([
       db.account.update({
         where: { acc: fromAccount.acc },
@@ -50,7 +48,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       }),
       db.transaction.create({
         data: {
-          amount,
+          amount,  // Storing the decimal value
           sender_acc: fromAccount.acc,
           recipient_acc: toAccount.acc,
           sender_uid: user.uid,
