@@ -14,6 +14,7 @@ type MeUser = {
   first_name: string;
   last_name: string;
   email: string;
+  payID?: string; // Added PayID field to user data
   notifications: Array<{
     notification_id: string;
     content: string;
@@ -26,42 +27,35 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   const db = getPrismaClient(context);
 
   try {
-    const getMeUser = async () => {
-      return await Promise.all([
-        db.user.findUnique({
-          where: { uid: user.uid },
-          include: {
-            notifications: {
-              where: { read: false },
-              take: 5,
-            },
+    // Fetch user data (including PayID) and their accounts
+    const [userData, userAccounts] = await Promise.all([
+      db.user.findUnique({
+        where: { uid: user.uid },
+        include: {
+          notifications: {
+            where: { read: false },
+            take: 5,
           },
-        }),
-        db.account.findMany({
-          where: { uid: user.uid },
-        }),
-      ]);
-    };
+        },
+      }),
+      db.account.findMany({
+        where: { uid: user.uid },
+      }),
+    ]);
 
-    let [userData, userAccounts] = await getMeUser();
-
+    // If user data doesn't exist, handle it accordingly
     if (!userData) {
-      console.error("User not found! Creating new user..", user);
-      await createUser(context, user.uid, user.email, "Plan", "B");
-      [userData, userAccounts] = await getMeUser();
+      console.error("User not found!");
+      return json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Generate a single PayID for the user
-    const payID = `04${Math.floor(10000000 + Math.random() * 90000000)}`; // 10 digits, starting with 04
+    // Retrieve the PayID from the user data and attach it to each account
+    const userPayID = userData.pay_id;
 
-    // Assign the same PayID to each account
-    userAccounts = userAccounts.map(account => ({
+    const accountsWithPayID = userAccounts.map(account => ({
       ...account,
-      payID,
+      payID: userPayID, // Use the existing PayID from the database
     }));
-
-    userData = userData!;
-    console.log("Prisma query successful");
 
     return json({
       me: {
@@ -71,11 +65,11 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         email: userData.email,
         notifications: userData.notifications,
       },
-      userAccounts,
+      userAccounts: accountsWithPayID,
     });
   } catch (error) {
     console.error(error);
-    return json({ error: 'Failed to fetch users' }, { status: 500 });
+    return json({ error: 'Failed to fetch user data' }, { status: 500 });
   }
 };
 
