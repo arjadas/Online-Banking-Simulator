@@ -5,7 +5,7 @@ import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
 import { getPrismaClient } from '~/util/db.server';
-import { requireUserSession } from '../auth.server';
+import { getUserSession } from '../auth.server';
 import "../styles/app.paySomeone.css";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
@@ -23,7 +23,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         return json({ success: false, error: 'Json parsing error!' }, { status: 400 });
     }
 
-    const user = await requireUserSession(request);
+    const user = await getUserSession(context, request);
     const db = getPrismaClient(context);
 
     try {
@@ -67,7 +67,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
             db.transaction.create({
                 data: {
                     amount,
-                    sender_uid: user.uid,
+                    sender_uid: user!.uid,
                     recipient_uid: toAccount.uid,
                     reference: reference,
                     description,
@@ -89,12 +89,12 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-    const user = await requireUserSession(request);
+    const user = await getUserSession(context, request);
     const db = getPrismaClient(context);
 
     const [userAccounts] = await Promise.all([
         db.account.findMany({
-            where: { uid: user.uid },
+            where: { uid: user!.uid },
         }),
     ]);
 

@@ -1,11 +1,11 @@
 import { LoaderFunction } from '@remix-run/cloudflare';
-import { handleSignOut } from '~/auth.server';
-import { signOutUser } from '~/auth.client';
-import { useEffect } from 'react';
 import { useNavigate } from '@remix-run/react';
+import { useEffect } from 'react';
+import { signOutUser } from '~/auth.client';
+import { logout } from '~/auth.server';
 
-export const loader: LoaderFunction = async ({ request }: { request: Request }) => {
-  return handleSignOut(request);
+export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
+  return logout(context, request);
 };
 
 export default function Logout() {
@@ -15,6 +15,7 @@ export default function Logout() {
     const performLogout = async () => {
       try {
         await signOutUser();
+        localStorage.removeItem('uid');
         navigate('/login', { replace: true });
       } catch (error) {
         console.error('Error during logout:', error);
