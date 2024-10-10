@@ -14,7 +14,6 @@ type MeUser = {
   first_name: string;
   last_name: string;
   email: string;
-  payID?: string; // Added PayID field to user data
   notifications: Array<{
     notification_id: string;
     content: string;
