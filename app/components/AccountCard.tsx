@@ -7,7 +7,7 @@ interface AccountCardProps {
   accountType: string;
   bsb: string;
   accountNumber: string;
-  payID?: string; // Optional payID prop
+  payID?: string;
   balance: string;
 }
 

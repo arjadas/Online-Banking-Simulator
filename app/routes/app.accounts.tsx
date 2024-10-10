@@ -49,14 +49,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
       return json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Retrieve the PayID from the user data and attach it to each account
-    const userPayID = userData.pay_id;
-
-    const accountsWithPayID = userAccounts.map(account => ({
-      ...account,
-      payID: userPayID, // Use the existing PayID from the database
-    }));
-
     return json({
       me: {
         uid: userData.uid,
@@ -65,7 +57,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         email: userData.email,
         notifications: userData.notifications,
       },
-      userAccounts: accountsWithPayID,
+      userAccounts: userAccounts,
     });
   } catch (error) {
     console.error(error);
@@ -100,7 +92,7 @@ export default function Dashboard() {
               accountType={account.short_description}
               bsb={account.bsb.toString()}
               accountNumber={account.acc.toString()}
-              payID={account.short_description === "Delightful Debit" ? account.payID : undefined} // Display PayID only for "Delightful Debit"
+              payID={account.pay_id ?? undefined}
               balance={`$${account.balance.toFixed(2)}`}
             />
             <Spacer h={1} />
