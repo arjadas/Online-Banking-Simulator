@@ -14,12 +14,14 @@ type MeUser = {
   first_name: string;
   last_name: string;
   email: string;
+  payID?: string; // Added PayID field to user data
   notifications: Array<{
     notification_id: string;
     content: string;
     timestamp: Date;
   }>;
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   try {
     const user = await getUserSession(context, request);
@@ -41,24 +43,18 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
               take: 5,
             },
           },
-        }),
-        db.account.findMany({
-          where: { uid: user.uid },
-        }),
-      ]);
+        },
+      }),
+      db.account.findMany({
+        where: { uid: user.uid },
+      }),
+    ]);
 
-    }
-
-    let [userData, userAccounts] = await getMeUser();
-
+    // If user data doesn't exist, handle it accordingly
     if (!userData) {
-      console.error("User, not found! Creating new user..", user)
-      await createUser(context, user.uid, user.email, "Plan", "B");
-      [userData, userAccounts] = await getMeUser();
+      console.error("User not found!");
+      return json({ error: 'User not found' }, { status: 404 });
     }
-
-    userData = userData!
-    console.log("Prisma query successful");
 
     return json({
       me: {
@@ -68,18 +64,18 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         email: userData.email,
         notifications: userData.notifications,
       },
-      userAccounts,
+      userAccounts: userAccounts,
     });
   } catch (error) {
     console.error(error);
-    return json({ error: 'Failed to fetch users' }, { status: 500 });
+    return json({ error: 'Failed to fetch user data' }, { status: 500 });
   }
 };
 
 export default function Dashboard() {
   const loaderData = useLoaderData<{
     me: MeUser;
-    userAccounts: Account[];
+    userAccounts: Array<Account & { payID: string }>;
   } | null>();
 
   if (loaderData) {
@@ -97,12 +93,13 @@ export default function Dashboard() {
 
         <Spacer h={2} />
 
-        {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
+        {accounts.map((account) => (
           <React.Fragment key={account.acc}>
             <AccountCard
               accountType={account.short_description}
               bsb={account.bsb.toString()}
               accountNumber={account.acc.toString()}
+              payID={account.pay_id ?? undefined}
               balance={`$${account.balance.toFixed(2)}`}
             />
             <Spacer h={1} />
