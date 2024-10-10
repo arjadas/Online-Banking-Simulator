@@ -5,8 +5,8 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
 import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/util/db.server';
-import { requireUserSession } from "../auth.server";
 import CurrencyInput from '~/components/CurrencyInput';
+import { getUserSession } from "../auth.server";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
@@ -14,7 +14,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const toAcc = parseInt(formData.get('toAcc') as string);
   const amount = parseInt(formData.get('amount') as string);
   const description = formData.get('description') as string;
-  const user = await requireUserSession(request);
+  const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
 
   try {
@@ -54,8 +54,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
           amount: amount,
           sender_acc: fromAccount.acc,
           recipient_acc: toAccount.acc,
-          sender_uid: user.uid,
-          recipient_uid: user.uid,
+          sender_uid: user!.uid,
+          recipient_uid: user!.uid,
           reference: `Transfer from ${fromAccount.short_description} to ${toAccount.short_description}`,
           description: description,
           timestamp: new Date(),
@@ -73,13 +73,15 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  const user = await requireUserSession(request);
+  console.log(90)
+  const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
+  console.log(23234, user)
 
   // fetch the user details and related data from Prisma
   const [userAccounts] = await Promise.all([
     db.account.findMany({
-      where: { uid: user.uid },
+      where: { uid: user!.uid },
     }),
   ]);
 

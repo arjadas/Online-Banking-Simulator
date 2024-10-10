@@ -12,7 +12,7 @@ startTransition(() => {
   // added by Aden Diamond for a workaround to a seemingly unreported bug.
   // @ts-ignore
   window.__remixContext.url = window.location.pathname!
-  
+
   window.global = window;
 
   hydrateRoot(
