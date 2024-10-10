@@ -1,0 +1,14 @@
+html,
+body {
+    @media (prefers-color-scheme: dark) {
+        color-scheme: dark;
+    }
+
+    height: 100%;
+    margin: 0;
+}
+
+/* workaround to tabs issue? */
+.scroll-container {
+    padding-right: 10px;
+}
