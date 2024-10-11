@@ -10,9 +10,9 @@ import {
 } from "@remix-run/react";
 import { Provider } from 'react-redux';
 import { getUserSession } from "./auth.server";
-import { AuthProvider } from "./components/AuthProvider";
 import store from './store';
 import "./tailwind.css";
+import { AuthProvider } from "./components/AuthProvider";
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   const user = await getUserSession(context, request);
@@ -21,7 +21,7 @@ export const loader: LoaderFunction = async ({ request, context }: { request: Re
   // Handle initial request
   if (url.pathname === "/") {
     if (user) {
-      return redirect("/app/accounts");
+      return redirect("/app/dashboard");
     } else {
       return redirect("/login");
     }

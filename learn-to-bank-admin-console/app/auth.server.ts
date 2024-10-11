@@ -46,6 +46,10 @@ async function createUserSession(context: any, uid: string, email: string, redir
 async function getUserSession(context: any, request: Request) {
   const { getSession } = getSessionStorage(context);
   const session = await getSession(request.headers.get("Cookie"));
+
+  //TODO in main app too
+  if (!session) return null;
+
   const uid = session.get("uid");
   const email = session.get("email");
 

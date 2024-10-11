@@ -7,10 +7,11 @@ interface AccountCardProps {
   accountType: string;
   bsb: string;
   accountNumber: string;
+  payID?: string;
   balance: string;
 }
 
-const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumber, balance }) => {
+const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumber, payID, balance }) => {
   return (
     <Card width="100%" shadow padding={1}>
       <Card.Content>
@@ -23,6 +24,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumb
           <Grid xs={12} direction="column">
             <ResizableText small>BSB: {bsb}</ResizableText>
             <ResizableText small>Account Number: {accountNumber}</ResizableText>
+            {payID && <ResizableText small>PayID: {payID}</ResizableText>} {/* Conditionally render PayID */}
           </Grid>
           <Grid xs={12} justify="flex-end" alignItems="center">
             <ResizableText h4>{balance}</ResizableText>

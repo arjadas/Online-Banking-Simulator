@@ -1,30 +1,36 @@
+import { GeistProvider, Page, Themes } from '@geist-ui/core';
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
 import { login } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
 import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import { RootState } from '~/store';
 
 type ActionData = {
   error?: string;
 };
 export const action: ActionFunction = async ({ request, context }: { request: Request, context: any }) => {
-
   const formData = await request.formData();
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
 
   try {
-    return await createUserSession(context, uid, email, "/app/accounts");
+    return await createUserSession(context, uid, email, "/");
   } catch (error: any) {
-    return json<ActionData>({ error: error.toString() });
+    return json<ActionData>({ error: error.toString() + 'adsasd' });
   }
 };
 
 export default function Login() {
   const actionData = useActionData<ActionData>();
   const [clientError, setClientError] = useState<string | null>(null);
+  const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
+
+  const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
+  const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const [loading, setLoading] = useState(false);
   const submit = useSubmit();
 
@@ -67,7 +73,8 @@ export default function Login() {
       justifyContent: "center",
       alignItems: "center",
       flexDirection: "column",
-      height: "100vh"
+      height: "100vh",
+      backgroundColor: isDarkTheme ? '#111111' : '#EEEEEE',
     }} >
       <Image width="400px" style={{ textAlign: "center", paddingBottom: 30 }} src="logo.png" />
       <Card width="400px" style={{ padding: 10 }}>
@@ -85,7 +92,7 @@ export default function Login() {
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
         <Text p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></Text>
-        <AuthenticatedLink to="/forgot-password" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
+        <AuthenticatedLink to="/forgotPassword" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
       </Card>
     </div>
   );
