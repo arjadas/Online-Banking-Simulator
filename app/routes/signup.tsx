@@ -32,6 +32,9 @@ export default function Signup() {
     const submit = useSubmit();
     const [clientError, setClientError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [shake, setShake] = useState(false);
 
     useEffect(() => {
         if (actionData?.error) {
@@ -41,6 +44,14 @@ export default function Signup() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        if (password !== confirmPassword) {
+            setClientError("Password Does Not Match - Please Try Again.");
+            setShake(true);
+            setTimeout(() => setShake(false), 500); // Remove shake effect after animation
+            return;
+        }
+
         const form = event.currentTarget;
         const formData = new FormData(form);
 
