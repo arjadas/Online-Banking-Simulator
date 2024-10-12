@@ -73,21 +73,55 @@ export default function Signup() {
             <Card width="400px">
                 <ResizableText h3 style={{ textAlign: "center" }}>Sign Up</ResizableText>
                 <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <Input name="first_name" placeholder="First Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                    <Input name="first_name" placeholder="First Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  />
                     <Input name="last_name" placeholder="Last Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                    <Input.Password name="password" clearable placeholder="Password" required width="100%" />
+                    <Input.Password
+                        name="password"
+                        clearable
+                        placeholder="Password"
+                        required
+                        width="100%"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Input.Password
+                        name="confirm_password"
+                        clearable
+                        placeholder="Confirm Password"
+                        required
+                        width="100%"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+
                     <Button
                         htmlType="submit"
                         type="secondary"
                         loading={loading}
-                        disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                    >
+                        disabled={loading}
+                        className={shake ? "shake" : ""}
+                        placeholder=""
+                        onPointerEnterCapture={undefined}
+                        onPointerLeaveCapture={undefined}
+                    >
+
                         Sign up
                     </Button>
                 </Form>
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
                 <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></AuthenticatedLink>
             </Card>
+            <style>{`
+                .shake {
+                    animation: shake 0.5s;
+                }
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    20%, 60% { transform: translateX(-10px); }
+                    40%, 80% { transform: translateX(10px); }
+                }
+            `}</style>
         </div>
     );
 }
