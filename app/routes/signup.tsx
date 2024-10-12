@@ -1,5 +1,4 @@
-import { CssBaseline } from '@geist-ui/core'; 
-import { Button, Card, Image, Input, Text } from '@geist-ui/react';
+import { Button, Card, Image, Input } from '@geist-ui/react';
 import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
@@ -18,6 +17,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     console.log(231, context.cloudflare.env.firebase_storage);
 
     try {
+        // Prisma database mutations
         await createUser(context, uid, email, first_name, last_name);
 
         // Store session data in KV
@@ -32,9 +32,6 @@ export default function Signup() {
     const submit = useSubmit();
     const [clientError, setClientError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [shake, setShake] = useState(false);
 
     useEffect(() => {
         if (actionData?.error) {
@@ -44,13 +41,6 @@ export default function Signup() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (password !== confirmPassword) {
-            setClientError("Password Does Not Match - Please Try Again.");
-            setShake(true);
-            setTimeout(() => setShake(false), 500); // Remove shake effect after animation
-            return;
-        }
-
         const form = event.currentTarget;
         const formData = new FormData(form);
 
@@ -104,6 +94,7 @@ export default function Signup() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+
                     <Button
                         htmlType="submit"
                         type="secondary"
@@ -114,6 +105,7 @@ export default function Signup() {
                         onPointerEnterCapture={undefined}
                         onPointerLeaveCapture={undefined}
                     >
+
                         Sign up
                     </Button>
                 </Form>
