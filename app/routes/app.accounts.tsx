@@ -39,13 +39,9 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
             take: 5,
           },
         },
-        // @ts-ignore
-        cacheStrategy: { swr: 60, ttl: 60 },
       }),
       db.account.findMany({
         where: { uid: user.uid },
-        // @ts-ignore
-        cacheStrategy: { swr: 60, ttl: 60 },
       }),
     ]);
   }

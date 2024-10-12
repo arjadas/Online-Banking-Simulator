@@ -18,5 +18,5 @@ export function AuthenticatedLink(props: LinkProps) {
         );
     };
 
-    return <Link {...props} prefetch="render" />;
+    return <Link {...props} />;
 }
