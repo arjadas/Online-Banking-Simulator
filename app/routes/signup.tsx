@@ -83,9 +83,9 @@ export default function Signup() {
             <Card width="400px">
                 <ResizableText h3 style={{ textAlign: "center" }}>Sign Up</ResizableText>
                 <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <Input name="first_name" placeholder="First Name" required width="100%" />
-                    <Input name="last_name" placeholder="Last Name" required width="100%" />
-                    <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" />
+                    <Input name="first_name" placeholder="First Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  />
+                    <Input name="last_name" placeholder="Last Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                    <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <Input.Password
                         name="password"
                         clearable
@@ -110,6 +110,9 @@ export default function Signup() {
                         loading={loading}
                         disabled={loading}
                         className={shake ? "shake" : ""}
+                        placeholder=""
+                        onPointerEnterCapture={undefined}
+                        onPointerLeaveCapture={undefined}
                     >
                         Sign up
                     </Button>
@@ -117,7 +120,7 @@ export default function Signup() {
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
                 <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></AuthenticatedLink>
             </Card>
-            <style jsx>{`
+            <style>{`
                 .shake {
                     animation: shake 0.5s;
                 }
