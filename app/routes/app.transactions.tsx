@@ -84,12 +84,13 @@ export default function Transactions() {
 
   const userAccountIds = accounts.map((account) => account.acc);
 
-  // Helper function to get the badge color based on the account type
-  const getBadgeColor = (accountName: string) => {
-    if (accountName.includes("Debit")) return "blue";
-    if (accountName.includes("Credit")) return "orange";
-    if (accountName.includes("Saver")) return "green";
-    return "purple";
+  // Helper function to get the badge color based on the account type or external user
+  const getBadgeColor = (account: Account, isExternalUser: boolean) => {
+    if (isExternalUser) return "purple";
+    if (account.short_description.includes("Debit")) return "blue";
+    if (account.short_description.includes("Credit")) return "orange";
+    if (account.short_description.includes("Saver")) return "green";
+    return "default";
   };
 
   // Filter transactions based on selected account or search query
@@ -197,52 +198,60 @@ export default function Transactions() {
       <Spacer h={2} />
 
       {/* Transaction List with details */}
-      {filteredTransactions.map((transaction) => (
-        <Card key={transaction.transaction_id} width="100%">
-          <Grid.Container gap={2}>
-            <Grid xs={18} alignItems="center">
-              <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-                {/* Icon before "From" */}
-                {getTransactionIcon(transaction.recipient_acc)}
-                &nbsp;&nbsp;From:&nbsp;
-                <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.sender.short_description) }}>{transaction.sender.short_description}</Badge>
-                &nbsp;&nbsp;To:&nbsp;
-                <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description) }}>{transaction.recipient.short_description}</Badge>
-                &nbsp;&nbsp;Amount: ${transaction.amount.toFixed(2)}
-                &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
-              </ResizableText>
-            </Grid>
-            <Grid xs={6} alignItems="center" justify="flex-end">
-              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
-                {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
-              </Button>
-            </Grid>
-          </Grid.Container>
+      {filteredTransactions.map((transaction) => {
+        const isExternalUser = !userAccountIds.includes(transaction.recipient_acc);
+        const recipientDisplayName = transaction.recipient.account_holder_name || transaction.recipient.email;
 
-          {expandedTransactions.has(transaction.transaction_id) && (
-            <Collapse title="Transaction Details" initialVisible style={{ marginTop: '10px' }}>
-              <Grid.Container gap={1} alignItems="flex-start">
-                <Grid xs={24} md={6}>
-                  <ResizableText small><strong>Sender Account:</strong>&nbsp;</ResizableText>
-                  <ResizableText small>{transaction.sender_acc}</ResizableText>
-                </Grid>
-                <Grid xs={24} md={6}>
-                  <ResizableText small><strong>Recipient Account:</strong>&nbsp;</ResizableText>
-                  <ResizableText small>{transaction.recipient_acc}</ResizableText>
-                </Grid>
-                <Grid xs={24} md={6}>
-                  <ResizableText small><strong>Reference:</strong>&nbsp;</ResizableText>
-                  <ResizableText small>{transaction.reference}</ResizableText>
-                </Grid>
-                <Grid xs={24} md={6}>
-                  <ResizableText small><strong>Description:</strong>&nbsp;</ResizableText>
-                  <ResizableText small>{transaction.description || "No Description Provided"}</ResizableText>
-                </Grid>
-              </Grid.Container>
-            </Collapse>
-          )}
-        </Card>
-      ))}
+        return (
+          <Card key={transaction.transaction_id} width="100%">
+            <Grid.Container gap={2}>
+              <Grid xs={18} alignItems="center">
+                <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                  {getTransactionIcon(transaction.recipient_acc)}
+                  &nbsp;&nbsp;From:&nbsp;
+                  <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.sender, false) }}>
+                    {transaction.sender.short_description}
+                  </Badge>
+                  &nbsp;&nbsp;To:&nbsp;
+                  <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient, isExternalUser) }}>
+                    {isExternalUser ? recipientDisplayName : transaction.recipient.short_description}
+                  </Badge>
+                  &nbsp;&nbsp;Amount: ${transaction.amount.toFixed(2)}
+                  &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
+                </ResizableText>
+              </Grid>
+              <Grid xs={6} alignItems="center" justify="flex-end">
+                <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
+                  {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
+                </Button>
+              </Grid>
+            </Grid.Container>
+
+            {expandedTransactions.has(transaction.transaction_id) && (
+              <Collapse title="Transaction Details" initialVisible>
+                <Grid.Container gap={1} alignItems="flex-start">
+                  <Grid xs={24} md={6}>
+                    <ResizableText small><strong>Sender Account:</strong>&nbsp;</ResizableText>
+                    <ResizableText small>{transaction.sender_acc}</ResizableText>
+                  </Grid>
+                  <Grid xs={24} md={6}>
+                    <ResizableText small><strong>Recipient Account:</strong>&nbsp;</ResizableText>
+                    <ResizableText small>{transaction.recipient_acc}</ResizableText>
+                  </Grid>
+                  <Grid xs={24} md={6}>
+                    <ResizableText small><strong>Reference:</strong>&nbsp;</ResizableText>
+                    <ResizableText small>{transaction.reference}</ResizableText>
+                  </Grid>
+                  <Grid xs={24} md={6}>
+                    <ResizableText small><strong>Description:</strong>&nbsp;</ResizableText>
+                    <ResizableText small>{transaction.description || "No Description Provided"}</ResizableText>
+                  </Grid>
+                </Grid.Container>
+              </Collapse>
+            )}
+          </Card>
+        );
+      })}
       <Spacer h={2} />
     </>
   );
