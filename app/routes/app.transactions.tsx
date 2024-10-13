@@ -127,10 +127,8 @@ export default function Transactions() {
   return (
     <>
       <Spacer h={2} />
-      <Card width="100%" style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px' }}>
-        <ResizableText h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '20px' }}>
-          Transaction History
-        </ResizableText>
+      <Card width="100%" padding={2}>
+        <ResizableText h2 style={{ fontSize: '2rem' }}>Transaction History</ResizableText>
 
         {/* Filter dropdown */}
         <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
@@ -158,7 +156,8 @@ export default function Transactions() {
               icon={<Search />}
               placeholder="Search Transaction"
               type="secondary"
-              scale={0.7}
+              width="100%" // Full width within its grid cell
+              scale={1} // Slightly larger for better alignment with other elements
               onChange={e => setSearchQuery(e.target.value)}
               clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
           </Grid>
