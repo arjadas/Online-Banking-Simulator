@@ -127,39 +127,43 @@ export default function Transactions() {
   return (
     <>
       <Spacer h={2} />
-      <ResizableText h2>Transaction History</ResizableText>
+      <Card width="100%" style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px' }}>
+        <ResizableText h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '20px' }}>
+          Transaction History
+        </ResizableText>
 
-      {/* Filter dropdown */}
-      <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-        <Select.Option value="all">All Accounts</Select.Option>
-        {// @ts-ignore 
-          accounts.map((account: Account) => (
-            <Select.Option key={account.acc} value={account.acc.toString()}>
-              {account.short_description} (BSB: {account.bsb})
-            </Select.Option>
-          ))}
-      </Select>
+        {/* Filter dropdown */}
+        <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <Select.Option value="all">All Accounts</Select.Option>
+          {// @ts-ignore 
+            accounts.map((account: Account) => (
+              <Select.Option key={account.acc} value={account.acc.toString()}>
+                {account.short_description} (BSB: {account.bsb})
+              </Select.Option>
+            ))}
+        </Select>
 
-      <Spacer h={2} />
+        <Spacer h={2} />
 
-      {/* Search Bar and Download PDF Button */}
-      <Grid.Container justify="space-between" alignItems="center">
-        <Grid>
-          <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            <strong>Download PDF Statement</strong> &nbsp;
-            <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
-          </Button>
-        </Grid>
-        <Grid>
-          <Input
-            icon={<Search />}
-            placeholder="Search Transaction"
-            type="secondary"
-            scale={0.7}
-            onChange={e => setSearchQuery(e.target.value)}
-            clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-        </Grid>
-      </Grid.Container>
+        {/* Search Bar and Download PDF Button */}
+        <Grid.Container justify="space-between" alignItems="center">
+          <Grid>
+            <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+              <strong>Download PDF Statement</strong> &nbsp;
+              <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
+            </Button>
+          </Grid>
+          <Grid>
+            <Input
+              icon={<Search />}
+              placeholder="Search Transaction"
+              type="secondary"
+              scale={0.7}
+              onChange={e => setSearchQuery(e.target.value)}
+              clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+          </Grid>
+        </Grid.Container>
+      </Card>
 
       <Spacer h={2} />
 
