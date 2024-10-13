@@ -30,6 +30,7 @@ interface TransactionData {
       { header: 'To', dataKey: 'recipient' },
       { header: 'Amount', dataKey: 'amount' },
       { header: 'Reference', dataKey: 'reference' },
+      { header: 'Description', dataKey: 'description' },
     ];
   
     // Prepare the data for the table
