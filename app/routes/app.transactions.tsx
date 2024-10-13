@@ -99,6 +99,8 @@ export default function Transactions() {
     const queryMatches = !searchQuery ||
       tx.sender.short_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.recipient.short_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.sender.acc_name.toLowerCase().includes(searchQuery.toLowerCase()) || // Match sender username
+      tx.recipient.acc_name.toLowerCase().includes(searchQuery.toLowerCase()) || // Match recipient username
       formatSearchDate(new Date(tx.timestamp)).includes(searchQuery); // Match DD/MM/YYYY format for search
     return accountMatches && queryMatches;
   });
