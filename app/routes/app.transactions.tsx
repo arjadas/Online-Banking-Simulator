@@ -1,4 +1,4 @@
-import { Button, Card, Collapse, Grid, Input, Select, Spacer } from '@geist-ui/core';
+import { Badge, Button, Card, Collapse, Grid, Input, Select, Spacer } from '@geist-ui/core';
 import { ArrowDownCircle, Search, Shuffle, User } from '@geist-ui/icons';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { Account, Transaction } from '@prisma/client';
@@ -84,6 +84,14 @@ export default function Transactions() {
 
   const userAccountIds = accounts.map((account) => account.acc);
 
+  // Helper function to get the badge color based on the account type
+  const getBadgeColor = (accountName: string) => {
+    if (accountName.includes("Debit")) return "blue";
+    if (accountName.includes("Credit")) return "orange";
+    if (accountName.includes("Saver")) return "green";
+    return "purple";
+  };
+
   // Filter transactions based on selected account or search query
   const filteredTransactions = transactions.filter((tx) => {
     const accountMatches = filteredAccount === 'all' || tx.sender_acc === filteredAccount || tx.recipient_acc === filteredAccount;
@@ -127,7 +135,7 @@ export default function Transactions() {
     <>
       <Spacer h={2} />
       <Card shadow width="100%" style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
-        <ResizableText h2 style={{ marginBottom: '30px' }}>Transaction History</ResizableText>
+        <ResizableText h2 style={{marginBottom: '30px'}}>Transaction History</ResizableText>
 
         {/* Total Transactions Summary */}
         <Grid.Container gap={2} justify="center" alignItems="center" style={{ marginBottom: '20px' }}>
@@ -170,14 +178,15 @@ export default function Transactions() {
 
           <Grid xs={6} style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button 
-              type="secondary"
-              ghost
-              auto
-              scale={0.7}
+              type="secondary" 
+              ghost 
+              auto 
+              scale={0.7} 
               height="30px"
-              marginTop='3px'
+              marginTop= '3px'
               style={{ height: '30px' }}
-              onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              onClick={handleDownloadPDF}
+            >
               <strong>Download PDF Statement</strong> &nbsp;
               <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
             </Button>
@@ -193,11 +202,14 @@ export default function Transactions() {
           <Grid.Container gap={2}>
             <Grid xs={18} alignItems="center">
               <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                {/* Icon before "From" */}
                 {getTransactionIcon(transaction.recipient_acc)}
-                &nbsp;&nbsp;<strong>From:</strong> {transaction.sender.short_description} &nbsp;&nbsp;
-                <strong>To:</strong> {transaction.recipient.short_description} &nbsp;&nbsp;
-                <strong>Amount:</strong> ${transaction.amount.toFixed(2)} &nbsp;&nbsp;
-                <strong>Date:</strong> {formatDate(new Date(transaction.timestamp))}
+                &nbsp;&nbsp;From:&nbsp;
+                <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.sender.short_description) }}>{transaction.sender.short_description}</Badge>
+                &nbsp;&nbsp;To:&nbsp;
+                <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description) }}>{transaction.recipient.short_description}</Badge>
+                &nbsp;&nbsp;Amount: ${transaction.amount.toFixed(2)}
+                &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
               </ResizableText>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
@@ -208,7 +220,7 @@ export default function Transactions() {
           </Grid.Container>
 
           {expandedTransactions.has(transaction.transaction_id) && (
-            <Collapse title="Transaction Details" initialVisible>
+            <Collapse title="Transaction Details" initialVisible style={{ marginTop: '10px' }}>
               <Grid.Container gap={1} alignItems="flex-start">
                 <Grid xs={24} md={6}>
                   <ResizableText small><strong>Sender Account:</strong>&nbsp;</ResizableText>
