@@ -47,10 +47,10 @@ interface TransactionData {
       startY: 40,
       styles: { fontSize: 8 },
       columnStyles: { 
-        timestamp: { cellWidth: 25 },
-        sender: { cellWidth: 40 },
-        recipient: { cellWidth: 40 },
-        amount: { cellWidth: 25 },
+        timestamp: { cellWidth: 'auto' },
+        sender: { cellWidth: 'auto' },
+        recipient: { cellWidth: 'auto' },
+        amount: { cellWidth: 'auto' },
         reference: { cellWidth: 'auto' },
       },
     });
