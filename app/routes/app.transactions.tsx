@@ -104,14 +104,21 @@ export default function Transactions() {
   });
 
   const handleDownloadPDF = () => {
-    const transactionData = filteredTransactions.map(tx => ({
-      ...tx,
-      sender: tx.sender.short_description,
-      recipient: tx.recipient.short_description,
-      description: tx.description || "No Description Provided",
-    }));
-    generateTransactionsPDF(transactionData);
-  };
+      const transactionData = filteredTransactions.map(tx => {
+        const isExternalSender = !userAccountIds.includes(tx.sender_acc);
+        const isExternalRecipient = !userAccountIds.includes(tx.recipient_acc);
+        const senderDisplayName = tx.sender.acc_name;
+        const recipientDisplayName = tx.recipient.acc_name;
+  
+        return {
+          ...tx,
+          sender: isExternalSender ? senderDisplayName : tx.sender.short_description,
+          recipient: isExternalRecipient ? recipientDisplayName : tx.recipient.short_description,
+          description: tx.description || "No Description Provided",
+        };
+      });
+      generateTransactionsPDF(transactionData);
+    };
 
   const toggleTransactionDetails = (transactionId: number) => {
     setExpandedTransactions(prev => {
