@@ -84,13 +84,13 @@ export default function Transactions() {
 
   const userAccountIds = accounts.map((account) => account.acc);
 
-  // Helper function to get the badge color based on the account type or external user
-  const getBadgeColor = (account: Account, isExternalUser: boolean) => {
+  // Helper function to get the badge color based on the account type
+  const getBadgeColor = (accountName: string, isExternalUser = false) => {
     if (isExternalUser) return "purple";
-    if (account.short_description.includes("Debit")) return "blue";
-    if (account.short_description.includes("Credit")) return "orange";
-    if (account.short_description.includes("Saver")) return "green";
-    return "default";
+    if (accountName.includes("Debit")) return "blue";
+    if (accountName.includes("Credit")) return "orange";
+    if (accountName.includes("Saver")) return "green";
+    return "gray";
   };
 
   // Filter transactions based on selected account or search query
@@ -126,8 +126,8 @@ export default function Transactions() {
   };
 
   // Determine the correct icon based on whether the transaction is internal or external
-  const getTransactionIcon = (recipientAcc: number) => {
-    return userAccountIds.includes(recipientAcc)
+  const getTransactionIcon = (accountId: number) => {
+    return userAccountIds.includes(accountId)
       ? <Shuffle size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
       : <User size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
   };
@@ -199,7 +199,10 @@ export default function Transactions() {
 
       {/* Transaction List with details */}
       {filteredTransactions.map((transaction) => {
-        const isExternalUser = !userAccountIds.includes(transaction.recipient_acc);
+        const isExternalSender = !userAccountIds.includes(transaction.sender_acc);
+        const isExternalRecipient = !userAccountIds.includes(transaction.recipient_acc);
+
+        const senderDisplayName = transaction.sender.account_holder_name || transaction.sender.email;
         const recipientDisplayName = transaction.recipient.account_holder_name || transaction.recipient.email;
 
         return (
@@ -207,14 +210,15 @@ export default function Transactions() {
             <Grid.Container gap={2}>
               <Grid xs={18} alignItems="center">
                 <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-                  {getTransactionIcon(transaction.recipient_acc)}
+                  {/* Icon and "From" */}
+                  {getTransactionIcon(transaction.sender_acc)}
                   &nbsp;&nbsp;From:&nbsp;
-                  <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.sender, false) }}>
-                    {transaction.sender.short_description}
+                  <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.sender.short_description, isExternalSender) }}>
+                    {isExternalSender ? senderDisplayName : transaction.sender.short_description}
                   </Badge>
                   &nbsp;&nbsp;To:&nbsp;
-                  <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient, isExternalUser) }}>
-                    {isExternalUser ? recipientDisplayName : transaction.recipient.short_description}
+                  <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description, isExternalRecipient) }}>
+                    {isExternalRecipient ? recipientDisplayName : transaction.recipient.short_description}
                   </Badge>
                   &nbsp;&nbsp;Amount: ${transaction.amount.toFixed(2)}
                   &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
