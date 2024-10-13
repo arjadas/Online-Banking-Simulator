@@ -153,14 +153,19 @@ export default function Transactions() {
               width="100%"
               height="35px"
               style={{ height: '35px' }}
-              onChange={val => setFilteredAccount(Number(val) || 'all')}
-            >
+              onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               <Select.Option value="all">All Accounts</Select.Option>
-              {accounts.map((account: Account) => (
-                <Select.Option key={account.acc} value={account.acc.toString()}>
-                  {account.short_description} (BSB: {account.bsb})
-                </Select.Option>
-              ))}
+              {accounts.map((account) => {
+                const parsedAccount = {
+                  ...account,
+                  opened_timestamp: new Date(account.opened_timestamp),
+                };
+                return (
+                  <Select.Option key={parsedAccount.acc} value={parsedAccount.acc.toString()}>
+                    {parsedAccount.short_description} (BSB: {parsedAccount.bsb})
+                  </Select.Option>
+                );
+              })}
             </Select>
           </Grid>
           
@@ -170,24 +175,22 @@ export default function Transactions() {
               placeholder="Search Transaction"
               width="100%"
               height="35px"
-              marginTop= '10px'
+              marginTop='10px'
               style={{ height: '35px', textAlign: 'center' }}
               onChange={e => setSearchQuery(e.target.value)}
-              clearable
-            />
+              clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined}            />
           </Grid>
 
           <Grid xs={6} style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button 
-              type="secondary" 
-              ghost 
-              auto 
-              scale={0.7} 
+              type="secondary"
+              ghost
+              auto
+              scale={0.7}
               height="30px"
-              marginTop= '3px'
+              marginTop='3px'
               style={{ height: '30px' }}
-              onClick={handleDownloadPDF}
-            >
+              onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               <strong>Download PDF Statement</strong> &nbsp;
               <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
             </Button>
@@ -202,8 +205,8 @@ export default function Transactions() {
         const isExternalSender = !userAccountIds.includes(transaction.sender_acc);
         const isExternalRecipient = !userAccountIds.includes(transaction.recipient_acc);
 
-        const senderDisplayName = transaction.sender.account_holder_name || transaction.sender.email;
-        const recipientDisplayName = transaction.recipient.account_holder_name || transaction.recipient.email;
+        const senderDisplayName = transaction.sender.acc_name;
+        const recipientDisplayName = transaction.recipient.acc_name;
 
         return (
           <Card key={transaction.transaction_id} width="100%">
@@ -225,7 +228,7 @@ export default function Transactions() {
                 </ResizableText>
               </Grid>
               <Grid xs={6} alignItems="center" justify="flex-end">
-                <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
+                <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                   {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
                 </Button>
               </Grid>
