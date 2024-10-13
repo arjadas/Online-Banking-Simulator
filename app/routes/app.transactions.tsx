@@ -95,7 +95,6 @@ export default function Transactions() {
   });
 
   const handleDownloadPDF = () => {
-    
     const transactionData = filteredTransactions.map(tx => ({
       ...tx,
       sender: tx.sender.short_description,
@@ -127,39 +126,61 @@ export default function Transactions() {
   return (
     <>
       <Spacer h={2} />
-      <Card width="100%" padding={2}>
-        <ResizableText h2 style={{ fontSize: '2rem' }}>Transaction History</ResizableText>
+      <Card shadow width="100%" style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
+        <ResizableText h2 style={{ marginBottom: '30px' }}>Transaction History</ResizableText>
 
-        {/* Filter dropdown */}
-        <Select placeholder="Filter by account" onChange={val => setFilteredAccount(Number(val) || 'all')} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-          <Select.Option value="all">All Accounts</Select.Option>
-          {// @ts-ignore 
-            accounts.map((account: Account) => (
-              <Select.Option key={account.acc} value={account.acc.toString()}>
-                {account.short_description} (BSB: {account.bsb})
-              </Select.Option>
-            ))}
-        </Select>
+        {/* Total Transactions Summary */}
+        <Grid.Container gap={2} justify="center" alignItems="center" style={{ marginBottom: '20px' }}>
+          <ResizableText small style={{ fontWeight: 'bold' }}>Total Transactions:&nbsp;</ResizableText> {filteredTransactions.length} |
+          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.sender_acc) ? tx.amount : 0), 0).toFixed(2)} |
+          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.recipient_acc) ? tx.amount : 0), 0).toFixed(2)}
+        </Grid.Container>
 
-        <Spacer h={2} />
-
-        {/* Search Bar and Download PDF Button */}
-        <Grid.Container justify="space-between" alignItems="center">
-          <Grid>
-            <Button type="secondary" ghost auto scale={0.7} onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-              <strong>Download PDF Statement</strong> &nbsp;
-              <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
-            </Button>
+        {/* Filter, Search, and Download PDF Section */}
+        <Grid.Container gap={2} alignItems="center" justify="space-between" style={{ alignItems: 'center' }}>
+          <Grid xs={6}>
+            <Select
+              placeholder="Filter by account"
+              width="100%"
+              height="35px"
+              style={{ height: '35px' }}
+              onChange={val => setFilteredAccount(Number(val) || 'all')}
+            >
+              <Select.Option value="all">All Accounts</Select.Option>
+              {accounts.map((account: Account) => (
+                <Select.Option key={account.acc} value={account.acc.toString()}>
+                  {account.short_description} (BSB: {account.bsb})
+                </Select.Option>
+              ))}
+            </Select>
           </Grid>
-          <Grid>
+          
+          <Grid xs={10} style={{ display: 'flex', justifyContent: 'center' }}>
             <Input
               icon={<Search />}
               placeholder="Search Transaction"
-              type="secondary"
-              width="100%" // Full width within its grid cell
-              scale={1} // Slightly larger for better alignment with other elements
+              width="100%"
+              height="35px"
+              marginTop= '10px'
+              style={{ height: '35px', textAlign: 'center' }}
               onChange={e => setSearchQuery(e.target.value)}
-              clearable onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+              clearable
+            />
+          </Grid>
+
+          <Grid xs={6} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button 
+              type="secondary"
+              ghost
+              auto
+              scale={0.7}
+              height="30px"
+              marginTop='3px'
+              style={{ height: '30px' }}
+              onClick={handleDownloadPDF} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              <strong>Download PDF Statement</strong> &nbsp;
+              <ArrowDownCircle size={18} style={{ marginLeft: '8px' }} />
+            </Button>
           </Grid>
         </Grid.Container>
       </Card>
@@ -171,9 +192,7 @@ export default function Transactions() {
         <Card key={transaction.transaction_id} width="100%">
           <Grid.Container gap={2}>
             <Grid xs={18} alignItems="center">
-              {/* Adding spaces between each attribute */}
               <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-                {/* Icon before "From" */}
                 {getTransactionIcon(transaction.recipient_acc)}
                 &nbsp;&nbsp;<strong>From:</strong> {transaction.sender.short_description} &nbsp;&nbsp;
                 <strong>To:</strong> {transaction.recipient.short_description} &nbsp;&nbsp;
@@ -182,7 +201,7 @@ export default function Transactions() {
               </ResizableText>
             </Grid>
             <Grid xs={6} alignItems="center" justify="flex-end">
-              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+              <Button shadow type="secondary" auto onClick={() => toggleTransactionDetails(transaction.transaction_id)}>
                 {expandedTransactions.has(transaction.transaction_id) ? 'Hide Details' : 'View Details'}
               </Button>
             </Grid>
@@ -191,7 +210,6 @@ export default function Transactions() {
           {expandedTransactions.has(transaction.transaction_id) && (
             <Collapse title="Transaction Details" initialVisible>
               <Grid.Container gap={1} alignItems="flex-start">
-                {/* Boundaries for text overflow handling */}
                 <Grid xs={24} md={6}>
                   <ResizableText small><strong>Sender Account:</strong>&nbsp;</ResizableText>
                   <ResizableText small>{transaction.sender_acc}</ResizableText>
@@ -213,7 +231,6 @@ export default function Transactions() {
           )}
         </Card>
       ))}
-
       <Spacer h={2} />
     </>
   );
