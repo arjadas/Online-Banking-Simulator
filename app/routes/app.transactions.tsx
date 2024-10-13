@@ -8,6 +8,7 @@ import { useState } from 'react';
 import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/util/db.server';
 import { getUserSession } from "../auth.server";
+import { generateTransactionsPDF } from '~/util/generateTransactionsPDF';
 
 // Function to format the date as "Day, 23rd Sep (Today)" for display
 const formatDate = (transactionDate: Date) => {
@@ -94,7 +95,14 @@ export default function Transactions() {
   });
 
   const handleDownloadPDF = () => {
-    // Code to handle PDF download (you can integrate a backend route for this functionality)
+    
+    const transactionData = filteredTransactions.map(tx => ({
+      ...tx,
+      sender: tx.sender.short_description,
+      recipient: tx.recipient.short_description,
+      description: tx.description || "No Description Provided",
+    }));
+    generateTransactionsPDF(transactionData);
   };
 
   const toggleTransactionDetails = (transactionId: number) => {
