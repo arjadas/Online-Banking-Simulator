@@ -1,5 +1,5 @@
 import { PrismaD1 } from '@prisma/adapter-d1';
-import { openAccount } from "./accountUtil";
+import { openAccount, generateUniqueCardNumber, generateCSC, generateExpiryDate } from "./accountUtil";
 import { getPrismaClient } from '~/util/db.server';
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
@@ -7,6 +7,7 @@ export async function createUser(context: any, uid: string, email: string, first
         const date = new Date();
         const adapter = new PrismaD1(context.cloudflare.env.DB);
         const db = getPrismaClient(context);
+        const MONTHSTOEXPIRE = 13;
         const user = await db.user.create({
             data: {
                 uid,
@@ -32,7 +33,7 @@ export async function createUser(context: any, uid: string, email: string, first
         });
 
         // Open "Delightful Debit" account
-        await openAccount(context, {
+        const delightfulDebit = await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             short_description: "Delightful Debit",
@@ -41,8 +42,19 @@ export async function createUser(context: any, uid: string, email: string, first
             opened_timestamp: date,
         });
 
+        await db.debitCard.create({
+            data: {
+                accountId: delightfulDebit.acc,
+                card_number: generateUniqueCardNumber(context),
+                expiry_date: generateExpiryDate(date, MONTHSTOEXPIRE),
+                csc: generateCSC(),
+                cardholder_name: `${first_name} ${last_name}`,
+                created_at: date,
+            },
+          });
+
         // Open "Clever Credit" account
-        await openAccount(context, {
+        const cleverCredit = await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             short_description: "Clever Credit",
@@ -50,6 +62,18 @@ export async function createUser(context: any, uid: string, email: string, first
             balance: 100000,
             opened_timestamp: date,
         });
+
+        await db.creditCard.create({
+            data: {
+                accountId: cleverCredit.acc,
+                card_number: generateUniqueCardNumber(context),
+                expiry_date: generateExpiryDate(date, MONTHSTOEXPIRE),
+                csc: generateCSC(),
+                cardholder_name: `${first_name} ${last_name}`,
+                created_at: date,
+            },
+        });
+
 
         return user;
     } catch (error: any) {

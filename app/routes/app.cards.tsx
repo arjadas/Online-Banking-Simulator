@@ -6,7 +6,7 @@ interface CardInfo {
   cardNumber: string;
   name: string;
   expiry: string;
-  cvc: string;
+  CSC: string;
   balance: number;
   cardType: 'Debit Card' | 'Credit Card';
 }
@@ -17,21 +17,21 @@ export default function MyCards() {
       cardNumber: '1111 1111 1234 5678',
       name: 'JOHN BANKER',
       expiry: '12/24',
-      cvc: '123',
+      CSC: '123',
       balance: 1200.50,
       cardType: 'Debit Card',
     }, {
       cardNumber: '2222 2222 2345 6789',
       name: 'JOHN BANKER',
       expiry: '11/25',
-      cvc: '234',
+      CSC: '234',
       balance: 830.22,
       cardType: 'Debit Card',
     }, {
       cardNumber: '3333 3333 3456 7890',
       name: 'JOHN BANKER',
       expiry: '10/26',
-      cvc: '345',
+      CSC: '345',
       balance: 520.10,
       cardType: 'Credit Card',
     }
@@ -105,7 +105,7 @@ export default function MyCards() {
 
                       <Text >{cardInfo.name}</Text>
                       <Text>EXPIRY {showDetails[index]? cardInfo.expiry : '**/**'}</Text>
-                      <Text>CVC {showDetails[index]? cardInfo.cvc : '***'}</Text>
+                      <Text>CSC {showDetails[index]? cardInfo.CSC : '***'}</Text>
 
                       {/* show/hide button */}
                       <Button onClick={() => toggleDetails(index)} shadow auto type="secondary-light" style={{ width: '150px'}} {...({} as any)}>

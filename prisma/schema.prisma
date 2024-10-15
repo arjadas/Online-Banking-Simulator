@@ -44,6 +44,8 @@ model Account {
   transactions_received           Transaction[]          @relation("transactionRecipient")
   recurring_transactions_sent     RecurringTransaction[] @relation("reccTransactionSender")
   recurring_transactions_received RecurringTransaction[] @relation("reccTransactionRecipient")
+  creditCard                      CreditCard?
+  debitCard                       DebitCard?
 }
 
 model RecurringTransaction {
@@ -62,6 +64,30 @@ model RecurringTransaction {
   recipient Account @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
 
   transaction Transaction[]
+}
+
+model CreditCard {
+  id               Int      @id @default(autoincrement())
+  accountId        Int      @unique
+  card_number      String   @unique
+  expiry_date      String
+  csc              String
+  cardholder_name  String
+  created_at       DateTime @default(now())
+
+  account          Account  @relation(fields: [accountId], references: [acc], onDelete: Cascade)
+}
+
+model DebitCard {
+  id               Int      @id @default(autoincrement())
+  accountId        Int      @unique
+  card_number      String   @unique
+  expiry_date      String
+  csc              String
+  cardholder_name  String
+  created_at       DateTime @default(now())
+
+  account          Account  @relation(fields: [accountId], references: [acc], onDelete: Cascade)
 }
 
 model MockUser {
