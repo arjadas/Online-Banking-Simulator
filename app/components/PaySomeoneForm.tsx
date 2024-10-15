@@ -5,6 +5,15 @@ import CurrencyInput from '~/components/CurrencyInput';
 import { Account, UserPrevContact } from '@prisma/client';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
 
+type RecipientAddress = {
+    accountName: string;
+    acc: number;
+    bsb: number;
+    payId: string;
+    billerCode: number;
+    crn: number;
+};
+
 interface PaySomeoneFormProps {
     accounts: Account[];
     userPrevContact?: UserPrevContactResult | null
@@ -17,14 +26,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     const [amount, setAmount] = useState('-.--');
     const [reference, setReference] = useState('');
     const [description, setDescription] = useState('');
-    const [recipientAddress, setRecipientAddress] = useState<{
-        accountName: string,
-        acc: number,
-        bsb: number,
-        payId: string,
-        billerCode: number,
-        crn: number,
-    }>({
+    const [recipientAddress, setRecipientAddress] = useState<RecipientAddress>({
         accountName: '',
         acc: -1,
         bsb: -1,
@@ -42,7 +44,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         return value ? parseInt(value) : 0;
     }
 
-    const updateRecipientAddress = (key: string, value: string | number) => {
+    const updateRecipientAddress = (key: keyof RecipientAddress, value: string | number) => {
         setRecipientAddress(prevState => ({
             ...prevState,
             [key]: value,
@@ -83,19 +85,19 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
     useEffect(() => {
         if (userPrevContact) {
-            const contact_user = (userPrevContact?.contact_user ?? userPrevContact?.contact_mock_user)
-            
-            //TODO by
-            setRecipientAddress(prevState => ({
-                ...prevState,
-                accountName: userPrevContact.,
-                acc: userPrevContact.contact_acc,
-                bsb: userPrevContact.
-            }));
+            if (userPrevContact.contact_recipient_address) {
+                const parsedAddress = JSON.parse(userPrevContact.contact_recipient_address) as Partial<RecipientAddress>;
+
+                Object.entries(parsedAddress).forEach(([key, value]) => {
+                    if (key in recipientAddress) {
+                        updateRecipientAddress(key as keyof RecipientAddress, value);
+                    }
+                });
+            }
 
             setDescription(userPrevContact.contact_description || '');
         }
-    }, [userPrevContact]);
+    }, [recipientAddress, userPrevContact]);
 
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>

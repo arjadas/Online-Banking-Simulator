@@ -16,18 +16,19 @@ export type UserPrevContactResult = {
     contact_acc: string;
     contact_acc_name: string;
     contact_uid: string;
+    contact_recipient_address: string;
     contact_description: string | null;
     contact_user: {
-      first_name: string;
-      last_name: string;
-      uid: string;
+        first_name: string;
+        last_name: string;
+        uid: string;
     } | null;
     contact_mock_user: {
-      first_name: string;
-      last_name: string;
-      uid: string;
+        first_name: string;
+        last_name: string;
+        uid: string;
     } | null;
-  };
+};
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
     const formData = await request.formData();
     const fromAcc = parseInt(formData.get('fromAcc') as string);
