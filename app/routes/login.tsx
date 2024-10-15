@@ -85,7 +85,7 @@ export default function Login() {
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
         <Text p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></Text>
-        <AuthenticatedLink to="/forgot-password" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
+        <AuthenticatedLink to="/forgotPassword" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
       </Card>
     </div>
   );
