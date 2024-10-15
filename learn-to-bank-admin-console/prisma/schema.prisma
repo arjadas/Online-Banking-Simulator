@@ -73,20 +73,6 @@ model MockUser {
   creation_timestamp DateTime
 }
 
-model DefaultTransaction {
-  def_transaction_id Int     @id @default(autoincrement())
-  sender_uid         String
-  recipient_uid      String
-  sender_acc         Int
-  recipient_acc      Int
-  incoming           Boolean
-  amount             Int
-  recipient_address  String
-  reference          String
-  description        String?
-  frequency          String
-}
-
 model UserPrevContact {
   user_prev_contact_id Int    @id @default(autoincrement())
   uid                  String

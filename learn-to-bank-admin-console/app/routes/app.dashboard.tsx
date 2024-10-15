@@ -1,11 +1,11 @@
-import { Button, Card, GeistProvider, Grid, Input, Modal, Page, Select, Spacer, Table, Text, Themes, useToasts } from '@geist-ui/core';
+import { Button, Card, Grid, Input, Modal, Page, Select, Spacer, Table, Text, useToasts } from '@geist-ui/core';
 import { Edit, Plus, Trash2 } from '@geist-ui/icons';
 import { LoaderFunction } from '@remix-run/cloudflare';
-import { Outlet, useLoaderData } from '@remix-run/react';
-import { useEffect, useState } from 'react';
+import { useLoaderData } from '@remix-run/react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { getPrismaClient } from '~/service/db.server';
 import { RootState } from '~/store';
-import { getPrismaClient } from '~/util/db.server';
 import { getUserSession } from "../auth.server";
 
 interface LoaderData {
@@ -29,6 +29,7 @@ export const loader: LoaderFunction = async ({ context, request }): Promise<Load
 export default function Dashboard() {
 	const { tables, user } = useLoaderData<LoaderData>();
 	const [selectedTable, setSelectedTable] = useState<string>('Account');
+	const [tableSchema, setTableSchema] = useState<any[]>([]);
 	const [tableData, setTableData] = useState<any[] | undefined>(undefined);
 	const [modalVisible, setModalVisible] = useState(false);
 	const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -37,11 +38,22 @@ export default function Dashboard() {
 	const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
 	const { setToast, removeAll } = useToasts();
 
+	const fetchTableSchema = useCallback(async (tableName: string) => {
+		try {
+			const response = await fetch(`/api/table-schema?table=${tableName}`);
+			const { fields } = await response.json() as any;
+			setTableSchema(fields);
+		} catch (error) {
+			console.error('Error fetching table schema:', error);
+			setToast({ text: 'Error fetching table schema', type: 'error' });
+		}
+	}, [setToast]);
+
 	const fetchTableData = async (tableName: string) => {
 		try {
 			const response = await fetch(`/api/table-data?table=${tableName}`);
 			const newData = await response.json() as any[];
-			setTableData(newData);
+			setTableData(newData ?? []);
 		} catch (error) {
 			console.error('Error fetching table data:', error);
 			setToast({ text: 'Error fetching table data', type: 'error' });
@@ -61,8 +73,9 @@ export default function Dashboard() {
 					setDataVisible(true);
 				}, 50);
 			});
+			fetchTableSchema(selectedTable);
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedTable]);
 
 	const tableStyle = {
@@ -117,37 +130,77 @@ export default function Dashboard() {
 	};
 
 	const handleFormSubmit = async () => {
-		if (modalMode === 'create') {
-			// Implement create logic here
-			console.log('Create new record:', formData);
-			// After successful creation:
-			const newRecord = { ...formData, id: Date.now() }; // Temporary ID generation
-			fetchTableData(selectedTable!);
-			setToast({ text: 'Record created successfully', type: 'success' });
-		} else {
-			// Implement update logic here
-			console.log('Update record:', formData);
-			// After successful update:
-			fetchTableData(selectedTable!);
-			setToast({ text: 'Record updated successfully', type: 'success' });
+		try {
+			const method = modalMode === 'create' ? 'POST' : 'PUT';
+			const response = await fetch(`/api/table-data?table=${selectedTable}`, {
+				method,
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(formData),
+			});
+
+			const { success, error } = await response.json() as any;
+
+			if (success) {
+				setToast({ text: `Record ${modalMode === 'create' ? 'created' : 'updated'} successfully`, type: 'success' });
+				await fetchTableData(selectedTable);
+			} else {
+				setToast({ text: error || 'An error occurred', type: 'error' });
+			}
+		} catch (error) {
+			console.error('Error submitting form:', error);
+			setToast({ text: 'An error occurred while submitting the form', type: 'error' });
 		}
+
 		setModalVisible(false);
 		setFormData({});
 	};
 
 	const renderForm = () => {
-		if (!formData || !selectedTable || !tableData || tableData.length == 0) return null;
-		return Object.keys(tableData[0]).map(key => (
-			<Input
-				key={key}
-				label={key}
-				value={formData?.[key] || ''}
-				onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-				onPointerEnterCapture={undefined}
-				onPointerLeaveCapture={undefined}
-				crossOrigin={undefined}
-			/>
-		));
+		if (!formData || !selectedTable || !tableSchema) return null;
+		return tableSchema.map((field) => {
+			let inputType = 'text';
+			let inputValue = formData[field.name] || '';
+
+			switch (field.type) {
+				case 'Int':
+				case 'Float':
+					inputType = 'number';
+					break;
+				case 'Boolean':
+					inputType = 'checkbox';
+					break;
+				case 'DateTime':
+					inputType = 'datetime-local';
+					if (inputValue) {
+						const date = new Date(inputValue);
+						inputValue = date.toISOString().slice(0, 16);
+					}
+					break;
+			}
+
+			return (
+				<Input
+					key={field.name}
+					label={field.name}
+					htmlType={inputType}
+					value={inputValue}
+					onChange={(e) => {
+						let newValue = e.target.value;
+						if (inputType === 'datetime-local') {
+							newValue = new Date(newValue).toISOString();
+						}
+						setFormData({ ...formData, [field.name]: newValue });
+					}}
+					disabled={modalMode === 'edit' && field.isId}
+					required={field.isRequired}
+					crossOrigin={undefined}
+					onPointerEnterCapture={undefined}
+					onPointerLeaveCapture={undefined}
+				/>
+			);
+		});
 	};
 
 	return (
@@ -168,7 +221,7 @@ export default function Dashboard() {
 								onChange={(value) => handleTableSelect(value as string)}
 								width="25%" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}								>
 								{tables.map((table: string) => (
-									<Select.Option key={table} value={table}>
+									table != "_cf_KV" && <Select.Option key={table} value={table}>
 										{table}
 									</Select.Option>
 								))}
@@ -195,7 +248,7 @@ export default function Dashboard() {
 					paddingBottom: 100,
 				}}>
 					<Grid xs={24}>
-						{selectedTable && tableData && tableData?.length > 0 ? (
+						{selectedTable && tableData ? (
 							<Table key={selectedTable} data={tableData} style={tableStyle}>
 								<Table.Column
 									prop="actions"
@@ -225,8 +278,8 @@ export default function Dashboard() {
 										</div>
 									)}
 								/>
-								{Object.keys(tableData[0]).map(key => (
-									<Table.Column key={key} prop={key} label={key} />
+								{tableSchema.map(field => (
+									<Table.Column key={field.name} prop={field.name} label={field.name.replace("_", " ")} />
 								))}
 							</Table>
 						) : (<></>)}

@@ -1,4 +1,7 @@
+import { retry } from "@reduxjs/toolkit/query";
 import { createWorkersKVSessionStorage } from "@remix-run/cloudflare";
+import { c } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
+import { getPrismaClient } from "~/service/db.server";
 
 declare global {
   const firebase_storage: KVNamespace;
@@ -29,10 +32,23 @@ function getSessionStorage(context: any) {
 }
 
 async function createUserSession(context: any, uid: string, email: string, redirectTo: string) {
+  const db = getPrismaClient(context);
+  const user = await db.user.findUnique({ where: { uid } });
+
+  if (!user) {
+    throw new Error("User not found.");
+  }
+
+  if (user.role !== 'administrator') {
+    throw new Error("Unauthorized access. Administrator role required.");
+  }
+
   const { getSession, commitSession } = getSessionStorage(context);
   const session = await getSession();
+
   session.set("uid", uid);
   session.set("email", email);
+  session.set("role", user.role);
 
   return new Response(null, {
     status: 302,
@@ -47,15 +63,17 @@ async function getUserSession(context: any, request: Request) {
   const { getSession } = getSessionStorage(context);
   const session = await getSession(request.headers.get("Cookie"));
 
-  //TODO in main app too
-  if (!session) return null;
+  if (!session) {
+    throw new Error("Cookie session not found.");
+  }
 
   const uid = session.get("uid");
   const email = session.get("email");
+  const role = session.get("role");
 
-  if (!uid || !email) return null;
+  if (!uid || !email || !role || role !== 'administrator') return null;
 
-  return { uid, email };
+  return { uid, email, role };
 }
 
 async function logout(context: any, request: Request) {

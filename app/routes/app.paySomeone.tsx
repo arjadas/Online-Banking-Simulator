@@ -28,6 +28,11 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     const db = getPrismaClient(context);
 
     try {
+        //TODO
+        if (!fromAcc) {
+            throw new Error('Must indicate the account to transfer from!');
+        }
+
         const fromAccount = await db.account.findFirst({
             where: { acc: fromAcc },
         });
