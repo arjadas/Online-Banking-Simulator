@@ -1,12 +1,12 @@
 import { Button, Card, Image, Input } from '@geist-ui/react';
-import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
+import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { signup } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
 import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
-import { createUser } from "~/util/userUtil";
+import { createUser } from "~/service/userService";
 
 export const action: ActionFunction = async ({ context, request }: { context: any; request: Request }) => {
     const formData = await request.formData();
