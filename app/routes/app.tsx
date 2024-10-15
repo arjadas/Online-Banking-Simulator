@@ -42,7 +42,7 @@ export default function AppLayout() {
 
   const buttonStyle = {
     width: 350,
-    height: 75,
+    height: 100,
     fontSize: 18,
     gap: 16,
   };
@@ -83,16 +83,6 @@ export default function AppLayout() {
               scale={2}
               icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
-            </Button>
-          </AuthenticatedLink>
-          <AuthenticatedLink to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
-            <Button
-              style={buttonStyle}
-              type='success-light'
-              auto
-              scale={2}
-              icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
-              Default Payments
             </Button>
           </AuthenticatedLink>
         </div>
