@@ -12,15 +12,18 @@ import { RootState } from '~/store';
 type ActionData = {
   error?: string;
 };
+
 export const action: ActionFunction = async ({ request, context }: { request: Request, context: any }) => {
   const formData = await request.formData();
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
-
+  
+  const userSession = await createUserSession(context, uid, email, "/");
   try {
-    return await createUserSession(context, uid, email, "/");
+    console.log("User session:", userSession);
+    return userSession;
   } catch (error: any) {
-    return json<ActionData>({ error: error.toString() + 'adsasd' });
+    return json<ActionData>({ error: error.message });
   }
 };
 
@@ -28,9 +31,6 @@ export default function Login() {
   const actionData = useActionData<ActionData>();
   const [clientError, setClientError] = useState<string | null>(null);
   const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
-
-  const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
-  const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const [loading, setLoading] = useState(false);
   const submit = useSubmit();
 
@@ -85,14 +85,11 @@ export default function Login() {
             htmlType="submit"
             type="secondary"
             loading={loading}
-            disabled={loading}
-            placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
+            disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
             Log in
           </Button>
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
-        <Text p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></Text>
-        <AuthenticatedLink to="/forgotPassword" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
       </Card>
     </div>
   );
