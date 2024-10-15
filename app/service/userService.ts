@@ -1,6 +1,6 @@
 import { PrismaD1 } from '@prisma/adapter-d1';
-import { openAccount } from "./accountUtil";
-import { getPrismaClient } from '~/util/db.server';
+import { getPrismaClient } from '~/service/db.server';
+import { openAccount } from "./accountService";
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
     try {

@@ -3,16 +3,16 @@ import { Account } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
-import ResizableText from '~/components/ResizableText';
-import { getPrismaClient } from '~/util/db.server';
 import CurrencyInput from '~/components/CurrencyInput';
+import ResizableText from '~/components/ResizableText';
+import { getPrismaClient } from '~/service/db.server';
 import { getUserSession } from "../auth.server";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
-  const amount = parseInt(formData.get('amount') as string);
+  const amount = parseInt(formData.get('amount') as string) * 100;
   const description = formData.get('description') as string;
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
@@ -76,7 +76,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   console.log(90)
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
-  console.log(23234, user)
 
   // fetch the user details and related data from Prisma
   const [userAccounts] = await Promise.all([

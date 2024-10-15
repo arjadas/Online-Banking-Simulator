@@ -5,7 +5,7 @@ import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
 import CurrencyInput from '~/components/CurrencyInput';
-import { getPrismaClient } from '~/util/db.server';
+import { getPrismaClient } from '~/service/db.server';
 import { getUserSession } from '../auth.server';
 import "../styles/app.paySomeone.css";
 

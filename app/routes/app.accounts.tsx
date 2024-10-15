@@ -1,12 +1,12 @@
-import React from 'react';
-import { useLoaderData } from "@remix-run/react";
-import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { Text, Spacer, Grid, Card } from '@geist-ui/core';
-import AccountCard from '../components/AccountCard';
+import { Card, Grid, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { getPrismaClient } from "../util/db.server";
-import { createUser } from '~/util/userUtil';
+import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import React from 'react';
 import { getUserSession } from '~/auth.server';
+import { createUser } from '~/service/userService';
+import AccountCard from '../components/AccountCard';
+import { getPrismaClient } from "../service/db.server";
 
 type MeUser = {
   uid: string;
@@ -79,13 +79,9 @@ export default function Dashboard() {
   return (
     <>
       <Spacer h={2} />
-
-      <Text small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-      <Text h2>Hi {user.first_name}</Text>
-
-      <Spacer h={1} />
-
-      <Card>
+      <Card padding={1} >
+        <Text small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+        <Text h2>Hi {user.first_name}</Text>
         <Text small>Next scheduled payment is in <Text b>3 days</Text></Text>
       </Card>
 
@@ -97,7 +93,7 @@ export default function Dashboard() {
             accountType={account.short_description}
             bsb={account.bsb.toString()}
             accountNumber={account.acc.toString()}
-            balance={`$${account.balance.toFixed(2)}`}
+            balance={`$${(account.balance / 100).toFixed(2)}`}
           />
           <Spacer h={1} />
         </React.Fragment>
@@ -111,7 +107,7 @@ export default function Dashboard() {
             <Text h3>Total</Text>
           </Grid>
           <Grid>
-            <Text h3>${totalBalance.toFixed(2)}</Text>
+            <Text h3>${(totalBalance / 100).toFixed(2)}</Text>
           </Grid>
         </Grid.Container>
       </Card>
