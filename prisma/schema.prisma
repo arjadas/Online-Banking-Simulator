@@ -3,6 +3,10 @@ generator client {
   previewFeatures = ["driverAdapters"]
 }
 
+//npx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/001.sql
+//npx prisma migrate diff --from-local-d1 --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/001.sql
+//npx wrangler d1 migrations apply learn-to-bank --local
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -62,39 +66,34 @@ model RecurringTransaction {
 }
 
 model MockUser {
-  uid                          String            @id
-  first_name                   String?
-  middle_names                 String?
-  last_name                    String?
-  description                  String?
-  creation_timestamp           DateTime
-  previous_contacts_as_contact UserPrevContact[]
+  uid                String   @id
+  first_name         String?
+  middle_names       String?
+  last_name          String?
+  description        String?
+  creation_timestamp DateTime
 }
 
 model UserPrevContact {
-  user_prev_contact_id      Int       @id @default(autoincrement())
+  user_prev_contact_id      Int    @id @default(autoincrement())
   uid                       String
   contact_acc               Int
   contact_acc_name          String
-  contact_uid               String
   contact_description       String
   contact_recipient_address String
-  contact_user              User?     @relation(fields: [uid], references: [uid])
-  contact_mock_user         MockUser? @relation(fields: [uid], references: [uid])
 }
 
 model User {
-  uid                          String            @id
-  first_name                   String
-  middle_names                 String?
-  last_name                    String
-  email                        String
-  role                         String
-  font_preference              String?
-  creation_timestamp           DateTime
-  last_login                   DateTime?
-  previous_contacts_as_contact UserPrevContact[]
-  notifications                Notification[]
+  uid                String         @id
+  first_name         String
+  middle_names       String?
+  last_name          String
+  email              String
+  role               String
+  font_preference    String?
+  creation_timestamp DateTime
+  last_login         DateTime?
+  notifications      Notification[]
 }
 
 model Notification {
@@ -106,4 +105,3 @@ model Notification {
   read            Boolean
   user            User     @relation(fields: [uid], references: [uid])
 }
-

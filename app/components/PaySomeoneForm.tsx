@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Card, Select, Tabs, Button, Input, Text, Textarea } from '@geist-ui/core';
+import { Button, Card, Input, Select, Tabs, Text, Textarea } from '@geist-ui/core';
+import { Account } from '@prisma/client';
 import { Form, useActionData } from '@remix-run/react';
+import React, { useEffect, useState } from 'react';
 import CurrencyInput from '~/components/CurrencyInput';
-import { Account, UserPrevContact } from '@prisma/client';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
 
 type RecipientAddress = {
@@ -17,15 +17,16 @@ type RecipientAddress = {
 interface PaySomeoneFormProps {
     accounts: Account[];
     userPrevContact?: UserPrevContactResult | null
+    actionData: any;
     onBack: () => void;
 }
 
-const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevContact, onBack }) => {
-    const actionData: any = useActionData();
+const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevContact, onBack, actionData }) => {
     const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
     const [amount, setAmount] = useState('-.--');
     const [reference, setReference] = useState('');
     const [description, setDescription] = useState('');
+    const [activeTab, setActiveTab] = useState('acc-bsb');
     const [recipientAddress, setRecipientAddress] = useState<RecipientAddress>({
         accountName: '',
         acc: -1,
@@ -49,6 +50,15 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
             ...prevState,
             [key]: value,
         }));
+
+        // Set active tab based on the input field
+        if (key === 'acc' || key === 'bsb' || key === 'accountName') {
+            setActiveTab('acc-bsb');
+        } else if (key === 'payId') {
+            setActiveTab('pay-id');
+        } else if (key === 'billerCode' || key === 'crn') {
+            setActiveTab('b-pay');
+        }
     };
 
     const handleAccountNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,7 +107,8 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
             setDescription(userPrevContact.contact_description || '');
         }
-    }, [recipientAddress, userPrevContact]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userPrevContact]);
 
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
@@ -124,7 +135,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                     </Select>
                 </div>
                 <input type="hidden" name="fromAcc" value={fromAcc || ''} />
-                <Tabs initialValue="acc-bsb" hideDivider style={{ marginTop: 20 }}>
+                <Tabs value={activeTab} onChange={setActiveTab} hideDivider style={{ marginTop: 20 }}>
                     <Tabs.Item label="ACC / BSB" value="acc-bsb">
                         <Text h4>Account Name</Text>
                         <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
@@ -135,7 +146,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                     </Tabs.Item>
                     <Tabs.Item label="PayID" value="pay-id">
                         <Text h4>PayID</Text>
-                        <Input width="100%" placeholder="Enter PayID" aria-label="PayID" onChange={handlePayIdChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                        <Input width="100%" placeholder="Enter PayID" aria-label="PayID" value={recipientAddress.payId} onChange={handlePayIdChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="BPay" value="b-pay">
                         <Text h4>Biller Code</Text>

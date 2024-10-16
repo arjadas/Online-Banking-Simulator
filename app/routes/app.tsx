@@ -47,7 +47,6 @@ export default function AppLayout() {
     gap: 16,
   };
 
-  console.log(currentPath)
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
       <Drawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} placement="right">
