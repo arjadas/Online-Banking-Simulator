@@ -5,8 +5,7 @@ import { setTextScale } from '~/appSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '~/store';
 import { useState } from "react";
-import { Form } from "@remix-run/react";
-
+import { Form } from '@remix-run/react';
 
 
 export default function Settings() {
@@ -15,8 +14,6 @@ export default function Settings() {
   const [previewFont, setPreviewFont] = useState(textScale);
   const [passwordError1, setPasswordError1] = useState<string | null>(null);
   const [passwordError2, setPasswordError2] = useState<string | null>(null);
-
-
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,7 +63,6 @@ export default function Settings() {
       setPreviewFont(value);
     }
   }
-
 
   return (
     <Page>
@@ -154,8 +150,6 @@ export default function Settings() {
                   style={{ width: "100%" }}
                 />
                 <Spacer h={1}/>
-                <Slider initialValue={textScale} step={1} max={32} min={10} onChange={(value) => { dispatch(setTextScale(value)) }} width="100%" />
-                <Spacer h={1}/>
                 <Card style={{ fontSize: `${previewFont}px` }}>
                   <Text h3>Preview</Text>
                   <Text>
@@ -181,5 +175,3 @@ export default function Settings() {
     </Page>
   );
 }
-
-
