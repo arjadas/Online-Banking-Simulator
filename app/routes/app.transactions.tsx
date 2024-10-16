@@ -111,9 +111,11 @@ export default function Transactions() {
 
         {/* Total Transactions Summary */}
         <Grid.Container gap={2} justify="center" alignItems="center" style={{ marginBottom: '20px' }}>
-          <ResizableText small style={{ fontWeight: 'bold' }}>Total Transactions:&nbsp;</ResizableText> {filteredTransactions.length} |
-          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${toFixedWithCommas(totalSent, 2)} |
-          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${toFixedWithCommas(totalReceived, 2)}
+          <ResizableText>
+            <ResizableText small style={{ fontWeight: 'bold' }}>Total Transactions:&nbsp;</ResizableText> {filteredTransactions.length} |
+            <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${toFixedWithCommas(totalSent, 2)} |
+            <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${toFixedWithCommas(totalReceived, 2)}
+          </ResizableText>
         </Grid.Container>
 
         {/* Filter, Search, and Download PDF Section */}

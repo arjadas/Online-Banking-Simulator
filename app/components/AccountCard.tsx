@@ -40,7 +40,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumb
             {payID && <ResizableText small>PayID: {payID}</ResizableText>} {/* Conditionally render PayID */}
           </Grid>
           <Grid xs={12} justify="flex-end" alignItems="center">
-            <ResizableText h4>{balance}</ResizableText>
+            <ResizableText h3>{balance}</ResizableText>
           </Grid>
         </Grid.Container>
       </Card.Content>

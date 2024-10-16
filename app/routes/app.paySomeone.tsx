@@ -98,7 +98,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const recipientAddress = formData.get('recipientAddress') as string;
-  const amount = parseInt((formData.get('amount') as string).replace('.', '')) * 100;
+  // Deleting the decimal point converts to cents: $99.99 -> 9999 cents
+  const amount = parseInt((formData.get('amount') as string).replace('.', ''));
   const reference = formData.get('reference') as string;
   const description = formData.get('description') as string;
 
@@ -177,13 +178,23 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       }),
     ]);
 
-    await createUserPrevContact(context, {
-      uid: toAccount.uid,
-      contact_acc: toAccount.acc,
-      contact_acc_name: toAccount.acc_name,
-      contact_description: toAccount.acc_name,
-      contact_recipient_address: recipientAddress,
+    const existingContact = await db.userPrevContact.findFirst({
+      where: {
+        uid: fromAccount.uid,
+        contact_acc: toAccount.acc
+      }
     });
+    
+    // Only create a new contact if one doesn't already exist
+    if (!existingContact) {
+      await createUserPrevContact(context, {
+        uid: fromAccount.uid,
+        contact_acc: toAccount.acc,
+        contact_acc_name: toAccount.acc_name,
+        contact_description: toAccount.acc_name,
+        contact_recipient_address: recipientAddress,
+      });
+    }
 
     const now = new Date();
 
@@ -193,7 +204,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         notification_id: now.toUTCString(),
         timestamp: now,
         type: 'transfer-success',
-        content: `Successfully transferred $${toFixedWithCommas(amount, 2)} to ${toAccount.acc_name}`,
+        content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
         read: false,
         user: {
           connect: {
@@ -211,7 +222,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       notification_id: now.toUTCString(),
       timestamp: now,
       type: 'new-receipt',
-      content: `Received $${toFixedWithCommas(amount, 2)} from ${fromAccount.acc_name}`,
+      content: `Received $${toFixedWithCommas(amount / 100, 2)} from ${fromAccount.acc_name}`,
       read: false,
       user: {
         connect: {

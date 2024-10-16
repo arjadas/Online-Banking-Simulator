@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { login } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
 import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import ResizableText from '~/components/ResizableText';
 
 type ActionData = {
   error?: string;
@@ -83,9 +84,9 @@ export default function Login() {
             Log in
           </Button>
         </Form>
-        {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
-        <Text p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></Text>
-        <AuthenticatedLink to="/forgot-password" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
+        {clientError && <ResizableText style={{ marginTop: 10 }} type="error">{clientError}</ResizableText>}
+        <ResizableText p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></ResizableText>
+        <AuthenticatedLink to="/forgot-password" prefetch='render'><ResizableText p>Forgot your password?</ResizableText></AuthenticatedLink>
       </Card>
     </div>
   );
