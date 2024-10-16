@@ -1,25 +1,25 @@
-import { LoaderFunction, redirect } from "@remix-run/cloudflare";
+import { CssBaseline } from "@geist-ui/core";
+import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration
+  ScrollRestoration,
+  useLoaderData
 } from "@remix-run/react";
 import { Provider } from 'react-redux';
-import { requireUserSession } from "./auth.server";
+import { getUserSession } from "./auth.server";
+import { AuthProvider } from "./components/AuthProvider";
 import store from './store';
-import "./tailwind.css";
-import { CssBaseline } from "@geist-ui/core";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import "./globalStyles.css";
 
-export const loader: LoaderFunction = async ({ request }: { request: Request }) => {
-  const user = await requireUserSession(request);
+export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
+  const user = await getUserSession(context, request);
   const url = new URL(request.url);
 
   // Handle initial request
   if (url.pathname === "/") {
-    console.log("Root:", request.headers.get("Cookie"), user?.uid);
     if (user) {
       return redirect("/app/accounts");
     } else {
@@ -27,10 +27,12 @@ export const loader: LoaderFunction = async ({ request }: { request: Request }) 
     }
   }
 
-  return null;
+  return json({ user });
 };
 
 export default function App() {
+  const { user } = useLoaderData<any>();
+
   return (
     <html lang="en">
       <head>
@@ -39,10 +41,12 @@ export default function App() {
       </head>
       <body>
         <Provider store={store}>
-          <CssBaseline />
-          <Outlet />
-          <ScrollRestoration />
-          <Scripts />
+          <AuthProvider uid={user?.uid}>
+            <CssBaseline />
+            <Outlet />
+            <ScrollRestoration />
+            <Scripts />
+          </AuthProvider>
         </Provider>
       </body>
     </html>

@@ -1,14 +1,14 @@
-import { CssBaseline } from '@geist-ui/core';
-import { Button, Card, Image, Input, Text } from '@geist-ui/react';
-import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useNavigation, useSubmit, Link } from "@remix-run/react";
+import { Button, Card, Image, Input } from '@geist-ui/react';
+import { ActionFunction, json } from "@remix-run/cloudflare";
+import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { signup } from "~/auth.client";
-import { commitSession, getSession } from "~/auth.server";
+import { createUserSession } from "~/auth.server";
+import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
-import { createUser } from "~/util/userUtil";
+import { createUser } from "~/service/userService";
 
-export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
+export const action: ActionFunction = async ({ context, request }: { context: any; request: Request }) => {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const first_name = formData.get("first_name") as string;
@@ -19,17 +19,10 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         // Prisma database mutations
         await createUser(context, uid, email, first_name, last_name);
 
-        const session = await getSession(request);
-        session.set("user", { uid, email });
-
-        return redirect("/", {
-            headers: {
-                "Set-Cookie": await commitSession(session),
-            },
-        });
+        // Store session data in KV
+        return await createUserSession(context, uid, email, "/app/accounts");
     } catch (error: any) {
-        console.error("Error details:", error);
-        return json({ error: error.message, context: JSON.stringify(context.cloudflare.env, null, 2) });
+        return json({ error: error.message, context: context.cloudflare.env.firebase_storage });
     }
 };
 
@@ -38,6 +31,9 @@ export default function Signup() {
     const submit = useSubmit();
     const [clientError, setClientError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [shake, setShake] = useState(false);
 
     useEffect(() => {
         if (actionData?.error) {
@@ -47,6 +43,14 @@ export default function Signup() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        if (password !== confirmPassword) {
+            setClientError("Password Does Not Match - Please Try Again.");
+            setShake(true);
+            setTimeout(() => setShake(false), 500); // Remove shake effect after animation
+            return;
+        }
+
         const form = event.currentTarget;
         const formData = new FormData(form);
 
@@ -79,21 +83,55 @@ export default function Signup() {
             <Card width="400px">
                 <ResizableText h3 style={{ textAlign: "center" }}>Sign Up</ResizableText>
                 <Form method="post" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <Input name="first_name" placeholder="First Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                    <Input name="first_name" placeholder="First Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}  />
                     <Input name="last_name" placeholder="Last Name" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <Input name="email" htmlType="email" clearable placeholder="Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                    <Input.Password name="password" clearable placeholder="Password" required width="100%" />
+                    <Input.Password
+                        name="password"
+                        clearable
+                        placeholder="Password"
+                        required
+                        width="100%"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Input.Password
+                        name="confirm_password"
+                        clearable
+                        placeholder="Confirm Password"
+                        required
+                        width="100%"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+
                     <Button
                         htmlType="submit"
                         type="secondary"
                         loading={loading}
-                        disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                    >
+                        disabled={loading}
+                        className={shake ? "shake" : ""}
+                        placeholder=""
+                        onPointerEnterCapture={undefined}
+                        onPointerLeaveCapture={undefined}
+                    >
+
                         Sign up
                     </Button>
                 </Form>
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
-                <Link to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></Link>
+                <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></AuthenticatedLink>
             </Card>
+            <style>{`
+                .shake {
+                    animation: shake 0.5s;
+                }
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    20%, 60% { transform: translateX(-10px); }
+                    40%, 80% { transform: translateX(10px); }
+                }
+            `}</style>
         </div>
     );
 }

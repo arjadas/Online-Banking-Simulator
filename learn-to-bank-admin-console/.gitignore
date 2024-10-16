@@ -1,0 +1,9 @@
+node_modules
+
+/.cache
+/build
+.env
+.wrangler
+.history
+wrangler.toml
+package-lock.json

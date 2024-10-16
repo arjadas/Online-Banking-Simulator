@@ -3,25 +3,27 @@ import { Account } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
+import CurrencyInput from '~/components/CurrencyInput';
 import ResizableText from '~/components/ResizableText';
-import { getPrismaClient } from '~/util/db.server';
-import { requireUserSession } from "../auth.server";
+import { getPrismaClient } from '~/service/db.server';
+import { getUserSession } from "../auth.server";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
-  const amount = parseInt(formData.get('amount') as string);
+  // Deleting the decimal point converts to cents: $99.99 -> 9999 cents
+  const amount = parseInt((formData.get('amount') as string).replace('.', ''));
   const description = formData.get('description') as string;
-  const user = await requireUserSession(request);
+  const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
 
   try {
-    const fromAccount = await db.account.findFirst({
+    const fromAccount = await db.account.findUnique({
       where: { acc: fromAcc },
     });
 
-    const toAccount = await db.account.findFirst({
+    const toAccount = await db.account.findUnique({
       where: { acc: toAcc },
     });
 
@@ -50,11 +52,11 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       }),
       db.transaction.create({
         data: {
-          amount,
+          amount: amount,
           sender_acc: fromAccount.acc,
           recipient_acc: toAccount.acc,
-          sender_uid: user.uid,
-          recipient_uid: user.uid,
+          sender_uid: user!.uid,
+          recipient_uid: user!.uid,
           reference: `Transfer from ${fromAccount.short_description} to ${toAccount.short_description}`,
           description: description,
           timestamp: new Date(),
@@ -66,19 +68,18 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
     return json({ success: true, ...result });
   } catch (error) {
-    console.error('Transfer error:', error);
     return json({ success: false, error: (error as Error).message }, { status: 400 });
   }
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  const user = await requireUserSession(request);
+  const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
 
   // fetch the user details and related data from Prisma
   const [userAccounts] = await Promise.all([
     db.account.findMany({
-      where: { uid: user.uid },
+      where: { uid: user!.uid },
     }),
   ]);
 
@@ -96,7 +97,7 @@ const TransferBetweenAccounts = () => {
   const { userAccounts: accounts } = useLoaderData<{ userAccounts: Account[] }>();
   const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
   const [toAcc, setToAcc] = useState<number | undefined>(undefined);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState('-.--');
   const [description, setDescription] = useState('');
 
   const handleFromAccChange = (value: string | string[]) => {
@@ -105,27 +106,6 @@ const TransferBetweenAccounts = () => {
 
   const handleToAccChange = (value: string | string[]) => {
     setToAcc(parseInt(value as string));
-  };
-
-  const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    let inputValue = event.target.value;
-
-    // Remove any non-numeric characters except for the decimal point
-    inputValue = inputValue.replace(/[^0-9.]/g, '');
-
-    // Ensure there's only one decimal point
-    const parts = inputValue.split('.');
-    if (parts.length > 2) {
-      inputValue = parts[0] + '.' + parts.slice(1).join('');
-    }
-
-    // Handle decimals and prevent multiple trailing zeros
-    if (parts.length === 2 && parts[1].length > 2) {
-      inputValue = parts[0] + '.' + parts[1].slice(0, 2);  // Limit to two decimal places
-    }
-
-    // Update the amount state with the properly formatted input
-    setAmount(inputValue);
   };
 
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,17 +159,9 @@ const TransferBetweenAccounts = () => {
             </div>
             <Spacer h={1} />
             <ResizableText h3>Transfer Amount</ResizableText>
-            <Input
-              clearable
-              placeholder="Enter amount"
-              width="100%"
-              value={amount}
-              onChange={handleAmountChange}
-              name="amount"
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-              crossOrigin={undefined}
-            />
+            <CurrencyInput onAmountChange={function (amount: string) {
+              setAmount(amount);
+            }} amount={amount} />
             <Spacer h={1} />
             <Input
               clearable
