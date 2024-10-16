@@ -90,3 +90,4 @@ VALUES
 -- Account for landlord Everett Smith
 INSERT INTO "Account" ("acc_name", "uid", "acc", "bsb", "balance", "pay_id", "short_description", "long_description", "opened_timestamp")
 VALUES 
+('Everett Smith Rental', 'LAND789012', 12398, 633000, 0, 'everett.smith@gmail.com', 'Landlord Account', 'Main account for property rentals managed by Everett Smith', '2023-06-01 10:30:00');
