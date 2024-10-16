@@ -1,5 +1,5 @@
 import { retry } from "@reduxjs/toolkit/query";
-import { createWorkersKVSessionStorage } from "@remix-run/cloudflare";
+import { createWorkersKVSessionStorage, createCookieSessionStorage } from "@remix-run/cloudflare";
 import { c } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 import { getPrismaClient } from "~/service/db.server";
 
@@ -8,18 +8,24 @@ declare global {
 }
 
 function createSessionStorage(firebaseStorage: KVNamespace) {
-  return createWorkersKVSessionStorage({
-    kv: firebaseStorage,
-    cookie: {
-      name: "session",
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
-      sameSite: "lax",
-      secrets: [import.meta.env.VITE_SESSION_SECRET],
-      secure: true,
-    },
-  });
+  const cookie = {
+    name: "session",
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: "/",
+    sameSite: "lax",
+    secrets: [import.meta.env.VITE_SESSION_SECRET],
+    secure: true,
+  } as any;
+
+  const sessionStorage = process.env.NODE_ENV === "development"
+    ? createCookieSessionStorage({ cookie })
+    : createWorkersKVSessionStorage({
+      kv: firebaseStorage,
+      cookie,
+    });
+
+    return sessionStorage;
 }
 
 let sessionStorage: ReturnType<typeof createSessionStorage>;

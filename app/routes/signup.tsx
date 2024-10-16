@@ -14,7 +14,6 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     const first_name = formData.get("first_name") as string;
     const last_name = formData.get("last_name") as string;
     const uid = formData.get("uid") as string;
-    console.log(231, context.cloudflare.env.firebase_storage);
 
     try {
         // Prisma database mutations

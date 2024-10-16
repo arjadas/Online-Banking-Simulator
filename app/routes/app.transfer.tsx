@@ -18,11 +18,11 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const db = getPrismaClient(context);
 
   try {
-    const fromAccount = await db.account.findFirst({
+    const fromAccount = await db.account.findUnique({
       where: { acc: fromAcc },
     });
 
-    const toAccount = await db.account.findFirst({
+    const toAccount = await db.account.findUnique({
       where: { acc: toAcc },
     });
 
@@ -67,13 +67,11 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
     return json({ success: true, ...result });
   } catch (error) {
-    console.error('Transfer error:', error);
     return json({ success: false, error: (error as Error).message }, { status: 400 });
   }
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  console.log(90)
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
 

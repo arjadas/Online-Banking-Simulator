@@ -9,7 +9,7 @@ import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/service/db.server';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
 import { getUserSession } from "../auth.server";
-import { getBadgeColor } from '~/util';
+import { getBadgeColor, toFixedWithCommas } from '~/util';
 
 // Function to format the date as "Day, 23rd Sep (Today)" for display
 const formatDate = (transactionDate: Date) => {
@@ -133,6 +133,9 @@ export default function Transactions() {
       : <User size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
   };
 
+  const totalSent = filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.sender_acc) ? tx.amount / 100 : 0), 0);
+  const totalReceived = filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.recipient_acc) ? tx.amount / 100 : 0), 0);
+
   return (
     <>
       <Spacer h={2} />
@@ -142,8 +145,8 @@ export default function Transactions() {
         {/* Total Transactions Summary */}
         <Grid.Container gap={2} justify="center" alignItems="center" style={{ marginBottom: '20px' }}>
           <ResizableText small style={{ fontWeight: 'bold' }}>Total Transactions:&nbsp;</ResizableText> {filteredTransactions.length} |
-          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.sender_acc) ? tx.amount / 100 : 0), 0).toFixed(2)} |
-          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.recipient_acc) ? tx.amount / 100 : 0), 0).toFixed(2)}
+          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${toFixedWithCommas(totalSent, 2)} |
+          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${toFixedWithCommas(totalReceived, 2)}
         </Grid.Container>
 
         {/* Filter, Search, and Download PDF Section */}
@@ -228,7 +231,7 @@ export default function Transactions() {
                       <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description, isExternalRecipient) }}>
                         {isExternalRecipient ? recipientDisplayName : transaction.recipient.short_description}
                       </Badge>
-                      &nbsp;&nbsp;Amount: ${(transaction.amount / 100).toFixed(2)}
+                      &nbsp;&nbsp;Amount: ${toFixedWithCommas(transaction.amount / 100, 2)}
                       &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
                     </ResizableText>
                   </Grid>

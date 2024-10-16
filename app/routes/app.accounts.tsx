@@ -7,6 +7,7 @@ import { getUserSession } from '~/auth.server';
 import { createUser } from '~/service/userService';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
+import { toFixedWithCommas } from '~/util';
 
 type MeUser = {
   uid: string;
@@ -28,7 +29,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
 
   // Fetch the user details and related data from Prisma
-  // eslint-disable-next-line prefer-const
   const getMeUser = async () => {
     return await Promise.all([
       db.user.findUnique({
@@ -69,11 +69,13 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 };
 
 export default function Dashboard() {
-  const { me: user, userAccounts: accounts } = useLoaderData<{
+  const { me: user, userAccounts: accounts, error } = useLoaderData<{
     me: MeUser;
     userAccounts: Account[];
+    error?: string
   }>();
 
+  console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
   return (
@@ -93,7 +95,7 @@ export default function Dashboard() {
             accountType={account.short_description}
             bsb={account.bsb.toString()}
             accountNumber={account.acc.toString()}
-            balance={`$${(account.balance / 100).toFixed(2)}`}
+            balance={`$${toFixedWithCommas(account.balance / 100, 2)}`}
           />
           <Spacer h={1} />
         </React.Fragment>
@@ -107,7 +109,7 @@ export default function Dashboard() {
             <Text h3>Total</Text>
           </Grid>
           <Grid>
-            <Text h3>${(totalBalance / 100).toFixed(2)}</Text>
+            <Text h3>${toFixedWithCommas(totalBalance / 100, 2)}</Text>
           </Grid>
         </Grid.Container>
       </Card>

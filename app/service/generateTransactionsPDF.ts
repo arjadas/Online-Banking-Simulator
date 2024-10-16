@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { toFixedWithCommas } from '~/util';
 
 interface TransactionData {
     sender: string;
@@ -37,7 +38,7 @@ interface TransactionData {
     const data = transactions.map(tx => ({
       ...tx,
       timestamp: new Date(tx.timestamp).toLocaleDateString(),
-      amount: `$${tx.amount.toFixed(2)}`,
+      amount: `$${toFixedWithCommas(tx.amount, 2)}`,
     }));
   
     // Generate the table
