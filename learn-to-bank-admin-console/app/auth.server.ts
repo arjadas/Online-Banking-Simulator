@@ -8,6 +8,7 @@ declare global {
 }
 
 function createSessionStorage(firebaseStorage: KVNamespace) {
+<<<<<<< Updated upstream
   return createWorkersKVSessionStorage({
     kv: firebaseStorage,
     cookie: {
@@ -20,6 +21,26 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
       secure: true,
     },
   });
+=======
+  const cookie = {
+    name: "session",
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: "/",
+    sameSite: "lax",
+    secrets: [import.meta.env.VITE_SESSION_SECRET],
+    secure: true,
+  } as any;
+
+  const sessionStorage = process.env.NODE_ENV === "development"
+    ? createCookieSessionStorage({ cookie })
+    : createWorkersKVSessionStorage({
+      kv: firebaseStorage,
+      cookie,
+    });
+
+  return sessionStorage;
+>>>>>>> Stashed changes
 }
 
 let sessionStorage: ReturnType<typeof createSessionStorage>;
