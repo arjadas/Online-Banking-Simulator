@@ -1,4 +1,4 @@
-import { Card, Grid, Spacer, Text } from '@geist-ui/core';
+import { Card, Grid, Spacer, Text, Page } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
@@ -78,40 +78,42 @@ export default function Dashboard() {
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
   return (
-    <>
-      <Spacer h={2} />
-      <Card padding={1} >
-        <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
-        <ResizableText h2>Hi {user.first_name}</ResizableText>
-        <ResizableText small>Next scheduled payment is in <ResizableText b>3 days</ResizableText></ResizableText>
-      </Card>
+    <Page>
+      <Page.Content>
+        <Spacer h={2} />
+        <Card padding={1} >
+          <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
+          <ResizableText h2>Hi {user.first_name}</ResizableText>
+          <ResizableText small>Next scheduled payment is in <ResizableText b>3 days</ResizableText></ResizableText>
+        </Card>
 
-      <Spacer h={2} />
+        <Spacer h={2} />
 
-      {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
-        <React.Fragment key={account.acc}>
-          <AccountCard
-            accountType={account.short_description}
-            bsb={account.bsb.toString()}
-            accountNumber={account.acc.toString()}
-            balance={`$${(account.balance / 100).toFixed(2)}`}
-          />
-          <Spacer h={1} />
-        </React.Fragment>
-      ))}
+        {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
+          <React.Fragment key={account.acc}>
+            <AccountCard
+              accountType={account.short_description}
+              bsb={account.bsb.toString()}
+              accountNumber={account.acc.toString()}
+              balance={`$${(account.balance / 100).toFixed(2)}`}
+            />
+            <Spacer h={1} />
+          </React.Fragment>
+        ))}
 
-      <Spacer h={2} />
+        <Spacer h={2} />
 
-      <Card width="100%">
-        <Grid.Container gap={2} justify="space-between" alignItems="center">
-          <Grid>
-            <Text h3>Total</Text>
-          </Grid>
-          <Grid>
-            <Text h3>${(totalBalance / 100).toFixed(2)}</Text>
-          </Grid>
-        </Grid.Container>
-      </Card>
-    </>
+        <Card width="100%">
+          <Grid.Container gap={2} justify="space-between" alignItems="center">
+            <Grid>
+              <Text h3>Total</Text>
+            </Grid>
+            <Grid>
+              <Text h3>${(totalBalance / 100).toFixed(2)}</Text>
+            </Grid>
+          </Grid.Container>
+        </Card>
+      </Page.Content>
+    </Page>
   );
 }
