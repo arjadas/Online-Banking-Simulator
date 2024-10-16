@@ -98,8 +98,8 @@ export default function Dashboard() {
         {user.notifications.map((notification, index) => (
           <React.Fragment key={notification.notification_id}>
             <Card shadow>
-              <Text b>{notification.content}<br /></Text>
-              <Text small>{formatDate(new Date(notification.timestamp))}</Text>
+              <ResizableText b>{notification.content}<br /></ResizableText>
+              <ResizableText small>{formatDate(new Date(notification.timestamp))}</ResizableText>
             </Card>
             {index < user.notifications.length - 1 && <Spacer h={1} />}
           </React.Fragment>
@@ -140,10 +140,10 @@ export default function Dashboard() {
       <Card width="100%">
         <Grid.Container gap={2} justify="space-between" alignItems="center">
           <Grid>
-            <Text h3>Total</Text>
+            <ResizableText h2>Total</ResizableText>
           </Grid>
           <Grid>
-            <Text h3>${toFixedWithCommas(totalBalance / 100, 2)}</Text>
+            <ResizableText h2>${toFixedWithCommas(totalBalance / 100, 2)}</ResizableText>
           </Grid>
         </Grid.Container>
       </Card>
@@ -154,8 +154,8 @@ export default function Dashboard() {
           {localNotifications.map((notification, index) => (
             <React.Fragment key={notification.notification_id}>
               <Card shadow>
-                <Text b>{notification.content}<br /></Text>
-                <Text small>{formatDate(new Date(notification.timestamp))}</Text>
+                <ResizableText b>{notification.content}<br /></ResizableText>
+                <ResizableText small>{formatDate(new Date(notification.timestamp))}</ResizableText>
               </Card>
               {index < localNotifications.length - 1 && <Spacer h={1} />}
             </React.Fragment>

@@ -13,7 +13,7 @@ const UserPrevContactForm: React.FC<ContactFormProps> = ({ contacts, onSubmit })
     return (
         <Card width="100%" shadow style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <Card.Content>
-                <Text h3>Pay Someone</Text>
+                <ResizableText h3>Pay Someone</ResizableText>
                 <Spacer h={1} />
                 <Grid.Container gap={2}>
                     {contacts.map((contact) => {

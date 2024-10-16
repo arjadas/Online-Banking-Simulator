@@ -4,6 +4,7 @@ import { Form, useActionData } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
 import CurrencyInput from '~/components/CurrencyInput';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
+import ResizableText from './ResizableText';
 
 type RecipientAddress = {
     accountName: string;
@@ -113,7 +114,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
             <Form method="post">
-                <Text h4>Schedule</Text>
+                <ResizableText h4>Schedule</ResizableText>
                 <Tabs initialValue="now" hideDivider>
                     <Tabs.Item label="Now" value="now" />
                     <Tabs.Item label="Later" value="later">
@@ -123,7 +124,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                         <Text>Recurring Ui here</Text>
                     </Tabs.Item>
                 </Tabs>
-                <Text h4>From Account</Text>
+                <ResizableText h4>From Account</ResizableText>
                 <div style={{ width: '48%' }}>
                     <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                         {// @ts-ignore
@@ -137,32 +138,32 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 <input type="hidden" name="fromAcc" value={fromAcc || ''} />
                 <Tabs value={activeTab} onChange={setActiveTab} hideDivider style={{ marginTop: 20 }}>
                     <Tabs.Item label="ACC / BSB" value="acc-bsb">
-                        <Text h4>Account Name</Text>
+                        <ResizableText h4>Account Name</ResizableText>
                         <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                        <Text h4 style={{ marginTop: 10 }}>Account Number</Text>
+                        <ResizableText h4 style={{ marginTop: 10 }}>Account Number</ResizableText>
                         <Input width="100%" placeholder="Enter account number" aria-label="Account Number" value={recipientAddress.acc === -1 ? '' : recipientAddress.acc.toString()} onChange={handleAccChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                        <Text h4 style={{ marginTop: 10 }}>BSB</Text>
+                        <ResizableText h4 style={{ marginTop: 10 }}>BSB</ResizableText>
                         <Input width="100%" placeholder="Enter bsb" aria-label="BSB" value={recipientAddress.bsb === -1 ? '' : recipientAddress.bsb.toString()} onChange={handleBsbChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="PayID" value="pay-id">
-                        <Text h4>PayID</Text>
+                        <ResizableText h4>PayID</ResizableText>
                         <Input width="100%" placeholder="Enter PayID" aria-label="PayID" value={recipientAddress.payId} onChange={handlePayIdChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="BPay" value="b-pay">
-                        <Text h4>Biller Code</Text>
+                        <ResizableText h4>Biller Code</ResizableText>
                         <Input width="100%" placeholder="Enter biller code" aria-label="Biller Code" value={recipientAddress.billerCode === -1 ? '' : recipientAddress.billerCode.toString()} onChange={handleBillerCodeChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                        <Text h4 style={{ marginTop: 10 }}>CRN</Text>
+                        <ResizableText h4 style={{ marginTop: 10 }}>CRN</ResizableText>
                         <Input width="100%" placeholder="Enter CRN" aria-label="CRN" value={recipientAddress.crn === -1 ? '' : recipientAddress.crn.toString()} onChange={handleCrnChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                 </Tabs>
                 <input type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
-                <Text h4 style={{ marginTop: 10 }}>Amount</Text>
+                <ResizableText h4 style={{ marginTop: 10 }}>Amount</ResizableText>
                 <CurrencyInput amount={amount} onAmountChange={function (amount: string) {
                     setAmount(amount);
                 }} />
-                <Text h4 style={{ marginTop: 10 }}>Reference</Text>
+                <ResizableText h4 style={{ marginTop: 10 }}>Reference</ResizableText>
                 <Textarea width="100%" placeholder="Enter reference" aria-label="Reference" name="reference" value={reference} onChange={handleReferenceChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
-                <Text h4 style={{ marginTop: 10 }}>Description</Text>
+                <ResizableText h4 style={{ marginTop: 10 }}>Description</ResizableText>
                 <Textarea width="100%" placeholder="Enter description" aria-label="Description" name="description" value={description} onChange={handleDescriptionChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                 <div style={{ display: 'flex', gap: 20, justifyContent: 'flex-end', marginTop: 20 }}>
                     <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={onBack} >Back</Button>
@@ -172,9 +173,9 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
             {actionData && (
                 <div style={{ marginTop: '20px' }}>
                     {actionData.success ? (
-                        <Text type="success">Transfer successful!</Text>
+                        <ResizableText type="success">Transfer successful!</ResizableText>
                     ) : (
-                        <Text type="error">Transfer failed: {actionData.error}</Text>
+                        <ResizableText type="error">Transfer failed: {actionData.error}</ResizableText>
                     )}
                 </div>
             )}

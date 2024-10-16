@@ -12,7 +12,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
-  const amount = parseInt((formData.get('amount') as string).replace('.', '')) * 100;
+  // Deleting the decimal point converts to cents: $99.99 -> 9999 cents
+  const amount = parseInt((formData.get('amount') as string).replace('.', ''));
   const description = formData.get('description') as string;
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);

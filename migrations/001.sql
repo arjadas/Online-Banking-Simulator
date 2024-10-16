@@ -1,3 +1,22 @@
+-- CreateTable
+CREATE TABLE "Transaction" (
+    "transaction_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "amount" INTEGER NOT NULL,
+    "sender_acc" INTEGER NOT NULL,
+    "recipient_acc" INTEGER NOT NULL,
+    "sender_uid" TEXT NOT NULL,
+    "recipient_uid" TEXT NOT NULL,
+    "recipient_address" TEXT,
+    "reference" TEXT NOT NULL,
+    "description" TEXT,
+    "timestamp" DATETIME NOT NULL,
+    "recc_transaction_id" INTEGER,
+    "settled" BOOLEAN NOT NULL,
+    "type" TEXT NOT NULL,
+    CONSTRAINT "Transaction_recc_transaction_id_fkey" FOREIGN KEY ("recc_transaction_id") REFERENCES "RecurringTransaction" ("recc_transaction_id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Transaction_sender_acc_fkey" FOREIGN KEY ("sender_acc") REFERENCES "Account" ("acc") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Transaction_recipient_acc_fkey" FOREIGN KEY ("recipient_acc") REFERENCES "Account" ("acc") ON DELETE RESTRICT ON UPDATE CASCADE
+);
 
 -- CreateTable
 CREATE TABLE "Account" (
@@ -73,6 +92,7 @@ CREATE TABLE "Notification" (
     "read" BOOLEAN NOT NULL,
     CONSTRAINT "Notification_uid_fkey" FOREIGN KEY ("uid") REFERENCES "User" ("uid") ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 INSERT INTO "MockUser" ("uid", "first_name", "last_name", "description", "creation_timestamp")
 VALUES 
