@@ -25,7 +25,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
       cookie,
     });
 
-    return sessionStorage;
+  return createCookieSessionStorage({ cookie });
 }
 
 let sessionStorage: ReturnType<typeof createSessionStorage>;

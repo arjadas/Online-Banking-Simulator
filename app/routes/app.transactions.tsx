@@ -9,40 +9,7 @@ import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/service/db.server';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
 import { getUserSession } from "../auth.server";
-import { getBadgeColor, toFixedWithCommas } from '~/util';
-
-// Function to format the date as "Day, 23rd Sep (Today)" for display
-const formatDate = (transactionDate: Date) => {
-  const now = new Date();
-  const differenceInDays = Math.floor((now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24));
-
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  };
-
-  let formattedDate = new Intl.DateTimeFormat('en-US', options).format(transactionDate);
-
-  if (differenceInDays === 0) {
-    formattedDate += " (Today)";
-  } else if (differenceInDays === 1) {
-    formattedDate += " (Yesterday)";
-  } else {
-    formattedDate += ` (${differenceInDays} days ago)`;
-  }
-
-  return formattedDate;
-};
-
-// Function to convert a date into "DD/MM/YYYY" for search comparison
-const formatSearchDate = (date: Date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`; // Australian date format
-};
+import { getBadgeColor, toFixedWithCommas, formatSearchDate, formatDate } from '~/util';
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await getUserSession(context, request);

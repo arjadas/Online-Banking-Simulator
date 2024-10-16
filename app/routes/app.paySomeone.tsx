@@ -1,15 +1,14 @@
-import { Card, Grid, Spacer, Text } from '@geist-ui/core';
-import { Account, User, UserPrevContact } from '@prisma/client';
+import { Account, UserPrevContact } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { getUserSession } from '~/auth.server';
-import { createUser } from '~/service/userService';
-import AccountCard from '../components/AccountCard';
-import { getPrismaClient } from "../service/db.server";
-import UserPrevContactForm from '~/components/UserPrevContactForm';
 import PaySomeoneForm from '~/components/PaySomeoneForm';
+import UserPrevContactForm from '~/components/UserPrevContactForm';
+import { createNotification } from '~/service/notificationService';
 import { createUserPrevContact } from '~/service/userPrevContactService';
+import { toFixedWithCommas } from '~/util';
+import { getPrismaClient } from "../service/db.server";
 
 export type UserPrevContactResult = {
   user_prev_contact_id: number;
@@ -178,13 +177,48 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       }),
     ]);
 
-    createUserPrevContact(context, {
+    await createUserPrevContact(context, {
       uid: toAccount.uid,
       contact_acc: toAccount.acc,
       contact_acc_name: toAccount.acc_name,
       contact_description: toAccount.acc_name,
       contact_recipient_address: recipientAddress,
     });
+
+    const now = new Date();
+
+    // Create a notification for the logged-in user
+    try {
+      await createNotification(context, {
+        notification_id: now.toUTCString(),
+        timestamp: now,
+        type: 'transfer-success',
+        content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
+        read: false,
+        user: {
+          connect: {
+            uid: toAccount.uid,
+          }
+        },
+      })
+    } catch (e) {
+      // mock user
+    }
+
+
+    // Create a notification for the recipient
+    await createNotification(context, {
+      notification_id: now.toUTCString(),
+      timestamp: now,
+      type: 'new-receipt',
+      content: `Received $${toFixedWithCommas(amount / 100, 2)} from ${fromAccount.acc_name}`,
+      read: false,
+      user: {
+        connect: {
+          uid: fromAccount.uid,
+        }
+      },
+    })
 
     return json({ success: true, ...result });
   } catch (error) {
