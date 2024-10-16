@@ -184,7 +184,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         contact_acc: toAccount.acc
       }
     });
-    
+
     // Only create a new contact if one doesn't already exist
     if (!existingContact) {
       await createUserPrevContact(context, {
@@ -198,13 +198,13 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
     const now = new Date();
 
-    // Create a notification for the logged-in user
     try {
+      // Create a notification for the recipient
       await createNotification(context, {
-        notification_id: now.toUTCString(),
+        notification_id: now.toUTCString() + toAccount.uid,
         timestamp: now,
-        type: 'transfer-success',
-        content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
+        type: 'new-receipt',
+        content: `Received $${toFixedWithCommas(amount / 100, 2)} from ${fromAccount.acc_name}`,
         read: false,
         user: {
           connect: {
@@ -216,13 +216,12 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       // mock user
     }
 
-
-    // Create a notification for the recipient
+    // Create a notification for the logged-in user
     await createNotification(context, {
-      notification_id: now.toUTCString(),
+      notification_id: now.toUTCString() + fromAccount.uid,
       timestamp: now,
-      type: 'new-receipt',
-      content: `Received $${toFixedWithCommas(amount / 100, 2)} from ${fromAccount.acc_name}`,
+      type: 'transfer-success',
+      content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
       read: false,
       user: {
         connect: {
