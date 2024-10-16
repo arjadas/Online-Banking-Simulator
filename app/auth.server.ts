@@ -1,22 +1,30 @@
-import { createWorkersKVSessionStorage } from "@remix-run/cloudflare";
+import { createWorkersKVSessionStorage, createCookieSessionStorage } from "@remix-run/cloudflare";
 
 declare global {
+  // @ts-ignore
   const firebase_storage: KVNamespace;
 }
 
 function createSessionStorage(firebaseStorage: KVNamespace) {
-  return createWorkersKVSessionStorage({
-    kv: firebaseStorage,
-    cookie: {
-      name: "session",
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
-      sameSite: "lax",
-      secrets: [import.meta.env.VITE_SESSION_SECRET],
-      secure: true,
-    },
-  });
+  const cookie = {
+    name: "session",
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: "/",
+    sameSite: "lax",
+    secrets: [import.meta.env.VITE_SESSION_SECRET],
+    secure: true,
+  } as any;
+
+  console.log(process.env.NODE_ENV === "development", 234234)
+  const sessionStorage = process.env.NODE_ENV === "development"
+    ? createCookieSessionStorage({ cookie })
+    : createWorkersKVSessionStorage({
+      kv: firebaseStorage,
+      cookie,
+    });
+
+    return createCookieSessionStorage({ cookie })
 }
 
 let sessionStorage: ReturnType<typeof createSessionStorage>;

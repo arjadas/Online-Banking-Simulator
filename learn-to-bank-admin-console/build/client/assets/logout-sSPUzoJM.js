@@ -1,0 +1,1 @@
+import{u as t,r as e}from"./index-D34nGoGN.js";import{s as a}from"./auth.client-BVBRz5GD.js";import"./index-BAMY2Nnw.js";function i(){const r=t();return e.useEffect(()=>{(async()=>{try{await a(),localStorage.removeItem("uid"),r("/login",{replace:!0})}catch(o){console.error("Error during logout:",o)}})()},[r]),null}export{i as default};

@@ -34,9 +34,6 @@ export default function AppLayout() {
   // Determine the current path from matches
   const currentPath = matches[matches.length - 1]?.pathname || '/';
 
-  // Determine initialValue based on current URL
-  const initialValue = navItems.findIndex(item => item.to === currentPath);
-
   // Handle tab change
   const handleTabChange = (value: string) => {
     const newPath = navItems[parseInt(value)].to;
@@ -45,7 +42,7 @@ export default function AppLayout() {
 
   const buttonStyle = {
     width: 350,
-    height: 75,
+    height: 100,
     fontSize: 18,
     gap: 16,
   };
@@ -87,61 +84,74 @@ export default function AppLayout() {
               Pay someone
             </Button>
           </AuthenticatedLink>
-          <AuthenticatedLink to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
-            <Button
-              style={buttonStyle}
-              type='success-light'
-              auto
-              scale={2}
-              icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
-              Default Payments
-            </Button>
-          </AuthenticatedLink>
         </div>
       </Drawer>
-      <Page>
-        <Page.Header>
-          <Grid.Container gap={0} justify="space-between" alignItems="center">
-            <Grid>
-              <Image height="200px" style={{ margin: -20 }} src="/logo.png" />
-            </Grid>
-            <Grid>
-              <Card padding={0.5} style={{ transform: `scale(${textScale / 100})`, transformOrigin: 'top right' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Tabs
-                    initialValue={initialValue.toString()}
-                    align="left"
-                    onChange={handleTabChange}
-                    style={{ margin: 10 } as any}
-                  >
-                    {navItems.map((item, index) => (
-                      <Tabs.Item
-                        key={index}
-                        label={
-                          <Link to={item.to} prefetch="intent" style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: 'inherit',
-                            textDecoration: 'none',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                          }}>
-                            {React.cloneElement(item.icon, { size: 24, color: 'black' })}
-                            <span style={{ color: 'black' }}>{item.label}</span>
-                          </Link>
-                        }
-                        value={index.toString()}
-                      />
-                    ))}
-                  </Tabs>
-                  <Spacer h={1} />
-                  <Button icon={<DollarSign />} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
-                </div>
-              </Card>
-            </Grid>
-          </Grid.Container>
-        </Page.Header>
-        <Outlet />
+      <Page margin={0} padding={0} style={{margin: 0, padding: 0, width: "100vw"}}>
+        <Page>
+          <Page.Header>
+            <Grid.Container gap={0} justify="space-between" alignItems="center">
+              <Grid>
+                <Image height="200px" style={{ margin: -20 }} src="/logo.png" />
+              </Grid>
+              <Grid>
+                <Card padding={0.5} style={{ transform: `scale(${textScale / 100})`, transformOrigin: 'top right' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Tabs
+                      align="left"
+                      onChange={handleTabChange}
+                      value={currentPath}
+                      style={{ margin: 10 } as any}
+                    >
+                      {navItems.map((item, index) => (
+                        <Tabs.Item
+                          key={index}
+                          label={
+                            <Link to={item.to} prefetch="intent" style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              color: 'inherit',
+                              textDecoration: 'none',
+                              flexDirection: 'row',
+                              justifyContent: 'center',
+                            }}>
+                              {React.cloneElement(item.icon, { size: 24, color: 'black' })}
+                              <span style={{ color: 'black' }}>{item.label}</span>
+                            </Link>
+                          }
+                          value={item.to}
+                        />
+                      ))}
+                    </Tabs>
+                    <Spacer h={1} />
+                    <Button icon={<DollarSign />} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
+                  </div>
+                </Card>
+              </Grid>
+            </Grid.Container>
+          </Page.Header>
+          <Page.Content>
+            <Outlet />
+            <Spacer h={4} />
+          </Page.Content>
+        </Page>
+        <Page.Footer>
+          <div style={{
+            textAlign: 'center',
+            padding: 20,
+            margin: 0,
+            borderTop: '1px solid #eaeaea',
+            backgroundColor: "white",
+            marginTop: 20
+          }}>
+            <ResizableText p style={{ color: '#666', margin: 0 }}>
+              Learn to Bank is an educational simulation of Australian online banking systems.
+              All transactions and balances are simulated for learning purposes.
+            </ResizableText>
+            <ResizableText small style={{ color: '#999', marginTop: '10px' }}>
+              © {new Date().getFullYear()} The University of Melbourne. All rights reserved.
+            </ResizableText>
+          </div>
+        </Page.Footer>
       </Page>
     </GeistProvider>
   );

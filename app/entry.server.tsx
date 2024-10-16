@@ -19,7 +19,6 @@ export default async function handleRequest(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   loadContext: AppLoadContext
 ) {
-  console.log('Request URL:', request.url);
   const body = await renderToReadableStream(
     <RemixServer context={remixContext} url={request.url} />,
     {

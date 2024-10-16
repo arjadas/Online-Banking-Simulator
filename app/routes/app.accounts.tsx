@@ -1,12 +1,13 @@
-import React from 'react';
-import { useLoaderData } from "@remix-run/react";
-import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { Text, Spacer, Grid, Card } from '@geist-ui/core';
-import AccountCard from '../components/AccountCard';
+import { Card, Grid, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { getPrismaClient } from "../util/db.server";
-import { createUser } from '~/util/userUtil';
+import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import React from 'react';
 import { getUserSession } from '~/auth.server';
+import { createUser } from '~/service/userService';
+import AccountCard from '../components/AccountCard';
+import { getPrismaClient } from "../service/db.server";
+import { toFixedWithCommas } from '~/util';
 
 type MeUser = {
   uid: string;
@@ -28,7 +29,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
 
   // Fetch the user details and related data from Prisma
-  // eslint-disable-next-line prefer-const
   const getMeUser = async () => {
     return await Promise.all([
       db.user.findUnique({
@@ -39,13 +39,9 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
             take: 5,
           },
         },
-        // @ts-ignore
-        cacheStrategy: { swr: 60, ttl: 60 },
       }),
       db.account.findMany({
         where: { uid: user.uid },
-        // @ts-ignore
-        cacheStrategy: { swr: 60, ttl: 60 },
       }),
     ]);
   }
@@ -73,23 +69,21 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 };
 
 export default function Dashboard() {
-  const { me: user, userAccounts: accounts } = useLoaderData<{
+  const { me: user, userAccounts: accounts, error } = useLoaderData<{
     me: MeUser;
     userAccounts: Account[];
+    error?: string
   }>();
 
+  console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
   return (
     <>
       <Spacer h={2} />
-
-      <Text small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-      <Text h2>Hi {user.first_name}</Text>
-
-      <Spacer h={1} />
-
-      <Card>
+      <Card padding={1} >
+        <Text small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+        <Text h2>Hi {user.first_name}</Text>
         <Text small>Next scheduled payment is in <Text b>3 days</Text></Text>
       </Card>
 
@@ -101,7 +95,7 @@ export default function Dashboard() {
             accountType={account.short_description}
             bsb={account.bsb.toString()}
             accountNumber={account.acc.toString()}
-            balance={`$${account.balance.toFixed(2)}`}
+            balance={`$${toFixedWithCommas(account.balance / 100, 2)}`}
           />
           <Spacer h={1} />
         </React.Fragment>
@@ -115,7 +109,7 @@ export default function Dashboard() {
             <Text h3>Total</Text>
           </Grid>
           <Grid>
-            <Text h3>${totalBalance.toFixed(2)}</Text>
+            <Text h3>${toFixedWithCommas(totalBalance / 100, 2)}</Text>
           </Grid>
         </Grid.Container>
       </Card>

@@ -46,7 +46,6 @@ export default function AppLayout() {
     gap: 16,
   };
 
-  console.log(isDarkTheme, 3428)
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
       <div style={{ backgroundColor: isDarkTheme ? '#111111' : '#EEEEEE' }}>
