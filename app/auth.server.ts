@@ -16,7 +16,6 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
     secure: true,
   } as any;
 
-  console.log(process.env.NODE_ENV === "development", 234234)
   const sessionStorage = process.env.NODE_ENV === "development"
     ? createCookieSessionStorage({ cookie })
     : createWorkersKVSessionStorage({
@@ -24,7 +23,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
       cookie,
     });
 
-    return createCookieSessionStorage({ cookie })
+    return sessionStorage
 }
 
 let sessionStorage: ReturnType<typeof createSessionStorage>;

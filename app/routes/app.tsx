@@ -70,6 +70,7 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
+              onClick={() => setDrawerOpen(false)}
               icon={<Shuffle />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
@@ -80,6 +81,7 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
+              onClick={() => setDrawerOpen(false)}
               icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>

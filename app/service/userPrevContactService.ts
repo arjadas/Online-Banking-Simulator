@@ -1,11 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { getPrismaClient } from '~/service/db.server';
 
-// Generate a random 9-digit number
-function generateRandomAcc() {
-    return Math.floor(100000000 + Math.random() * 900000000);
-}
-
 export async function createUserPrevContact(context: any, data: Prisma.UserPrevContactCreateInput) {
     const db = getPrismaClient(context);
 
