@@ -1,1 +1,0 @@
-import{j as s}from"./components-Bbc86ifj.js";import{r as e}from"./index-D34nGoGN.js";const r=e.createContext(null);function x({children:t,uid:u}){const[o,n]=e.useState(u);return s.jsx(r.Provider,{value:{uid:o,setuid:n},children:t})}function c(){const t=e.useContext(r);if(!t)throw new Error("useAuth must be used within an AuthProvider");return t}export{x as A,c as u};

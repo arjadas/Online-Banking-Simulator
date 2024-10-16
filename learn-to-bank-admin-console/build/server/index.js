@@ -2,19 +2,19 @@ import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { RemixServer, useLoaderData, Meta, Links, Outlet, ScrollRestoration, Scripts, useActionData, Form, useSearchParams, useSubmit, useNavigate, useFetcher, Link, useMatches } from '@remix-run/react';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
-import { CssBaseline, Themes, GeistProvider, useToasts, Page, Card, Text, Spacer, Grid, Select, Button, Table, Modal, Input, Image as Image$1, Tabs } from '@geist-ui/core';
-import { createWorkersKVSessionStorage, redirect, json } from '@remix-run/cloudflare';
+import { CssBaseline, useToasts, Page, Card, Text, Spacer, Grid, Select, Button, Table, Modal, Input, Themes, GeistProvider, Image as Image$1, Tabs } from '@geist-ui/core';
+import { createCookieSessionStorage, createWorkersKVSessionStorage, redirect, json } from '@remix-run/cloudflare';
 import { Provider, useSelector } from 'react-redux';
-import { createSlice, configureStore } from '@reduxjs/toolkit';
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { PrismaClient, Prisma } from '@prisma/client';
+import process from 'vite-plugin-node-polyfills/shims/process';
 import { PrismaD1 } from '@prisma/adapter-d1';
+import { PrismaClient, Prisma } from '@prisma/client';
+import { createSlice, configureStore } from '@reduxjs/toolkit';
+import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from '@geist-ui/icons';
 import { Image, Card as Card$1, Text as Text$1, Input as Input$1, Button as Button$1 } from '@geist-ui/react';
 import { Database, LogOut } from '@geist-ui/react-icons';
 
 async function handleRequest(request, responseStatusCode, responseHeaders, remixContext, loadContext) {
-  console.log("Request URL:", request.url);
   const body = await renderToReadableStream(
     /* @__PURE__ */ jsx(RemixServer, { context: remixContext, url: request.url }),
     {
@@ -40,20 +40,31 @@ const entryServer = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePropert
   default: handleRequest
 }, Symbol.toStringTag, { value: 'Module' }));
 
+let prisma = null;
+function getPrismaClient(context) {
+  if (!prisma) {
+    const adapter = new PrismaD1(context.cloudflare.env.DB);
+    prisma = new PrismaClient({ adapter });
+  }
+  return prisma;
+}
+
 function createSessionStorage(firebaseStorage) {
-  return createWorkersKVSessionStorage({
+  const cookie = {
+    name: "session",
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 7,
+    // 1 week
+    path: "/",
+    sameSite: "lax",
+    secrets: ["Y8o_wB4_3t3YLmqwjK8MEAIzaSyArgMsHrQipci"],
+    secure: true
+  };
+  process.env.NODE_ENV === "development" ? createCookieSessionStorage({ cookie }) : createWorkersKVSessionStorage({
     kv: firebaseStorage,
-    cookie: {
-      name: "session",
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7,
-      // 1 week
-      path: "/",
-      sameSite: "lax",
-      secrets: ["Y8o_wB4_3t3YLmqwjK8MEAIzaSyArgMsHrQipci"],
-      secure: true
-    }
+    cookie
   });
+  return createCookieSessionStorage({ cookie });
 }
 let sessionStorage;
 function getSessionStorage(context) {
@@ -63,10 +74,19 @@ function getSessionStorage(context) {
   return sessionStorage;
 }
 async function createUserSession(context, uid, email, redirectTo) {
+  const db = getPrismaClient(context);
+  const user = await db.user.findUnique({ where: { uid } });
+  if (!user) {
+    throw new Error("User not found.");
+  }
+  if (user.role !== "administrator") {
+    throw new Error("Unauthorized access. Administrator role required.");
+  }
   const { getSession, commitSession } = getSessionStorage(context);
   const session = await getSession();
   session.set("uid", uid);
   session.set("email", email);
+  session.set("role", user.role);
   return new Response(null, {
     status: 302,
     headers: {
@@ -78,11 +98,14 @@ async function createUserSession(context, uid, email, redirectTo) {
 async function getUserSession(context, request) {
   const { getSession } = getSessionStorage(context);
   const session = await getSession(request.headers.get("Cookie"));
-  if (!session) return null;
+  if (!session) {
+    throw new Error("Cookie session not found.");
+  }
   const uid = session.get("uid");
   const email = session.get("email");
-  if (!uid || !email) return null;
-  return { uid, email };
+  const role = session.get("role");
+  if (!uid || !email || !role || role !== "administrator") return null;
+  return { uid, email, role };
 }
 async function logout(context, request) {
   const { getSession, destroySession } = getSessionStorage(context);
@@ -131,7 +154,7 @@ function useAuth() {
   return context;
 }
 
-const loader$3 = async ({ request, context }) => {
+const loader$4 = async ({ request, context }) => {
   const user = await getUserSession(context, request);
   const url = new URL(request.url);
   if (url.pathname === "/") {
@@ -162,19 +185,65 @@ function App() {
 const route0 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: App,
+  loader: loader$4
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const loader$3 = async ({ request, context }) => {
+  const url = new URL(request.url);
+  const tableName = url.searchParams.get("table");
+  if (!tableName) {
+    return json({ error: "Table name is required" }, { status: 400 });
+  }
+  const db = getPrismaClient(context);
+  try {
+    const tableInfo = await db.$queryRaw`
+      SELECT 
+        name AS column_name,
+        type AS data_type,
+        "notnull" AS is_nullable,
+        pk AS is_primary_key
+      FROM pragma_table_info(${tableName})
+    `;
+    if (!Array.isArray(tableInfo) || tableInfo.length === 0) {
+      return json({ error: "Table not found or empty" }, { status: 404 });
+    }
+    const fields = tableInfo.map((column) => ({
+      name: column.column_name,
+      type: mapSqliteTypeToJsType(column.data_type),
+      isRequired: column.is_nullable === 0,
+      isId: column.is_primary_key === 1
+    }));
+    return json({ fields });
+  } catch (error) {
+    console.error("Error fetching table schema:", error);
+    return json({ error: "Failed to fetch table schema" }, { status: 500 });
+  }
+};
+function mapSqliteTypeToJsType(sqliteType) {
+  const lowercaseType = sqliteType.toLowerCase();
+  if (lowercaseType.includes("int")) return "Int";
+  if (lowercaseType.includes("float") || lowercaseType.includes("double") || lowercaseType.includes("real")) return "Float";
+  if (lowercaseType.includes("bool")) return "Boolean";
+  if (lowercaseType.includes("date") || lowercaseType.includes("time")) return "DateTime";
+  return "String";
+}
+
+const route1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
   loader: loader$3
 }, Symbol.toStringTag, { value: 'Module' }));
 
-let prisma = null;
-function getPrismaClient(context) {
-  if (!prisma) {
-    const adapter = new PrismaD1(context.cloudflare.env.DB);
-    prisma = new PrismaClient({ adapter });
+async function adminMiddleware(request, context) {
+  const userSession = await getUserSession(context, request);
+  if (!userSession || userSession.role !== "administrator") {
+    return new Response("Unauthorized. Administrator access required.", { status: 403 });
   }
-  return prisma;
+  return new Response("Authorized", { status: 200 });
 }
 
 const loader$2 = async ({ context, request }) => {
+  const adminCheck = await adminMiddleware(request, context);
+  if (adminCheck.status !== 200) return adminCheck;
   const url = new URL(request.url);
   const tableName = url.searchParams.get("table");
   if (!tableName) {
@@ -192,17 +261,60 @@ const loader$2 = async ({ context, request }) => {
   }
 };
 const action$4 = async ({ request, context }) => {
+  const adminCheck = await adminMiddleware(request, context);
+  if (adminCheck.status !== 200) return adminCheck;
   const db = getPrismaClient(context);
+  const url = new URL(request.url);
+  const table = url.searchParams.get("table");
+  if (!table) {
+    return json({ error: "Missing table" }, { status: 400 });
+  }
+  if (request.method === "POST") {
+    const tableData = await request.json();
+    if (!tableData) {
+      return json({ success: false, error: "Missing table data" }, { status: 400 });
+    }
+    try {
+      const columns = Object.keys(tableData).join(", ");
+      const values = Object.values(tableData).map(
+        (value) => typeof value === "string" ? `'${value}'` : value
+      ).join(", ");
+      const query = `INSERT INTO \`${table}\` (${columns}) VALUES (${values})`;
+      await db.$executeRaw`${Prisma.raw(query)}`;
+      return json({ success: true, message: "Record created successfully" });
+    } catch (error) {
+      console.error("Error creating record:", error);
+      return json({ success: false, error: error.message }, { status: 500 });
+    }
+  }
+  if (request.method === "PUT") {
+    const tableData = await request.json();
+    if (!tableData || Object.keys(tableData).length === 0) {
+      return json({ success: false, error: "Missing or empty table data" }, { status: 400 });
+    }
+    try {
+      const firstEntry = Object.entries(tableData)[0];
+      const id = firstEntry[0];
+      const primaryKey = firstEntry[1];
+      const { [id]: _, ...dataToUpdate } = tableData;
+      const setClause = Object.entries(dataToUpdate).map(([key, value]) => `\`${key}\` = ${typeof value === "string" ? `'${value}'` : value}`).join(", ");
+      const query = `UPDATE \`${table}\` SET ${setClause} WHERE \`${id}\` = '${primaryKey}'`;
+      await db.$executeRaw`${Prisma.raw(query)}`;
+      return json({ success: true, message: "Record updated successfully" });
+    } catch (error) {
+      console.error("Error updating record:", error);
+      return json({ success: false, error: error.message }, { status: 500 });
+    }
+  }
   if (request.method === "DELETE") {
-    const url = new URL(request.url);
-    const table = url.searchParams.get("table");
+    const url2 = new URL(request.url);
+    const table2 = url2.searchParams.get("table");
     const { id, primaryKey } = await request.json();
-    if (!table || !id) {
+    if (!table2 || !id) {
       return json({ error: "Missing table or id" }, { status: 400 });
     }
     try {
-      const query = `DELETE FROM \`${table}\` WHERE \`${id}\` = ${primaryKey}`;
-      console.log(query);
+      const query = `DELETE FROM \`${table2}\` WHERE \`${id}\` = ${primaryKey}`;
       const result = await db.$queryRaw`${Prisma.raw(query)}`;
       if (Array.isArray(result) && result.length > 0) {
         return json({ success: true, deletedRecord: result[0] });
@@ -210,14 +322,14 @@ const action$4 = async ({ request, context }) => {
         return json({ success: false, message: "No record found to delete" });
       }
     } catch (error) {
-      console.error("Error executing dele3te query:", error);
+      console.error("Error executing delete query:", error);
       return json({ success: false, error: error.message });
     }
   }
   return json({ error: "Method not allowed" }, { status: 405 });
 };
 
-const route1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   action: action$4,
   loader: loader$2
@@ -242,26 +354,21 @@ const action$3 = async ({ request }) => {
 function ForgotPassword() {
   const actionData = useActionData();
   const { isDarkTheme, textScale } = useSelector((state) => state.app);
-  const lightTheme = Themes.createFromLight({ type: "light1", palette: { success: "#009dff" } });
-  const darkTheme = Themes.createFromDark({ type: "dark1", palette: { background: "#111111", success: "#009dff" } });
-  return /* @__PURE__ */ jsxs(GeistProvider, { themes: [lightTheme, darkTheme], themeType: isDarkTheme ? "dark1" : "light1", children: [
-    /* @__PURE__ */ jsx(CssBaseline, {}),
-    /* @__PURE__ */ jsxs("div", { style: { backgroundColor: isDarkTheme ? "#111111" : "#EEEEEE" }, children: [
-      /* @__PURE__ */ jsx("h1", { children: "Forgot Password" }),
-      /* @__PURE__ */ jsxs(Form, { method: "post", children: [
-        /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsx("label", { htmlFor: "email", children: "Email" }),
-          /* @__PURE__ */ jsx("input", { type: "email", name: "email", required: true })
-        ] }),
-        /* @__PURE__ */ jsx("button", { type: "submit", children: "Send Password Reset Email" })
+  return /* @__PURE__ */ jsxs("div", { style: { backgroundColor: isDarkTheme ? "#111111" : "#EEEEEE" }, children: [
+    /* @__PURE__ */ jsx("h1", { children: "Forgot Password" }),
+    /* @__PURE__ */ jsxs(Form, { method: "post", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { htmlFor: "email", children: "Email" }),
+        /* @__PURE__ */ jsx("input", { type: "email", name: "email", required: true })
       ] }),
-      actionData?.error && /* @__PURE__ */ jsx("p", { children: actionData.error }),
-      actionData?.success && /* @__PURE__ */ jsx("p", { children: actionData.success })
-    ] })
+      /* @__PURE__ */ jsx("button", { type: "submit", children: "Send Password Reset Email" })
+    ] }),
+    actionData?.error && /* @__PURE__ */ jsx("p", { children: actionData.error }),
+    actionData?.success && /* @__PURE__ */ jsx("p", { children: actionData.success })
   ] });
 }
 
-const route2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   action: action$3,
   default: ForgotPassword
@@ -279,6 +386,7 @@ const loader$1 = async ({ context, request }) => {
 function Dashboard() {
   const { tables, user } = useLoaderData();
   const [selectedTable, setSelectedTable] = useState("Account");
+  const [tableSchema, setTableSchema] = useState([]);
   const [tableData, setTableData] = useState(void 0);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState("create");
@@ -286,11 +394,21 @@ function Dashboard() {
   const [dataVisible, setDataVisible] = useState(true);
   useSelector((state) => state.app);
   const { setToast, removeAll } = useToasts();
+  const fetchTableSchema = useCallback(async (tableName) => {
+    try {
+      const response = await fetch(`/api/table-schema?table=${tableName}`);
+      const { fields } = await response.json();
+      setTableSchema(fields);
+    } catch (error) {
+      console.error("Error fetching table schema:", error);
+      setToast({ text: "Error fetching table schema", type: "error" });
+    }
+  }, [setToast]);
   const fetchTableData = async (tableName) => {
     try {
       const response = await fetch(`/api/table-data?table=${tableName}`);
       const newData = await response.json();
-      setTableData(newData);
+      setTableData(newData ?? []);
     } catch (error) {
       console.error("Error fetching table data:", error);
       setToast({ text: "Error fetching table data", type: "error" });
@@ -308,6 +426,7 @@ function Dashboard() {
           setDataVisible(true);
         }, 50);
       });
+      fetchTableSchema(selectedTable);
     }
   }, [selectedTable]);
   const tableStyle = {
@@ -354,33 +473,72 @@ function Dashboard() {
     setModalVisible(false);
   };
   const handleFormSubmit = async () => {
-    if (modalMode === "create") {
-      console.log("Create new record:", formData);
-      ({ ...formData, id: Date.now() });
-      fetchTableData(selectedTable);
-      setToast({ text: "Record created successfully", type: "success" });
-    } else {
-      console.log("Update record:", formData);
-      fetchTableData(selectedTable);
-      setToast({ text: "Record updated successfully", type: "success" });
+    try {
+      const method = modalMode === "create" ? "POST" : "PUT";
+      const response = await fetch(`/api/table-data?table=${selectedTable}`, {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+      const { success, error } = await response.json();
+      if (success) {
+        setToast({ text: `Record ${modalMode === "create" ? "created" : "updated"} successfully`, type: "success" });
+        await fetchTableData(selectedTable);
+      } else {
+        setToast({ text: error || "An error occurred", type: "error" });
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setToast({ text: "An error occurred while submitting the form", type: "error" });
     }
     setModalVisible(false);
     setFormData({});
   };
   const renderForm = () => {
-    if (!formData || !selectedTable || !tableData || tableData.length == 0) return null;
-    return Object.keys(tableData[0]).map((key) => /* @__PURE__ */ jsx(
-      Input,
-      {
-        label: key,
-        value: formData?.[key] || "",
-        onChange: (e) => setFormData({ ...formData, [key]: e.target.value }),
-        onPointerEnterCapture: void 0,
-        onPointerLeaveCapture: void 0,
-        crossOrigin: void 0
-      },
-      key
-    ));
+    if (!formData || !selectedTable || !tableSchema) return null;
+    return tableSchema.map((field) => {
+      let inputType = "text";
+      let inputValue = formData[field.name] || "";
+      switch (field.type) {
+        case "Int":
+        case "Float":
+          inputType = "number";
+          break;
+        case "Boolean":
+          inputType = "checkbox";
+          break;
+        case "DateTime":
+          inputType = "datetime-local";
+          if (inputValue) {
+            const date = new Date(inputValue);
+            inputValue = date.toISOString().slice(0, 16);
+          }
+          break;
+      }
+      return /* @__PURE__ */ jsx(
+        Input,
+        {
+          label: field.name,
+          htmlType: inputType,
+          value: inputValue,
+          onChange: (e) => {
+            let newValue = e.target.value;
+            if (inputType === "datetime-local") {
+              newValue = new Date(newValue).toISOString();
+            }
+            setFormData({ ...formData, [field.name]: newValue });
+          },
+          disabled: modalMode === "edit" && field.isId,
+          required: field.isRequired,
+          crossOrigin: void 0,
+          onPointerEnterCapture: void 0,
+          onPointerLeaveCapture: void 0
+        },
+        field.name
+      );
+    });
   };
   return /* @__PURE__ */ jsx(Page.Header, { center: true, style: { margin: 0, padding: 30, width: "100vw" }, children: /* @__PURE__ */ jsxs(Card, { width: "100%", padding: 2, style: {
     maxWidth: "95%",
@@ -400,7 +558,7 @@ function Dashboard() {
             width: "25%",
             onPointerEnterCapture: void 0,
             onPointerLeaveCapture: void 0,
-            children: tables.map((table) => /* @__PURE__ */ jsx(Select.Option, { value: table, children: table }, table))
+            children: tables.map((table) => table != "_cf_KV" && /* @__PURE__ */ jsx(Select.Option, { value: table, children: table }, table))
           }
         ) }),
         /* @__PURE__ */ jsx(Grid, { xs: 6, sm: 4, justify: "flex-end", children: /* @__PURE__ */ jsx(
@@ -424,7 +582,7 @@ function Dashboard() {
       overflowY: "auto",
       marginTop: 20,
       paddingBottom: 100
-    }, children: /* @__PURE__ */ jsx(Grid, { xs: 24, children: selectedTable && tableData && tableData?.length > 0 ? /* @__PURE__ */ jsxs(Table, { data: tableData, style: tableStyle, children: [
+    }, children: /* @__PURE__ */ jsx(Grid, { xs: 24, children: selectedTable && tableData ? /* @__PURE__ */ jsxs(Table, { data: tableData, style: tableStyle, children: [
       /* @__PURE__ */ jsx(
         Table.Column,
         {
@@ -460,7 +618,7 @@ function Dashboard() {
           ] })
         }
       ),
-      Object.keys(tableData[0]).map((key) => /* @__PURE__ */ jsx(Table.Column, { prop: key, label: key }, key))
+      tableSchema.map((field) => /* @__PURE__ */ jsx(Table.Column, { prop: field.name, label: field.name.replace("_", " ") }, field.name))
     ] }, selectedTable) : /* @__PURE__ */ jsx(Fragment, {}) }) }),
     /* @__PURE__ */ jsxs(Modal, { visible: modalVisible, onClose: handleModalClose, children: [
       /* @__PURE__ */ jsxs(Modal.Title, { children: [
@@ -474,7 +632,7 @@ function Dashboard() {
   ] }) });
 }
 
-const route3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route4 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: Dashboard,
   loader: loader$1
@@ -488,8 +646,6 @@ function ResetPassword() {
   const [searchParams] = useSearchParams();
   const oobCode = searchParams.get("oobCode");
   const { isDarkTheme, textScale } = useSelector((state) => state.app);
-  const lightTheme = Themes.createFromLight({ type: "light1", palette: { success: "#009dff" } });
-  const darkTheme = Themes.createFromDark({ type: "dark1", palette: { background: "#111111", success: "#009dff" } });
   const [clientError, setClientError] = useState(null);
   const submit = useSubmit();
   if (!oobCode) {
@@ -507,7 +663,7 @@ function ResetPassword() {
       setClientError(error.message);
     }
   };
-  return /* @__PURE__ */ jsx(GeistProvider, { themes: [lightTheme, darkTheme], themeType: isDarkTheme ? "dark1" : "light1", children: /* @__PURE__ */ jsxs("div", { style: {
+  return /* @__PURE__ */ jsxs("div", { style: {
     backgroundColor: isDarkTheme ? "#111111" : "#EEEEEE"
   }, children: [
     /* @__PURE__ */ jsx("h1", { children: "Reset Password" }),
@@ -521,10 +677,10 @@ function ResetPassword() {
     ] }),
     clientError && /* @__PURE__ */ jsx("p", { children: clientError }),
     actionData?.error && /* @__PURE__ */ jsx("p", { children: actionData.error })
-  ] }) });
+  ] });
 }
 
-const route4 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route5 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   action: action$2,
   default: ResetPassword
@@ -550,7 +706,7 @@ function Logout() {
   return null;
 }
 
-const route5 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route6 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: Logout,
   loader
@@ -559,7 +715,7 @@ const route5 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 function AuthenticatedLink(props) {
   useAuth();
   useFetcher();
-  return /* @__PURE__ */ jsx(Link, { ...props, prefetch: "render" });
+  return /* @__PURE__ */ jsx(Link, { ...props });
 }
 
 function generateRandomAcc() {
@@ -653,8 +809,6 @@ function Signup() {
   const submit = useSubmit();
   const [clientError, setClientError] = useState(null);
   const { isDarkTheme, textScale } = useSelector((state) => state.app);
-  const lightTheme = Themes.createFromLight({ type: "light1", palette: { success: "#009dff" } });
-  const darkTheme = Themes.createFromDark({ type: "dark1", palette: { background: "#111111", success: "#009dff" } });
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (actionData?.error) {
@@ -679,7 +833,7 @@ function Signup() {
       setLoading(false);
     }
   };
-  return /* @__PURE__ */ jsx(GeistProvider, { themes: [lightTheme, darkTheme], themeType: isDarkTheme ? "dark1" : "light1", children: /* @__PURE__ */ jsxs("div", { style: {
+  return /* @__PURE__ */ jsxs("div", { style: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -712,10 +866,10 @@ function Signup() {
       clientError && /* @__PURE__ */ jsx(Text$1, { type: "error", style: { marginTop: 10 }, children: clientError }),
       /* @__PURE__ */ jsx(AuthenticatedLink, { to: "/login", prefetch: "render", children: /* @__PURE__ */ jsx(Text$1, { p: true, children: "Go back" }) })
     ] })
-  ] }) });
+  ] });
 }
 
-const route6 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route7 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   action: action$1,
   default: Signup
@@ -725,18 +879,17 @@ const action = async ({ request, context }) => {
   const formData = await request.formData();
   const uid = formData.get("uid");
   const email = formData.get("email");
+  const userSession = await createUserSession(context, uid, email, "/");
   try {
-    return await createUserSession(context, uid, email, "/");
+    return userSession;
   } catch (error) {
-    return json({ error: error.toString() + "adsasd" });
+    return json({ error: error.message });
   }
 };
 function Login() {
   const actionData = useActionData();
   const [clientError, setClientError] = useState(null);
   const { isDarkTheme, textScale } = useSelector((state) => state.app);
-  const lightTheme = Themes.createFromLight({ type: "light1", palette: { success: "#009dff" } });
-  const darkTheme = Themes.createFromDark({ type: "dark1", palette: { background: "#111111", success: "#009dff" } });
   const [loading, setLoading] = useState(false);
   const submit = useSubmit();
   useEffect(() => {
@@ -767,7 +920,7 @@ function Login() {
     }
     setLoading(false);
   };
-  return /* @__PURE__ */ jsx(GeistProvider, { themes: [lightTheme, darkTheme], themeType: isDarkTheme ? "dark1" : "light1", children: /* @__PURE__ */ jsxs("div", { style: {
+  return /* @__PURE__ */ jsxs("div", { style: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -794,17 +947,12 @@ function Login() {
           }
         )
       ] }),
-      clientError && /* @__PURE__ */ jsx(Text$1, { style: { marginTop: 10 }, type: "error", children: clientError }),
-      /* @__PURE__ */ jsxs(Text$1, { p: true, children: [
-        "Don't have an account? ",
-        /* @__PURE__ */ jsx(AuthenticatedLink, { to: "/signup", children: "Sign up" })
-      ] }),
-      /* @__PURE__ */ jsx(AuthenticatedLink, { to: "/forgotPassword", prefetch: "render", children: /* @__PURE__ */ jsx(Text$1, { p: true, children: "Forgot your password?" }) })
+      clientError && /* @__PURE__ */ jsx(Text$1, { style: { marginTop: 10 }, type: "error", children: clientError })
     ] })
-  ] }) });
+  ] });
 }
 
-const route7 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route8 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   action,
   default: Login
@@ -873,13 +1021,13 @@ function AppLayout() {
   ] }) }) });
 }
 
-const route8 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const route9 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: AppLayout,
   meta
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','imports':['/assets/components-Bbc86ifj.js','/assets/index-D34nGoGN.js'],'css':[]},'routes':{'root':{'id':'root','parentId':undefined,'path':'','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/root-BHPGg5Uc.js','imports':['/assets/components-Bbc86ifj.js','/assets/index-D34nGoGN.js','/assets/react-redux-TNJK1e1K.js','/assets/index-BAMY2Nnw.js','/assets/AuthProvider-DC0ulOoC.js','/assets/css-baseline-C10yUr1Q.js'],'css':['/assets/root-D3BK_U7X.css']},'routes/api.table-data':{'id':'routes/api.table-data','parentId':'root','path':'api/table-data','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-data-l0sNRNKZ.js','imports':[],'css':[]},'routes/forgotPassword':{'id':'routes/forgotPassword','parentId':'root','path':'forgotPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/forgotPassword-CR6aQVLe.js','imports':['/assets/components-Bbc86ifj.js','/assets/react-redux-TNJK1e1K.js','/assets/geist-provider-aLuppyM2.js','/assets/css-baseline-C10yUr1Q.js','/assets/index-D34nGoGN.js','/assets/index-BAMY2Nnw.js','/assets/use-geist-ui-context-DCQYMvz0.js'],'css':[]},'routes/app.dashboard':{'id':'routes/app.dashboard','parentId':'routes/app','path':'dashboard','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app.dashboard-rTiTt0jK.js','imports':['/assets/components-Bbc86ifj.js','/assets/objectWithoutProperties-BR_ycoE6.js','/assets/index-D34nGoGN.js','/assets/react-redux-TNJK1e1K.js','/assets/toConsumableArray-tU9m1R9e.js','/assets/use-geist-ui-context-DCQYMvz0.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/resetPassword':{'id':'routes/resetPassword','parentId':'root','path':'resetPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/resetPassword-Dbu1OGCi.js','imports':['/assets/components-Bbc86ifj.js','/assets/auth.client-BVBRz5GD.js','/assets/index-D34nGoGN.js','/assets/react-redux-TNJK1e1K.js','/assets/geist-provider-aLuppyM2.js','/assets/index-BAMY2Nnw.js','/assets/use-geist-ui-context-DCQYMvz0.js'],'css':[]},'routes/logout':{'id':'routes/logout','parentId':'root','path':'logout','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/logout-sSPUzoJM.js','imports':['/assets/index-D34nGoGN.js','/assets/auth.client-BVBRz5GD.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/signup':{'id':'routes/signup','parentId':'root','path':'signup','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/signup-D9e6f486.js','imports':['/assets/components-Bbc86ifj.js','/assets/AuthenticatedLink-CJAQ6_MP.js','/assets/index-D34nGoGN.js','/assets/react-redux-TNJK1e1K.js','/assets/auth.client-BVBRz5GD.js','/assets/geist-provider-aLuppyM2.js','/assets/use-geist-ui-context-DCQYMvz0.js','/assets/toConsumableArray-tU9m1R9e.js','/assets/index-BAMY2Nnw.js','/assets/AuthProvider-DC0ulOoC.js'],'css':[]},'routes/login':{'id':'routes/login','parentId':'root','path':'login','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/login-GlODf0FR.js','imports':['/assets/components-Bbc86ifj.js','/assets/AuthenticatedLink-CJAQ6_MP.js','/assets/index-D34nGoGN.js','/assets/react-redux-TNJK1e1K.js','/assets/auth.client-BVBRz5GD.js','/assets/geist-provider-aLuppyM2.js','/assets/use-geist-ui-context-DCQYMvz0.js','/assets/toConsumableArray-tU9m1R9e.js','/assets/index-BAMY2Nnw.js','/assets/AuthProvider-DC0ulOoC.js'],'css':[]},'routes/app':{'id':'routes/app','parentId':'root','path':'app','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app-ETGGK5S9.js','imports':['/assets/components-Bbc86ifj.js','/assets/objectWithoutProperties-BR_ycoE6.js','/assets/index-D34nGoGN.js','/assets/react-redux-TNJK1e1K.js','/assets/geist-provider-aLuppyM2.js','/assets/toConsumableArray-tU9m1R9e.js','/assets/use-geist-ui-context-DCQYMvz0.js','/assets/index-BAMY2Nnw.js'],'css':[]}},'url':'/assets/manifest-1c65ebac.js','version':'1c65ebac'};
+const serverManifest = {'entry':{'module':'/assets/entry.client-D4V-6FXz.js','imports':['/assets/components-Cd5I3Whh.js','/assets/index-bZ2xBRwK.js'],'css':[]},'routes':{'root':{'id':'root','parentId':undefined,'path':'','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/root-Bnc_aM7-.js','imports':['/assets/components-Cd5I3Whh.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/index-BAMY2Nnw.js','/assets/AuthProvider-0i6af-bo.js','/assets/theme-context-DFa6OA4B.js','/assets/typeof-CY0RTpPX.js'],'css':['/assets/root-BM1Dbbue.css']},'routes/api.table-schema':{'id':'routes/api.table-schema','parentId':'root','path':'api/table-schema','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-schema-l0sNRNKZ.js','imports':[],'css':[]},'routes/api.table-data':{'id':'routes/api.table-data','parentId':'root','path':'api/table-data','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-data-l0sNRNKZ.js','imports':[],'css':[]},'routes/forgotPassword':{'id':'routes/forgotPassword','parentId':'root','path':'forgotPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/forgotPassword-Ci6LZYxf.js','imports':['/assets/components-Cd5I3Whh.js','/assets/react-redux-Cc6hIEMO.js','/assets/index-bZ2xBRwK.js'],'css':[]},'routes/app.dashboard':{'id':'routes/app.dashboard','parentId':'routes/app','path':'dashboard','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app.dashboard-CMrTEft8.js','imports':['/assets/components-Cd5I3Whh.js','/assets/objectWithoutProperties-_Y_5q-TB.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/typeof-CY0RTpPX.js','/assets/theme-context-DFa6OA4B.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/resetPassword':{'id':'routes/resetPassword','parentId':'root','path':'resetPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/resetPassword-CvkRQWqb.js','imports':['/assets/components-Cd5I3Whh.js','/assets/auth.client-BVBRz5GD.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/logout':{'id':'routes/logout','parentId':'root','path':'logout','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/logout-B8qxIxar.js','imports':['/assets/index-bZ2xBRwK.js','/assets/auth.client-BVBRz5GD.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/signup':{'id':'routes/signup','parentId':'root','path':'signup','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/signup-DCgXLz4v.js','imports':['/assets/components-Cd5I3Whh.js','/assets/css-baseline-CuPBg7Jy.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/auth.client-BVBRz5GD.js','/assets/AuthProvider-0i6af-bo.js','/assets/typeof-CY0RTpPX.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/login':{'id':'routes/login','parentId':'root','path':'login','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/login-CWOryxEO.js','imports':['/assets/components-Cd5I3Whh.js','/assets/css-baseline-CuPBg7Jy.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/auth.client-BVBRz5GD.js','/assets/typeof-CY0RTpPX.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/app':{'id':'routes/app','parentId':'root','path':'app','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app-fDwVeX0b.js','imports':['/assets/components-Cd5I3Whh.js','/assets/objectWithoutProperties-_Y_5q-TB.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/theme-context-DFa6OA4B.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/typeof-CY0RTpPX.js','/assets/index-BAMY2Nnw.js'],'css':[]}},'url':'/assets/manifest-c00d2c50.js','version':'c00d2c50'};
 
 /**
        * `mode` is only relevant for the old Remix compiler but
@@ -901,13 +1049,21 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           caseSensitive: undefined,
           module: route0
         },
+  "routes/api.table-schema": {
+          id: "routes/api.table-schema",
+          parentId: "root",
+          path: "api/table-schema",
+          index: undefined,
+          caseSensitive: undefined,
+          module: route1
+        },
   "routes/api.table-data": {
           id: "routes/api.table-data",
           parentId: "root",
           path: "api/table-data",
           index: undefined,
           caseSensitive: undefined,
-          module: route1
+          module: route2
         },
   "routes/forgotPassword": {
           id: "routes/forgotPassword",
@@ -915,7 +1071,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "forgotPassword",
           index: undefined,
           caseSensitive: undefined,
-          module: route2
+          module: route3
         },
   "routes/app.dashboard": {
           id: "routes/app.dashboard",
@@ -923,7 +1079,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "dashboard",
           index: undefined,
           caseSensitive: undefined,
-          module: route3
+          module: route4
         },
   "routes/resetPassword": {
           id: "routes/resetPassword",
@@ -931,7 +1087,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "resetPassword",
           index: undefined,
           caseSensitive: undefined,
-          module: route4
+          module: route5
         },
   "routes/logout": {
           id: "routes/logout",
@@ -939,7 +1095,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "logout",
           index: undefined,
           caseSensitive: undefined,
-          module: route5
+          module: route6
         },
   "routes/signup": {
           id: "routes/signup",
@@ -947,7 +1103,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "signup",
           index: undefined,
           caseSensitive: undefined,
-          module: route6
+          module: route7
         },
   "routes/login": {
           id: "routes/login",
@@ -955,7 +1111,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "login",
           index: undefined,
           caseSensitive: undefined,
-          module: route7
+          module: route8
         },
   "routes/app": {
           id: "routes/app",
@@ -963,7 +1119,7 @@ const serverManifest = {'entry':{'module':'/assets/entry.client-MMCr7QJo.js','im
           path: "app",
           index: undefined,
           caseSensitive: undefined,
-          module: route8
+          module: route9
         }
       };
 

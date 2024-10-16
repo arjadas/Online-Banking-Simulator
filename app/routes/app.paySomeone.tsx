@@ -218,7 +218,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
     // Create a notification for the logged-in user
     await createNotification(context, {
-      notification_id: now.toUTCString() + fromAccount.uid,
+      notification_id: now.toUTCString() + fromAccount.uid + "1", // just in case they are the same account
       timestamp: now,
       type: 'transfer-success',
       content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
