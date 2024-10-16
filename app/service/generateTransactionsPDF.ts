@@ -38,7 +38,7 @@ interface TransactionData {
     const data = transactions.map(tx => ({
       ...tx,
       timestamp: new Date(tx.timestamp).toLocaleDateString(),
-      amount: `$${toFixedWithCommas(tx.amount, 2)}`,
+      amount: `$${toFixedWithCommas(tx.amount / 100, 2)}`,
     }));
   
     // Generate the table

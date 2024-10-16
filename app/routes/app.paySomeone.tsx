@@ -98,7 +98,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const recipientAddress = formData.get('recipientAddress') as string;
-  const amount = parseInt(formData.get('amount') as string);
+  const amount = parseInt((formData.get('amount') as string).replace('.', '')) * 100;
   const reference = formData.get('reference') as string;
   const description = formData.get('description') as string;
 
@@ -193,7 +193,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         notification_id: now.toUTCString(),
         timestamp: now,
         type: 'transfer-success',
-        content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
+        content: `Successfully transferred $${toFixedWithCommas(amount, 2)} to ${toAccount.acc_name}`,
         read: false,
         user: {
           connect: {
@@ -211,7 +211,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       notification_id: now.toUTCString(),
       timestamp: now,
       type: 'new-receipt',
-      content: `Received $${toFixedWithCommas(amount / 100, 2)} from ${fromAccount.acc_name}`,
+      content: `Received $${toFixedWithCommas(amount, 2)} from ${fromAccount.acc_name}`,
       read: false,
       user: {
         connect: {
