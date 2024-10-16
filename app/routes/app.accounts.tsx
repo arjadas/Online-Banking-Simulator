@@ -7,6 +7,7 @@ import { getUserSession } from '~/auth.server';
 import { createUser } from '~/service/userService';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
+import ResizableText from '~/components/ResizableText';
 
 type MeUser = {
   uid: string;
@@ -80,9 +81,9 @@ export default function Dashboard() {
     <>
       <Spacer h={2} />
       <Card padding={1} >
-        <Text small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-        <Text h2>Hi {user.first_name}</Text>
-        <Text small>Next scheduled payment is in <Text b>3 days</Text></Text>
+        <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
+        <ResizableText h2>Hi {user.first_name}</ResizableText>
+        <ResizableText small>Next scheduled payment is in <ResizableText b>3 days</ResizableText></ResizableText>
       </Card>
 
       <Spacer h={2} />

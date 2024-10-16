@@ -35,15 +35,14 @@ export default function AppLayout() {
   const currentPath = matches[matches.length - 1]?.pathname || '/';
 
   // Handle tab change
-  const handleTabChange = (value: string) => {
-    const newPath = navItems[parseInt(value)].to;
-    navigate(newPath);
+  const handleTabChange = (route: string) => {
+    navigate(route);
   };
 
   const buttonStyle = {
-    width: 350,
+    width: textScale * 20,
     height: 75,
-    fontSize: 18,
+    fontSize: textScale,
     gap: 16,
   };
 
@@ -63,7 +62,7 @@ export default function AppLayout() {
           <Drawer.Title>
             <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
-          <Drawer.Subtitle>Instantiate a transfer</Drawer.Subtitle>
+          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Instantiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
           <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
@@ -71,7 +70,7 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
-              icon={<Shuffle />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<Shuffle size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
           </AuthenticatedLink>
@@ -81,7 +80,7 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
-              icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<User size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>
           </AuthenticatedLink>
@@ -91,13 +90,13 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
-              icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<GridIcon size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Default Payments
             </Button>
           </AuthenticatedLink>
         </div>
       </Drawer>
-      <Page margin={0} padding={0} style={{margin: 0, padding: 0, width: "100vw"}}>
+      <Page margin={0} padding={0} style={{margin: 0, padding: 0, width: "100vw" }}>
         <Page>
           <Page.Header>
             <Grid.Container gap={0} justify="space-between" alignItems="center">
@@ -105,37 +104,39 @@ export default function AppLayout() {
                 <Image height="200px" style={{ margin: -20 }} src="/logo.png" />
               </Grid>
               <Grid>
-                <Card padding={0.5} style={{ transform: `scale(${textScale / 100})`, transformOrigin: 'top right' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Tabs
-                      align="left"
-                      onChange={handleTabChange}
-                      value={currentPath}
-                      style={{ margin: 10 } as any}
-                    >
-                      {navItems.map((item, index) => (
-                        <Tabs.Item
-                          key={index}
-                          label={
-                            <Link to={item.to} prefetch="intent" style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              color: 'inherit',
-                              textDecoration: 'none',
-                              flexDirection: 'row',
-                              justifyContent: 'center',
-                            }}>
-                              {React.cloneElement(item.icon, { size: 24, color: 'black' })}
-                              <span style={{ color: 'black' }}>{item.label}</span>
-                            </Link>
-                          }
-                          value={item.to}
-                        />
-                      ))}
-                    </Tabs>
+                <Card padding={0.5} style={{ transformOrigin: 'top right' }}>
+                  <Grid.Container padding={0.5} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Grid>
+                      <Tabs value={currentPath} onChange={handleTabChange}>
+                        {navItems.map((item, index) => (
+                          <Tabs.Item
+                            key={index}
+                            label={
+                              <span style={{ display: 'flex', alignItems: 'center', fontSize: `${textScale}px`, color: 'black' }}>
+                                {React.cloneElement(item.icon, { size: `${textScale}` })}
+                                {item.label}
+                              </span>
+                            }
+                            value={item.to}
+                          />
+                        ))}
+                      </Tabs>
+                    </Grid>
                     <Spacer h={1} />
-                    <Button icon={<DollarSign />} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
-                  </div>
+                    <Grid>
+                      <Button
+                        icon={<DollarSign size={`${textScale}`} /> } 
+                        onClick={() => setDrawerOpen(true)} 
+                        auto scale={6 / 5}
+                        type="success" 
+                        style={{fontSize: `${textScale}px`,}}
+                        placeholder={undefined} 
+                        onPointerEnterCapture={undefined} 
+                        onPointerLeaveCapture={undefined}>
+                        Pay
+                      </Button>
+                    </Grid>
+                  </Grid.Container>
                 </Card>
               </Grid>
             </Grid.Container>

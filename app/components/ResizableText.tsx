@@ -7,14 +7,14 @@ interface ResizableTextProps extends TextProps {
   children: React.ReactNode;
 }
 
-const getInitialSize = (props: TextProps): number => {
-  if (props.h1) return 32;
-  if (props.h2) return 24;
-  if (props.h3) return 20;
-  if (props.h4) return 16;
-  if (props.h5) return 14;
-  if (props.h6) return 12;
-  return 16; // default size
+const getInitialSize = (props: TextProps, textScale: number): number => {
+  if (props.h1) return textScale + 22;
+  if (props.h2) return textScale + 14;
+  if (props.h3) return textScale + 10;
+  if (props.h4) return textScale + 6;
+  if (props.h5) return textScale + 4;
+  if (props.h6) return textScale + 2;
+  return textScale; // default size
 };
 
 const ResizableText: React.FC<ResizableTextProps> = ({ 
@@ -22,8 +22,7 @@ const ResizableText: React.FC<ResizableTextProps> = ({
   ...textProps
 }) => {
   const { textScale } = useSelector((state: RootState) => state.app);
-  const initialSize = getInitialSize(textProps);
-  const fontSize = (initialSize * textScale) / 100;
+  const fontSize = getInitialSize(textProps, textScale);
 
   return (
     <Text {...textProps} style={{ ...textProps.style, fontSize: `${fontSize}px` }}>

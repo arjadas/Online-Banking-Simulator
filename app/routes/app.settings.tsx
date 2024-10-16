@@ -14,8 +14,8 @@ const Settings = () => {
       <Page.Content>
         <Card shadow width="100%" height="500px" style={{ maxWidth: '1000px', margin: '0 auto' }} padding={2}>
           <ResizableText h3>Text Size</ResizableText >
-          <Spacer h={1} />  
-          <Slider initialValue={textScale} step={10} max={250} min={80} onChange={(value) => { dispatch(setTextScale(value)) }} showMarkers width="50%" />
+          <Spacer h={1} /> 
+          <Slider initialValue={textScale} step={1} max={50} min={10} onChange={(value) => { dispatch(setTextScale(value)) }} showMarkers width="50%" />
         </Card>
       </Page.Content>
     </Page>
