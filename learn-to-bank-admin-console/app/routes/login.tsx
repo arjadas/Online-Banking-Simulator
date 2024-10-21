@@ -18,7 +18,7 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   const formData = await request.formData();
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
-  const bypassAdmin = Boolean(formData.get("bypassAdmin"));
+  const bypassAdmin = Boolean(parseInt(formData.get("bypassAdmin") as string));
 
   try {
     const userSession = await createUserSession(context, uid, email, bypassAdmin, "/");
@@ -94,7 +94,7 @@ export default function Login() {
             disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
             Log in
           </Button>
-          <Checkbox checked={bypassAdmin} onChange={handleCheckboxChange}>Bypass Admin check</Checkbox>
+          <Checkbox checked={bypassAdmin} onChange={handleCheckboxChange}>Bypass admin check</Checkbox>
           <input
             type="hidden"
             name="bypassAdmin"
