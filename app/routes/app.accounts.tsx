@@ -1,12 +1,13 @@
-import { Card, Grid, Spacer, Text, Page } from '@geist-ui/core';
+import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import React from 'react';
 import { getUserSession } from '~/auth.server';
 import { createUser } from '~/service/userService';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
+import { formatDate, toFixedWithCommas } from '~/util';
 import ResizableText from '~/components/ResizableText';
 
 type MeUser = {
@@ -20,7 +21,6 @@ type MeUser = {
     timestamp: Date;
   }>;
 };
-
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   // Ensure the user is authenticated
   const user = await getUserSession(context, request);
@@ -29,7 +29,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
 
   // Fetch the user details and related data from Prisma
-  // eslint-disable-next-line prefer-const
   const getMeUser = async () => {
     return await Promise.all([
       db.user.findUnique({
@@ -37,7 +36,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         include: {
           notifications: {
             where: { read: false },
-            take: 5,
           },
         },
       }),
@@ -70,50 +68,101 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 };
 
 export default function Dashboard() {
-  const { me: user, userAccounts: accounts } = useLoaderData<{
+  const { me: user, userAccounts: accounts, error } = useLoaderData<{
     me: MeUser;
     userAccounts: Account[];
+    error?: string
   }>();
 
+  const [viewingNotifications, setViewingNotifications] = React.useState(false);
+  const [localNotifications, setLocalNotifications] = React.useState(user.notifications);
+  const fetcher = useFetcher();
+
+  const handleModalClose = () => {
+    setViewingNotifications(false);
+    if (localNotifications.length > 0) {
+      fetcher.submit(
+        { action: "markAsRead" },
+        { method: "post", action: "/api/notifications" }
+      );
+      setLocalNotifications([]);
+    }
+  };
+
+  console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
-  return (
-    <Page>
-      <Page.Content>
-        <Spacer h={2} />
-        <Card padding={1} >
-          <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
-          <ResizableText h2>Hi {user.first_name}</ResizableText>
-          <ResizableText small>Next scheduled payment is in <ResizableText b>3 days</ResizableText></ResizableText>
-        </Card>
-
-        <Spacer h={2} />
-
-        {accounts.map((account: { acc: React.Key; short_description: string; bsb: { toString: () => string; }; balance: number; }) => (
-          <React.Fragment key={account.acc}>
-            <AccountCard
-              accountType={account.short_description}
-              bsb={account.bsb.toString()}
-              accountNumber={account.acc.toString()}
-              balance={`$${(account.balance / 100).toFixed(2)}`}
-            />
-            <Spacer h={1} />
+  function renderForm() {
+    return (
+      <>
+        {user.notifications.map((notification, index) => (
+          <React.Fragment key={notification.notification_id}>
+            <Card shadow>
+              <ResizableText b>{notification.content}<br /></ResizableText>
+              <ResizableText small>{formatDate(new Date(notification.timestamp))}</ResizableText>
+            </Card>
+            {index < user.notifications.length - 1 && <Spacer h={1} />}
           </React.Fragment>
         ))}
+      </>
+    );
+  }
+  return (
+    <>
+      <Spacer h={2} />
+      <Card padding={1} >
+        <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
+        <ResizableText h1>Hi {user.first_name}</ResizableText>
+        <ResizableText small>Next scheduled payment is in <ResizableText b>3 days<br /></ResizableText></ResizableText>
+        <Spacer h={0.5} />
+        <ResizableText small  >You have <ResizableText b>{localNotifications.length} unread notification
+          {localNotifications.length == 1 ? "" : "s"}.<br /></ResizableText></ResizableText>
+        {(localNotifications.length > 0) && <Button style={{ marginTop: 10 }} onClick={() => setViewingNotifications(true)} auto scale={6 / 5} type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>View</Button>}
+      </Card>
 
         <Spacer h={2} />
 
-        <Card width="100%">
-          <Grid.Container gap={2} justify="space-between" alignItems="center">
-            <Grid>
-              <Text h3>Total</Text>
-            </Grid>
-            <Grid>
-              <Text h3>${(totalBalance / 100).toFixed(2)}</Text>
-            </Grid>
-          </Grid.Container>
-        </Card>
-      </Page.Content>
-    </Page>
+      {accounts.map((account: any) => (
+        <React.Fragment key={account.acc}>
+          <AccountCard
+            accountType={account.short_description}
+            bsb={account.bsb.toString()}
+            accountNumber={account.acc.toString()}
+            balance={`$${toFixedWithCommas(account.balance / 100, 2)}`}
+            payID={account.pay_id}
+          />
+          <Spacer h={1} />
+        </React.Fragment>
+      ))}
+
+        <Spacer h={2} />
+
+      <Card width="100%">
+        <Grid.Container gap={2} justify="space-between" alignItems="center">
+          <Grid>
+            <ResizableText h2>Total</ResizableText>
+          </Grid>
+          <Grid>
+            <ResizableText h2>${toFixedWithCommas(totalBalance / 100, 2)}</ResizableText>
+          </Grid>
+        </Grid.Container>
+      </Card>
+
+      <Modal visible={viewingNotifications} onClose={handleModalClose}>
+        <Modal.Title>Notifications</Modal.Title>
+        <Modal.Content>
+          {localNotifications.map((notification, index) => (
+            <React.Fragment key={notification.notification_id}>
+              <Card shadow>
+                <ResizableText b>{notification.content}<br /></ResizableText>
+                <ResizableText small>{formatDate(new Date(notification.timestamp))}</ResizableText>
+              </Card>
+              {index < localNotifications.length - 1 && <Spacer h={1} />}
+            </React.Fragment>
+          ))}
+        </Modal.Content>
+        <Modal.Action passive onClick={handleModalClose} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Close</Modal.Action>
+      </Modal>
+    </>
   );
 }

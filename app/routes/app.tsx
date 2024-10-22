@@ -1,5 +1,4 @@
-
-import { Button, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
+import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
 import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
 import React from 'react';
@@ -43,10 +42,12 @@ export default function AppLayout() {
     width: textScale * 20,
     height: 75,
     fontSize: textScale,
+
     gap: 16,
   };
 
-  console.log(currentPath)
+
+
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
       <Drawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} placement="right">
@@ -70,6 +71,7 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
+              onClick={() => setDrawerOpen(false)}
               icon={<Shuffle size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
@@ -80,23 +82,14 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
+              onClick={() => setDrawerOpen(false)}
               icon={<User size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>
           </AuthenticatedLink>
-          <AuthenticatedLink to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
-            <Button
-              style={buttonStyle}
-              type='success-light'
-              auto
-              scale={2}
-              icon={<GridIcon size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
-              Default Payments
-            </Button>
-          </AuthenticatedLink>
         </div>
       </Drawer>
-      <Page margin={0} padding={0} style={{margin: 0, padding: 0, width: "100vw" }}>
+      <Page margin={0} padding={0} style={{ margin: 0, padding: 0, width: "100vw" }}>
         <Page>
           <Page.Header>
             <Grid.Container gap={0} justify="space-between" alignItems="center">
@@ -105,38 +98,28 @@ export default function AppLayout() {
               </Grid>
               <Grid>
                 <Card padding={0.5} style={{ transformOrigin: 'top right' }}>
-                  <Grid.Container padding={0.5} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Grid>
-                      <Tabs value={currentPath} onChange={handleTabChange}>
-                        {navItems.map((item, index) => (
-                          <Tabs.Item
-                            key={index}
-                            label={
-                              <span style={{ display: 'flex', alignItems: 'center', fontSize: `${textScale}px`, color: 'black' }}>
-                                {React.cloneElement(item.icon, { size: `${textScale}` })}
-                                {item.label}
-                              </span>
-                            }
-                            value={item.to}
-                          />
-                        ))}
-                      </Tabs>
-                    </Grid>
-                    <Spacer h={1} />
-                    <Grid>
-                      <Button
-                        icon={<DollarSign size={`${textScale}`} /> } 
-                        onClick={() => setDrawerOpen(true)} 
-                        auto scale={6 / 5}
-                        type="success" 
-                        style={{fontSize: `${textScale}px`,}}
-                        placeholder={undefined} 
-                        onPointerEnterCapture={undefined} 
-                        onPointerLeaveCapture={undefined}>
-                        Pay
-                      </Button>
-                    </Grid>
-                  </Grid.Container>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
+                    <ButtonGroup scale={6 / 5}>
+                      {navItems.map((item, index) => {
+                        const isSelected = currentPath === item.to;
+
+                        return (<Button
+                          key={index}
+                          icon={React.cloneElement(item.icon, { size: `${textScale}` })}
+                          onClick={() => navigate(item.to)}
+                          style={{
+                            backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
+                            borderBottom: isSelected ? '2px solid #000' : 'none',
+                            borderRadius: 0,
+                          }}
+                          auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                        >
+                          {item.label}
+                        </Button>)
+                      })}
+                    </ButtonGroup>
+                    <Spacer w={1} />
+                    <Button icon={<DollarSign size={`${textScale}`}/>} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
+                  </div>
                 </Card>
               </Grid>
             </Grid.Container>

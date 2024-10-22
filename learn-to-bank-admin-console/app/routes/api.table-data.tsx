@@ -102,7 +102,6 @@ export const action: ActionFunction = async ({ request, context }) => {
 
     try {
       const query = `DELETE FROM \`${table}\` WHERE \`${id}\` = ${primaryKey}`;
-      console.log(query)
       const result = await db.$queryRaw`${Prisma.raw(query)}`;
 
       if (Array.isArray(result) && result.length > 0) {

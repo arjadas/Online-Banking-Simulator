@@ -20,7 +20,6 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   
   const userSession = await createUserSession(context, uid, email, "/");
   try {
-    console.log("User session:", userSession);
     return userSession;
   } catch (error: any) {
     return json<ActionData>({ error: error.message });
