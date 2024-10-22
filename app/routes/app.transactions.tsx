@@ -64,7 +64,7 @@ export default function Transactions() {
     return accountMatches && queryMatches;
   });
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
       const transactionData = filteredTransactions.map(tx => {
         const isExternalSender = !userAccountIds.includes(tx.sender_acc);
@@ -79,7 +79,7 @@ export default function Transactions() {
           description: tx.description || "No Description Provided",
         };
       });
-      generateTransactionsPDF(transactionData);
+      await generateTransactionsPDF(transactionData);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       throw new Error('Failed to generate PDF. Please try again.');
