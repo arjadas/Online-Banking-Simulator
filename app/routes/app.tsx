@@ -1,5 +1,5 @@
 
-import { Button, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
+import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
 import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
 import React from 'react';
@@ -42,12 +42,13 @@ export default function AppLayout() {
 
   const buttonStyle = {
     width: 350,
-    height: 75,
+    height: 100,
     fontSize: 18,
     gap: 16,
   };
 
-  console.log(currentPath)
+
+
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
       <Drawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} placement="right">
@@ -71,6 +72,7 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
+              onClick={() => setDrawerOpen(false)}
               icon={<Shuffle />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
@@ -81,23 +83,14 @@ export default function AppLayout() {
               type='success-light'
               auto
               scale={2}
+              onClick={() => setDrawerOpen(false)}
               icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>
           </AuthenticatedLink>
-          <AuthenticatedLink to="/app/accounts" prefetch="intent" style={{ textDecoration: 'none' }}>
-            <Button
-              style={buttonStyle}
-              type='success-light'
-              auto
-              scale={2}
-              icon={<GridIcon />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
-              Default Payments
-            </Button>
-          </AuthenticatedLink>
         </div>
       </Drawer>
-      <Page margin={0} padding={0} style={{margin: 0, padding: 0, width: "100vw"}}>
+      <Page margin={0} padding={0} style={{ margin: 0, padding: 0, width: "100vw" }}>
         <Page>
           <Page.Header>
             <Grid.Container gap={0} justify="space-between" alignItems="center">
@@ -106,34 +99,26 @@ export default function AppLayout() {
               </Grid>
               <Grid>
                 <Card padding={0.5} style={{ transform: `scale(${textScale / 100})`, transformOrigin: 'top right' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Tabs
-                      align="left"
-                      onChange={handleTabChange}
-                      value={currentPath}
-                      style={{ margin: 10 } as any}
-                    >
-                      {navItems.map((item, index) => (
-                        <Tabs.Item
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
+                    <ButtonGroup scale={6 / 5}>
+                      {navItems.map((item, index) => {
+                        const isSelected = currentPath === item.to;
+
+                        return (<Button
                           key={index}
-                          label={
-                            <Link to={item.to} prefetch="intent" style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              color: 'inherit',
-                              textDecoration: 'none',
-                              flexDirection: 'row',
-                              justifyContent: 'center',
-                            }}>
-                              {React.cloneElement(item.icon, { size: 24, color: 'black' })}
-                              <span style={{ color: 'black' }}>{item.label}</span>
-                            </Link>
-                          }
-                          value={item.to}
-                        />
-                      ))}
-                    </Tabs>
-                    <Spacer h={1} />
+                          icon={React.cloneElement(item.icon, { size: 24 })}
+                          onClick={() => navigate(item.to)}
+                          style={{
+                            backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
+                            borderBottom: isSelected ? '2px solid #000' : 'none',
+                            borderRadius: 0,
+                          }}
+                          auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                        >
+                          {item.label}
+                        </Button>)
+                      })}
+                    </ButtonGroup>
+                    <Spacer w={1} />
                     <Button icon={<DollarSign />} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
                   </div>
                 </Card>

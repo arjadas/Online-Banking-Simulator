@@ -9,40 +9,7 @@ import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/service/db.server';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
 import { getUserSession } from "../auth.server";
-import { getBadgeColor } from '~/util';
-
-// Function to format the date as "Day, 23rd Sep (Today)" for display
-const formatDate = (transactionDate: Date) => {
-  const now = new Date();
-  const differenceInDays = Math.floor((now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24));
-
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  };
-
-  let formattedDate = new Intl.DateTimeFormat('en-US', options).format(transactionDate);
-
-  if (differenceInDays === 0) {
-    formattedDate += " (Today)";
-  } else if (differenceInDays === 1) {
-    formattedDate += " (Yesterday)";
-  } else {
-    formattedDate += ` (${differenceInDays} days ago)`;
-  }
-
-  return formattedDate;
-};
-
-// Function to convert a date into "DD/MM/YYYY" for search comparison
-const formatSearchDate = (date: Date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`; // Australian date format
-};
+import { getBadgeColor, toFixedWithCommas, formatSearchDate, formatDate } from '~/util';
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await getUserSession(context, request);
@@ -133,6 +100,9 @@ export default function Transactions() {
       : <User size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
   };
 
+  const totalSent = filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.sender_acc) ? tx.amount / 100 : 0), 0);
+  const totalReceived = filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.recipient_acc) ? tx.amount / 100 : 0), 0);
+
   return (
     <>
       <Spacer h={2} />
@@ -141,9 +111,11 @@ export default function Transactions() {
 
         {/* Total Transactions Summary */}
         <Grid.Container gap={2} justify="center" alignItems="center" style={{ marginBottom: '20px' }}>
-          <ResizableText small style={{ fontWeight: 'bold' }}>Total Transactions:&nbsp;</ResizableText> {filteredTransactions.length} |
-          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.sender_acc) ? tx.amount / 100 : 0), 0).toFixed(2)} |
-          <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.recipient_acc) ? tx.amount / 100 : 0), 0).toFixed(2)}
+          <ResizableText>
+            <ResizableText small style={{ fontWeight: 'bold' }}>Total Transactions:&nbsp;</ResizableText> {filteredTransactions.length} |
+            <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Sent:&nbsp;</ResizableText> ${toFixedWithCommas(totalSent, 2)} |
+            <ResizableText small style={{ fontWeight: 'bold', marginLeft: '10px' }}>Total Received:&nbsp;</ResizableText> ${toFixedWithCommas(totalReceived, 2)}
+          </ResizableText>
         </Grid.Container>
 
         {/* Filter, Search, and Download PDF Section */}
@@ -228,7 +200,7 @@ export default function Transactions() {
                       <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description, isExternalRecipient) }}>
                         {isExternalRecipient ? recipientDisplayName : transaction.recipient.short_description}
                       </Badge>
-                      &nbsp;&nbsp;Amount: ${(transaction.amount / 100).toFixed(2)}
+                      &nbsp;&nbsp;Amount: ${toFixedWithCommas(transaction.amount / 100, 2)}
                       &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
                     </ResizableText>
                   </Grid>

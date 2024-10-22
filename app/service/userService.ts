@@ -1,8 +1,11 @@
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { getPrismaClient } from '~/service/db.server';
 import { openAccount } from "./accountService";
+import { createMockUserPrevContacts } from './userPrevContactService';
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
+    
+    await createMockUserPrevContacts(context, uid);
     try {
         const date = new Date();
         const adapter = new PrismaD1(context.cloudflare.env.DB);
@@ -20,6 +23,7 @@ export async function createUser(context: any, uid: string, email: string, first
             },
         });
 
+
         // Open "Simple Saver" account
         await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
@@ -27,7 +31,7 @@ export async function createUser(context: any, uid: string, email: string, first
             pay_id: email,
             short_description: "Simple Saver",
             long_description: "A simulated savings account.",
-            balance: 100000,
+            balance: 32560000,
             opened_timestamp: date,
         });
 
@@ -37,7 +41,7 @@ export async function createUser(context: any, uid: string, email: string, first
             uid: uid,
             short_description: "Delightful Debit",
             long_description: "Associated with your emulated debit card.",
-            balance: 100000,
+            balance: 125255,
             opened_timestamp: date,
         });
 
@@ -47,7 +51,7 @@ export async function createUser(context: any, uid: string, email: string, first
             uid: uid,
             short_description: "Clever Credit",
             long_description: "Associated with your emulated credit card.",
-            balance: 100000,
+            balance: -95620,
             opened_timestamp: date,
         });
 

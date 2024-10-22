@@ -109,3 +109,6 @@ model Notification {
 
   user User @relation(fields: [uid], references: [uid])
 }
+
+///npx prisma migrate diff --from-remote-d1 --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/0004.sql
+//npx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script > migrations/0004.sql
