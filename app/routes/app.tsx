@@ -1,4 +1,3 @@
-
 import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
 import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
 import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
@@ -35,15 +34,15 @@ export default function AppLayout() {
   const currentPath = matches[matches.length - 1]?.pathname || '/';
 
   // Handle tab change
-  const handleTabChange = (value: string) => {
-    const newPath = navItems[parseInt(value)].to;
-    navigate(newPath);
+  const handleTabChange = (route: string) => {
+    navigate(route);
   };
 
   const buttonStyle = {
-    width: 350,
-    height: 100,
-    fontSize: 18,
+    width: textScale * 20,
+    height: 75,
+    fontSize: textScale,
+
     gap: 16,
   };
 
@@ -64,7 +63,7 @@ export default function AppLayout() {
           <Drawer.Title>
             <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
-          <Drawer.Subtitle>Instantiate a transfer</Drawer.Subtitle>
+          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Instantiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
           <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
@@ -73,7 +72,7 @@ export default function AppLayout() {
               auto
               scale={2}
               onClick={() => setDrawerOpen(false)}
-              icon={<Shuffle />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<Shuffle size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
           </AuthenticatedLink>
@@ -84,7 +83,7 @@ export default function AppLayout() {
               auto
               scale={2}
               onClick={() => setDrawerOpen(false)}
-              icon={<User />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<User size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>
           </AuthenticatedLink>
@@ -98,7 +97,7 @@ export default function AppLayout() {
                 <Image height="200px" style={{ margin: -20 }} src="/logo.png" />
               </Grid>
               <Grid>
-                <Card padding={0.5} style={{ transform: `scale(${textScale / 100})`, transformOrigin: 'top right' }}>
+                <Card padding={0.5} style={{ transformOrigin: 'top right' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
                     <ButtonGroup scale={6 / 5}>
                       {navItems.map((item, index) => {
@@ -106,7 +105,7 @@ export default function AppLayout() {
 
                         return (<Button
                           key={index}
-                          icon={React.cloneElement(item.icon, { size: 24 })}
+                          icon={React.cloneElement(item.icon, { size: `${textScale}` })}
                           onClick={() => navigate(item.to)}
                           style={{
                             backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
@@ -119,7 +118,7 @@ export default function AppLayout() {
                       })}
                     </ButtonGroup>
                     <Spacer w={1} />
-                    <Button icon={<DollarSign />} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
+                    <Button icon={<DollarSign size={`${textScale}`}/>} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
                   </div>
                 </Card>
               </Grid>

@@ -120,7 +120,7 @@ export default function Dashboard() {
         {(localNotifications.length > 0) && <Button style={{ marginTop: 10 }} onClick={() => setViewingNotifications(true)} auto scale={6 / 5} type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>View</Button>}
       </Card>
 
-      <Spacer h={2} />
+        <Spacer h={2} />
 
       {accounts.map((account: any) => (
         <React.Fragment key={account.acc}>
@@ -135,7 +135,7 @@ export default function Dashboard() {
         </React.Fragment>
       ))}
 
-      <Spacer h={2} />
+        <Spacer h={2} />
 
       <Card width="100%">
         <Grid.Container gap={2} justify="space-between" alignItems="center">
