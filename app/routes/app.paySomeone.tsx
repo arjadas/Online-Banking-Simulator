@@ -203,7 +203,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         uid: fromAccount.uid,
         contact_acc: toAccount.acc,
         contact_acc_name: toAccount.acc_name,
-        contact_description: toAccount.acc_name,
+        contact_description: reference,  // Use reference as description for now
         contact_recipient_address: recipientAddress,
       });
     }
