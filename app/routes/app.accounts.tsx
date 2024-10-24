@@ -25,7 +25,7 @@ type MeUser = {
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   try {
-    const user = await requireUserSession(context, request);
+    const user = await requireUserSession(context, request) as { uid: string; email: string };
     const db = getPrismaClient(context);
 
     const getMeUser = async () => {
@@ -64,11 +64,12 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     });
   } catch (error) {
     if (error instanceof Response) {
-      throw error; // Rethrow redirect responses
+      throw error; // Rethrow Response objects (includes redirects) 
     }
-    // Log other errors and redirect to login
+    // Log other errors and redirect to login for unexpected errors
+    // Using return here as it's an error fallback, not an authentication check
     console.error("Error in accounts loader:", error);
-    throw redirect("/login");
+    return redirect("/login");
   }
 };
 
