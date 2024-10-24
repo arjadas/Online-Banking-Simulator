@@ -1,4 +1,5 @@
-import { GeistProvider, Page, Themes } from '@geist-ui/core';
+import { Checkbox, GeistProvider, Page, Themes } from '@geist-ui/core';
+import { CheckboxEvent } from '@geist-ui/core/esm/checkbox';
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
@@ -17,9 +18,10 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   const formData = await request.formData();
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
-  
-  const userSession = await createUserSession(context, uid, email, "/");
+  const bypassAdmin = Boolean(parseInt(formData.get("bypassAdmin") as string));
+
   try {
+    const userSession = await createUserSession(context, uid, email, bypassAdmin, "/");
     return userSession;
   } catch (error: any) {
     return json<ActionData>({ error: error.message });
@@ -28,10 +30,15 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
 
 export default function Login() {
   const actionData = useActionData<ActionData>();
+  const submit = useSubmit();
   const [clientError, setClientError] = useState<string | null>(null);
   const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
   const [loading, setLoading] = useState(false);
-  const submit = useSubmit();
+  const [bypassAdmin, setBypassAdmin] = useState(false);
+
+  const handleCheckboxChange = (e: CheckboxEvent) => {
+    setBypassAdmin(e.target.checked);
+  };
 
   useEffect(() => {
     if (actionData?.error) {
@@ -84,9 +91,15 @@ export default function Login() {
             htmlType="submit"
             type="secondary"
             loading={loading}
-            disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
+            disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
             Log in
           </Button>
+          <Checkbox checked={bypassAdmin} onChange={handleCheckboxChange}>Bypass admin check</Checkbox>
+          <input
+            type="hidden"
+            name="bypassAdmin"
+            value={Number(bypassAdmin)}
+          />
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
       </Card>

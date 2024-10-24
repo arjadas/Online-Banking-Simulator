@@ -1,7 +1,11 @@
 import { LoaderFunction, json } from "@remix-run/cloudflare";
+import { adminMiddleware } from "~/middleware/adminMiddleware";
 import { getPrismaClient } from "~/service/db.server";
 
 export const loader: LoaderFunction = async ({ request, context }) => {
+  const adminCheck = await adminMiddleware(request, context);
+  if (adminCheck.status !== 200) return adminCheck;
+  
   const url = new URL(request.url);
   const tableName = url.searchParams.get("table");
 
@@ -26,14 +30,14 @@ export const loader: LoaderFunction = async ({ request, context }) => {
       return json({ error: "Table not found or empty" }, { status: 404 });
     }
 
-    const fields = tableInfo.map((column: any) => ({
+    const tableSchema = tableInfo.map((column: any) => ({
       name: column.column_name,
       type: mapSqliteTypeToJsType(column.data_type),
       isRequired: column.is_nullable === 0,
       isId: column.is_primary_key === 1,
     }));
 
-    return json({ fields });
+    return json({ tableSchema });
   } catch (error) {
     console.error("Error fetching table schema:", error);
     return json({ error: "Failed to fetch table schema" }, { status: 500 });

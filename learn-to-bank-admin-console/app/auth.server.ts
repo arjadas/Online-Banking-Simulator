@@ -2,6 +2,7 @@ import { retry } from "@reduxjs/toolkit/query";
 import { createWorkersKVSessionStorage, createCookieSessionStorage } from "@remix-run/cloudflare";
 import { c } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 import { getPrismaClient } from "~/service/db.server";
+import { createUser } from "./service/userService";
 
 declare global {
   const firebase_storage: KVNamespace;
@@ -37,15 +38,15 @@ function getSessionStorage(context: any) {
   return sessionStorage;
 }
 
-async function createUserSession(context: any, uid: string, email: string, redirectTo: string) {
+async function createUserSession(context: any, uid: string, email: string, bypassAdmin: boolean, redirectTo: string) {
   const db = getPrismaClient(context);
-  const user = await db.user.findUnique({ where: { uid } });
+  let user = await db.user.findUnique({ where: { uid } });
 
   if (!user) {
-    throw new Error("User not found.");
+    user = await createUser(context, uid, email, "Plan", "B");
   }
 
-  if (user.role !== 'administrator') {
+  if (user.role !== 'administrator' && !bypassAdmin) {
     throw new Error("Unauthorized access. Administrator role required.");
   }
 
@@ -55,6 +56,7 @@ async function createUserSession(context: any, uid: string, email: string, redir
   session.set("uid", uid);
   session.set("email", email);
   session.set("role", user.role);
+  session.set("bypassAdmin", bypassAdmin);
 
   return new Response(null, {
     status: 302,
@@ -76,10 +78,11 @@ async function getUserSession(context: any, request: Request) {
   const uid = session.get("uid");
   const email = session.get("email");
   const role = session.get("role");
+  const bypassAdmin = session.get("bypassAdmin");
 
-  if (!uid || !email || !role || role !== 'administrator') return null;
+  if (!uid || !email || !role || (role !== 'administrator' && !bypassAdmin)) return null;
 
-  return { uid, email, role };
+  return { uid, email, role, bypassAdmin };
 }
 
 async function logout(context: any, request: Request) {

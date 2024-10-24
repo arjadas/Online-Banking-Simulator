@@ -2,15 +2,15 @@ import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { RemixServer, useLoaderData, Meta, Links, Outlet, ScrollRestoration, Scripts, useActionData, Form, useSearchParams, useSubmit, useNavigate, useFetcher, Link, useMatches } from '@remix-run/react';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
-import { CssBaseline, useToasts, Page, Card, Text, Spacer, Grid, Select, Button, Table, Modal, Input, Themes, GeistProvider, Image as Image$1, Tabs } from '@geist-ui/core';
+import { CssBaseline, useToasts, Page, Card, Text, Spacer, Grid, Select, Button, Table, Modal, Input, Checkbox, Themes, GeistProvider, Image as Image$1, Tabs } from '@geist-ui/core';
 import { createCookieSessionStorage, createWorkersKVSessionStorage, redirect, json } from '@remix-run/cloudflare';
 import { Provider, useSelector } from 'react-redux';
 import process from 'vite-plugin-node-polyfills/shims/process';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { createSlice, configureStore } from '@reduxjs/toolkit';
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from '@geist-ui/icons';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from '@geist-ui/icons';
 import { Image, Card as Card$1, Text as Text$1, Input as Input$1, Button as Button$1 } from '@geist-ui/react';
 import { Database, LogOut } from '@geist-ui/react-icons';
 
@@ -49,6 +49,79 @@ function getPrismaClient(context) {
   return prisma;
 }
 
+function generateRandomAcc() {
+  return Math.floor(1e8 + Math.random() * 9e8);
+}
+async function openAccount(context, data) {
+  let acc = 0;
+  new PrismaD1(context.cloudflare.env.DB);
+  const db = getPrismaClient(context);
+  let isUnique = false;
+  while (!isUnique) {
+    acc = generateRandomAcc();
+    const existingAccount = await db.account.findUnique({
+      where: { acc }
+    });
+    if (!existingAccount) {
+      isUnique = true;
+    }
+  }
+  return await db.account.create({
+    data: {
+      ...data,
+      acc
+    }
+  });
+}
+
+async function createUser(context, uid, email, first_name, last_name) {
+  try {
+    const date = /* @__PURE__ */ new Date();
+    const adapter = new PrismaD1(context.cloudflare.env.DB);
+    const db = getPrismaClient(context);
+    const user = await db.user.create({
+      data: {
+        uid,
+        email,
+        first_name,
+        last_name,
+        role: "student",
+        font_preference: null,
+        creation_timestamp: date,
+        last_login: date
+      }
+    });
+    await openAccount(context, {
+      acc_name: `${first_name} ${last_name}`,
+      uid,
+      pay_id: email,
+      short_description: "Simple Saver",
+      long_description: "A simulated savings account.",
+      balance: 1e5,
+      opened_timestamp: date
+    });
+    await openAccount(context, {
+      acc_name: `${first_name} ${last_name}`,
+      uid,
+      short_description: "Delightful Debit",
+      long_description: "Associated with your emulated debit card.",
+      balance: 1e5,
+      opened_timestamp: date
+    });
+    await openAccount(context, {
+      acc_name: `${first_name} ${last_name}`,
+      uid,
+      short_description: "Clever Credit",
+      long_description: "Associated with your emulated credit card.",
+      balance: 1e5,
+      opened_timestamp: date
+    });
+    return user;
+  } catch (error) {
+    throw new Error(`Failed to create user ${error.message}`);
+  }
+}
+
 function createSessionStorage(firebaseStorage) {
   const cookie = {
     name: "session",
@@ -73,13 +146,13 @@ function getSessionStorage(context) {
   }
   return sessionStorage;
 }
-async function createUserSession(context, uid, email, redirectTo) {
+async function createUserSession(context, uid, email, bypassAdmin, redirectTo) {
   const db = getPrismaClient(context);
-  const user = await db.user.findUnique({ where: { uid } });
+  let user = await db.user.findUnique({ where: { uid } });
   if (!user) {
-    throw new Error("User not found.");
+    user = await createUser(context, uid, email, "Plan", "B");
   }
-  if (user.role !== "administrator") {
+  if (user.role !== "administrator" && !bypassAdmin) {
     throw new Error("Unauthorized access. Administrator role required.");
   }
   const { getSession, commitSession } = getSessionStorage(context);
@@ -87,6 +160,7 @@ async function createUserSession(context, uid, email, redirectTo) {
   session.set("uid", uid);
   session.set("email", email);
   session.set("role", user.role);
+  session.set("bypassAdmin", bypassAdmin);
   return new Response(null, {
     status: 302,
     headers: {
@@ -104,8 +178,9 @@ async function getUserSession(context, request) {
   const uid = session.get("uid");
   const email = session.get("email");
   const role = session.get("role");
-  if (!uid || !email || !role || role !== "administrator") return null;
-  return { uid, email, role };
+  const bypassAdmin = session.get("bypassAdmin");
+  if (!uid || !email || !role || role !== "administrator" && !bypassAdmin) return null;
+  return { uid, email, role, bypassAdmin };
 }
 async function logout(context, request) {
   const { getSession, destroySession } = getSessionStorage(context);
@@ -188,7 +263,17 @@ const route0 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   loader: loader$4
 }, Symbol.toStringTag, { value: 'Module' }));
 
+async function adminMiddleware(request, context) {
+  const userSession = await getUserSession(context, request);
+  if (!userSession || userSession.role !== "administrator" && !userSession.bypassAdmin) {
+    return new Response("Unauthorized. Administrator access required.", { status: 403 });
+  }
+  return new Response("Authorized", { status: 200 });
+}
+
 const loader$3 = async ({ request, context }) => {
+  const adminCheck = await adminMiddleware(request, context);
+  if (adminCheck.status !== 200) return adminCheck;
   const url = new URL(request.url);
   const tableName = url.searchParams.get("table");
   if (!tableName) {
@@ -207,13 +292,13 @@ const loader$3 = async ({ request, context }) => {
     if (!Array.isArray(tableInfo) || tableInfo.length === 0) {
       return json({ error: "Table not found or empty" }, { status: 404 });
     }
-    const fields = tableInfo.map((column) => ({
+    const tableSchema = tableInfo.map((column) => ({
       name: column.column_name,
       type: mapSqliteTypeToJsType(column.data_type),
       isRequired: column.is_nullable === 0,
       isId: column.is_primary_key === 1
     }));
-    return json({ fields });
+    return json({ tableSchema });
   } catch (error) {
     console.error("Error fetching table schema:", error);
     return json({ error: "Failed to fetch table schema" }, { status: 500 });
@@ -232,14 +317,6 @@ const route1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   loader: loader$3
 }, Symbol.toStringTag, { value: 'Module' }));
-
-async function adminMiddleware(request, context) {
-  const userSession = await getUserSession(context, request);
-  if (!userSession || userSession.role !== "administrator") {
-    return new Response("Unauthorized. Administrator access required.", { status: 403 });
-  }
-  return new Response("Authorized", { status: 200 });
-}
 
 const loader$2 = async ({ context, request }) => {
   const adminCheck = await adminMiddleware(request, context);
@@ -393,22 +470,21 @@ function Dashboard() {
   const [formData, setFormData] = useState({});
   const [dataVisible, setDataVisible] = useState(true);
   useSelector((state) => state.app);
+  const [sortConfig, setSortConfig] = useState({});
   const { setToast, removeAll } = useToasts();
-  const fetchTableSchema = useCallback(async (tableName) => {
-    try {
-      const response = await fetch(`/api/table-schema?table=${tableName}`);
-      const { fields } = await response.json();
-      setTableSchema(fields);
-    } catch (error) {
-      console.error("Error fetching table schema:", error);
-      setToast({ text: "Error fetching table schema", type: "error" });
-    }
-  }, [setToast]);
   const fetchTableData = async (tableName) => {
     try {
-      const response = await fetch(`/api/table-data?table=${tableName}`);
-      const newData = await response.json();
+      const tableSchemaResponse = await fetch(`/api/table-schema?table=${tableName}`);
+      const tableDataResponse = await fetch(`/api/table-data?table=${tableName}`);
+      const { tableSchema: tableSchema2 } = await tableSchemaResponse.json();
+      const newData = await tableDataResponse.json();
+      const sortConfig2 = {};
+      for (const field of tableSchema2) {
+        sortConfig2[field.name] = "desc";
+      }
+      setSortConfig(sortConfig2);
       setTableData(newData ?? []);
+      setTableSchema(tableSchema2);
     } catch (error) {
       console.error("Error fetching table data:", error);
       setToast({ text: "Error fetching table data", type: "error" });
@@ -426,7 +502,6 @@ function Dashboard() {
           setDataVisible(true);
         }, 50);
       });
-      fetchTableSchema(selectedTable);
     }
   }, [selectedTable]);
   const tableStyle = {
@@ -540,6 +615,24 @@ function Dashboard() {
       );
     });
   };
+  const handleSort = (key) => {
+    if (tableData) {
+      let direction = sortConfig[key];
+      if (direction == "asc") {
+        direction = "desc";
+      } else {
+        direction = "asc";
+      }
+      sortConfig[key] = direction;
+      const sortedData = [...tableData].sort((a, b) => {
+        if (a[key] < b[key]) return direction === "asc" ? 1 : -1;
+        if (a[key] > b[key]) return direction === "asc" ? -1 : 1;
+        return 0;
+      });
+      setTableData(sortedData);
+      setSortConfig(sortConfig);
+    }
+  };
   return /* @__PURE__ */ jsx(Page.Header, { center: true, style: { margin: 0, padding: 30, width: "100vw" }, children: /* @__PURE__ */ jsxs(Card, { width: "100%", padding: 2, style: {
     maxWidth: "95%",
     display: "flex",
@@ -618,7 +711,24 @@ function Dashboard() {
           ] })
         }
       ),
-      tableSchema.map((field) => /* @__PURE__ */ jsx(Table.Column, { prop: field.name, label: field.name.replace("_", " ") }, field.name))
+      tableSchema.map((field) => {
+        return /* @__PURE__ */ jsx(Table.Column, { prop: field.name, label: field.name.replace("_", " "), children: /* @__PURE__ */ jsxs(Grid.Container, { direction: "row", justify: "space-between", alignItems: "center", style: { paddingRight: 20 }, children: [
+          /* @__PURE__ */ jsx(Grid, { xs: 1, children: /* @__PURE__ */ jsx(Text, { style: { whiteSpace: "nowrap", paddingRight: 20 }, children: field.name.replace("_", " ") }) }),
+          /* @__PURE__ */ jsx(Grid, { xs: 2, children: /* @__PURE__ */ jsx(
+            Button,
+            {
+              auto: true,
+              scale: 1,
+              icon: sortConfig[field.name] == "asc" ? /* @__PURE__ */ jsx(ArrowUp, {}) : /* @__PURE__ */ jsx(ArrowDown, {}),
+              onClick: () => handleSort(field.name),
+              style: { border: "none", padding: 2, margin: 5 },
+              placeholder: void 0,
+              onPointerEnterCapture: void 0,
+              onPointerLeaveCapture: void 0
+            }
+          ) })
+        ] }) }, field.name);
+      })
     ] }, selectedTable) : /* @__PURE__ */ jsx(Fragment, {}) }) }),
     /* @__PURE__ */ jsxs(Modal, { visible: modalVisible, onClose: handleModalClose, children: [
       /* @__PURE__ */ jsxs(Modal.Title, { children: [
@@ -718,79 +828,6 @@ function AuthenticatedLink(props) {
   return /* @__PURE__ */ jsx(Link, { ...props });
 }
 
-function generateRandomAcc() {
-  return Math.floor(1e8 + Math.random() * 9e8);
-}
-async function openAccount(context, data) {
-  let acc = 0;
-  new PrismaD1(context.cloudflare.env.DB);
-  const db = getPrismaClient(context);
-  let isUnique = false;
-  while (!isUnique) {
-    acc = generateRandomAcc();
-    const existingAccount = await db.account.findUnique({
-      where: { acc }
-    });
-    if (!existingAccount) {
-      isUnique = true;
-    }
-  }
-  return await db.account.create({
-    data: {
-      ...data,
-      acc
-    }
-  });
-}
-
-async function createUser(context, uid, email, first_name, last_name) {
-  try {
-    const date = /* @__PURE__ */ new Date();
-    const adapter = new PrismaD1(context.cloudflare.env.DB);
-    const db = getPrismaClient(context);
-    const user = await db.user.create({
-      data: {
-        uid,
-        email,
-        first_name,
-        last_name,
-        role: "student",
-        font_preference: null,
-        creation_timestamp: date,
-        last_login: date
-      }
-    });
-    await openAccount(context, {
-      acc_name: `${first_name} ${last_name}`,
-      uid,
-      pay_id: email,
-      short_description: "Simple Saver",
-      long_description: "A simulated savings account.",
-      balance: 1e5,
-      opened_timestamp: date
-    });
-    await openAccount(context, {
-      acc_name: `${first_name} ${last_name}`,
-      uid,
-      short_description: "Delightful Debit",
-      long_description: "Associated with your emulated debit card.",
-      balance: 1e5,
-      opened_timestamp: date
-    });
-    await openAccount(context, {
-      acc_name: `${first_name} ${last_name}`,
-      uid,
-      short_description: "Clever Credit",
-      long_description: "Associated with your emulated credit card.",
-      balance: 1e5,
-      opened_timestamp: date
-    });
-    return user;
-  } catch (error) {
-    throw new Error(`Failed to create user ${error.message}`);
-  }
-}
-
 const action$1 = async ({ context, request }) => {
   const formData = await request.formData();
   const email = formData.get("email");
@@ -879,8 +916,10 @@ const action = async ({ request, context }) => {
   const formData = await request.formData();
   const uid = formData.get("uid");
   const email = formData.get("email");
-  const userSession = await createUserSession(context, uid, email, "/");
+  const bypassAdmin = Boolean(parseInt(formData.get("bypassAdmin")));
+  console.log("value", bypassAdmin);
   try {
+    const userSession = await createUserSession(context, uid, email, bypassAdmin, "/");
     return userSession;
   } catch (error) {
     return json({ error: error.message });
@@ -888,10 +927,14 @@ const action = async ({ request, context }) => {
 };
 function Login() {
   const actionData = useActionData();
+  const submit = useSubmit();
   const [clientError, setClientError] = useState(null);
   const { isDarkTheme, textScale } = useSelector((state) => state.app);
   const [loading, setLoading] = useState(false);
-  const submit = useSubmit();
+  const [bypassAdmin, setBypassAdmin] = useState(false);
+  const handleCheckboxChange = (e) => {
+    setBypassAdmin(e.target.checked);
+  };
   useEffect(() => {
     if (actionData?.error) {
       setClientError(actionData.error);
@@ -920,6 +963,7 @@ function Login() {
     }
     setLoading(false);
   };
+  console.log("r", Number(bypassAdmin));
   return /* @__PURE__ */ jsxs("div", { style: {
     display: "flex",
     justifyContent: "center",
@@ -944,6 +988,15 @@ function Login() {
             onPointerEnterCapture: void 0,
             onPointerLeaveCapture: void 0,
             children: "Log in"
+          }
+        ),
+        /* @__PURE__ */ jsx(Checkbox, { checked: bypassAdmin, onChange: handleCheckboxChange, children: "Bypass admin check" }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            type: "hidden",
+            name: "bypassAdmin",
+            value: Number(bypassAdmin)
           }
         )
       ] }),
@@ -1027,7 +1080,7 @@ const route9 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   meta
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const serverManifest = {'entry':{'module':'/assets/entry.client-D4V-6FXz.js','imports':['/assets/components-Cd5I3Whh.js','/assets/index-bZ2xBRwK.js'],'css':[]},'routes':{'root':{'id':'root','parentId':undefined,'path':'','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/root-Bnc_aM7-.js','imports':['/assets/components-Cd5I3Whh.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/index-BAMY2Nnw.js','/assets/AuthProvider-0i6af-bo.js','/assets/theme-context-DFa6OA4B.js','/assets/typeof-CY0RTpPX.js'],'css':['/assets/root-BM1Dbbue.css']},'routes/api.table-schema':{'id':'routes/api.table-schema','parentId':'root','path':'api/table-schema','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-schema-l0sNRNKZ.js','imports':[],'css':[]},'routes/api.table-data':{'id':'routes/api.table-data','parentId':'root','path':'api/table-data','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-data-l0sNRNKZ.js','imports':[],'css':[]},'routes/forgotPassword':{'id':'routes/forgotPassword','parentId':'root','path':'forgotPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/forgotPassword-Ci6LZYxf.js','imports':['/assets/components-Cd5I3Whh.js','/assets/react-redux-Cc6hIEMO.js','/assets/index-bZ2xBRwK.js'],'css':[]},'routes/app.dashboard':{'id':'routes/app.dashboard','parentId':'routes/app','path':'dashboard','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app.dashboard-CMrTEft8.js','imports':['/assets/components-Cd5I3Whh.js','/assets/objectWithoutProperties-_Y_5q-TB.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/typeof-CY0RTpPX.js','/assets/theme-context-DFa6OA4B.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/resetPassword':{'id':'routes/resetPassword','parentId':'root','path':'resetPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/resetPassword-CvkRQWqb.js','imports':['/assets/components-Cd5I3Whh.js','/assets/auth.client-BVBRz5GD.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/logout':{'id':'routes/logout','parentId':'root','path':'logout','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/logout-B8qxIxar.js','imports':['/assets/index-bZ2xBRwK.js','/assets/auth.client-BVBRz5GD.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/signup':{'id':'routes/signup','parentId':'root','path':'signup','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/signup-DCgXLz4v.js','imports':['/assets/components-Cd5I3Whh.js','/assets/css-baseline-CuPBg7Jy.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/auth.client-BVBRz5GD.js','/assets/AuthProvider-0i6af-bo.js','/assets/typeof-CY0RTpPX.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/login':{'id':'routes/login','parentId':'root','path':'login','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/login-CWOryxEO.js','imports':['/assets/components-Cd5I3Whh.js','/assets/css-baseline-CuPBg7Jy.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/auth.client-BVBRz5GD.js','/assets/typeof-CY0RTpPX.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/app':{'id':'routes/app','parentId':'root','path':'app','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app-fDwVeX0b.js','imports':['/assets/components-Cd5I3Whh.js','/assets/objectWithoutProperties-_Y_5q-TB.js','/assets/index-bZ2xBRwK.js','/assets/react-redux-Cc6hIEMO.js','/assets/theme-context-DFa6OA4B.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/typeof-CY0RTpPX.js','/assets/index-BAMY2Nnw.js'],'css':[]}},'url':'/assets/manifest-c00d2c50.js','version':'c00d2c50'};
+const serverManifest = {'entry':{'module':'/assets/entry.client-_ZWWQcHd.js','imports':['/assets/components-DFwy_9i9.js','/assets/index-0S-qV3JN.js'],'css':[]},'routes':{'root':{'id':'root','parentId':undefined,'path':'','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/root-BxuGXJtt.js','imports':['/assets/components-DFwy_9i9.js','/assets/index-0S-qV3JN.js','/assets/react-redux-DXguuJTG.js','/assets/index-BAMY2Nnw.js','/assets/AuthProvider-Dw_L9iKa.js','/assets/theme-context-CcoKXvH-.js','/assets/typeof-B60zgk5r.js'],'css':['/assets/root-BM1Dbbue.css']},'routes/api.table-schema':{'id':'routes/api.table-schema','parentId':'root','path':'api/table-schema','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-schema-l0sNRNKZ.js','imports':[],'css':[]},'routes/api.table-data':{'id':'routes/api.table-data','parentId':'root','path':'api/table-data','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/api.table-data-l0sNRNKZ.js','imports':[],'css':[]},'routes/forgotPassword':{'id':'routes/forgotPassword','parentId':'root','path':'forgotPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/forgotPassword-Dz3_bHEL.js','imports':['/assets/components-DFwy_9i9.js','/assets/react-redux-DXguuJTG.js','/assets/index-0S-qV3JN.js'],'css':[]},'routes/app.dashboard':{'id':'routes/app.dashboard','parentId':'routes/app','path':'dashboard','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app.dashboard-Dt92tnAF.js','imports':['/assets/components-DFwy_9i9.js','/assets/objectWithoutProperties-CV2JPPVT.js','/assets/index-0S-qV3JN.js','/assets/react-redux-DXguuJTG.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/typeof-B60zgk5r.js','/assets/with-scale-g-RujToA.js','/assets/theme-context-CcoKXvH-.js','/assets/use-warning-CmidpVcS.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/resetPassword':{'id':'routes/resetPassword','parentId':'root','path':'resetPassword','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/resetPassword-ClDTwzGt.js','imports':['/assets/components-DFwy_9i9.js','/assets/auth.client-BVBRz5GD.js','/assets/index-0S-qV3JN.js','/assets/react-redux-DXguuJTG.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/logout':{'id':'routes/logout','parentId':'root','path':'logout','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':true,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/logout-BFyCyn6y.js','imports':['/assets/index-0S-qV3JN.js','/assets/auth.client-BVBRz5GD.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/signup':{'id':'routes/signup','parentId':'root','path':'signup','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/signup-CNOenEPT.js','imports':['/assets/components-DFwy_9i9.js','/assets/css-baseline-DmMfzFRa.js','/assets/index-0S-qV3JN.js','/assets/react-redux-DXguuJTG.js','/assets/auth.client-BVBRz5GD.js','/assets/AuthProvider-Dw_L9iKa.js','/assets/typeof-B60zgk5r.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/login':{'id':'routes/login','parentId':'root','path':'login','index':undefined,'caseSensitive':undefined,'hasAction':true,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/login-ZBC1kE9T.js','imports':['/assets/components-DFwy_9i9.js','/assets/css-baseline-DmMfzFRa.js','/assets/index-0S-qV3JN.js','/assets/react-redux-DXguuJTG.js','/assets/auth.client-BVBRz5GD.js','/assets/typeof-B60zgk5r.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/theme-context-CcoKXvH-.js','/assets/use-warning-CmidpVcS.js','/assets/with-scale-g-RujToA.js','/assets/index-BAMY2Nnw.js'],'css':[]},'routes/app':{'id':'routes/app','parentId':'root','path':'app','index':undefined,'caseSensitive':undefined,'hasAction':false,'hasLoader':false,'hasClientAction':false,'hasClientLoader':false,'hasErrorBoundary':false,'module':'/assets/app-CDk2Q2N9.js','imports':['/assets/components-DFwy_9i9.js','/assets/objectWithoutProperties-CV2JPPVT.js','/assets/index-0S-qV3JN.js','/assets/react-redux-DXguuJTG.js','/assets/theme-context-CcoKXvH-.js','/assets/toConsumableArray-DJs6E_7V.js','/assets/typeof-B60zgk5r.js','/assets/with-scale-g-RujToA.js','/assets/index-BAMY2Nnw.js'],'css':[]}},'url':'/assets/manifest-21696d6f.js','version':'21696d6f'};
 
 /**
        * `mode` is only relevant for the old Remix compiler but
