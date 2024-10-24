@@ -1,7 +1,6 @@
 import { CssBaseline } from "@geist-ui/core";
 import { json, LinksFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/node";
-
 import {
   Links,
   Meta,
@@ -25,12 +24,12 @@ export function ErrorBoundary({ error }: { error: Error }) {
     // Check if the error is a redirect response
     if (error instanceof Response && error.status === 302) {
       const location = error.headers.get("Location");
-      if (location?.includes("/login")) {
-        navigate(location);
+      if (location) {
+        navigate(location, { replace: true });
       }
     } else {
-      // For actual errors, redirect to login
-      navigate("/login");
+      // For actual errors, redirect to login without session expired message
+      navigate("/login", { replace: true });
     }
   }, [error, navigate]);
 
