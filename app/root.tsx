@@ -1,18 +1,42 @@
 import { CssBaseline } from "@geist-ui/core";
-import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
+import { json, LinksFunction, LoaderFunction } from "@remix-run/cloudflare";
+import { redirect } from "@remix-run/node";
+
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData
+  useLoaderData,
+  useNavigate
 } from "@remix-run/react";
 import { Provider } from 'react-redux';
 import { getUserSession } from "./auth.server";
 import { AuthProvider } from "./components/AuthProvider";
 import store from './store';
 import "./globalStyles.css";
+import { useEffect } from "react";
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if the error is a redirect response
+    if (error instanceof Response && error.status === 302) {
+      const location = error.headers.get("Location");
+      if (location?.includes("/login")) {
+        navigate(location);
+      }
+    } else {
+      // For actual errors, redirect to login
+      navigate("/login");
+    }
+  }, [error, navigate]);
+
+  // Return null or a loading state while redirecting
+  return null;
+}
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   const user = await getUserSession(context, request);

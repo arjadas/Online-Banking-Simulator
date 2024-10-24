@@ -1,14 +1,15 @@
 import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
-import { useLoaderData, useFetcher } from "@remix-run/react";
-import React from 'react';
-import { getUserSession } from '~/auth.server';
+import { useLoaderData, useFetcher, useNavigate } from "@remix-run/react";
+import React, { useEffect } from 'react';
+import { getUserSession, requireUserSession } from '~/auth.server';
 import { createUser } from '~/service/userService';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
 import { formatDate, toFixedWithCommas } from '~/util';
 import ResizableText from '~/components/ResizableText';
+import { redirect } from '@remix-run/node';
 
 type MeUser = {
   uid: string;
@@ -21,51 +22,66 @@ type MeUser = {
     timestamp: Date;
   }>;
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  // Ensure the user is authenticated
-  const user = await getUserSession(context, request);
-  const db = getPrismaClient(context);
+  try {
+    const user = await requireUserSession(context, request);
+    const db = getPrismaClient(context);
 
-  if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
-
-  // Fetch the user details and related data from Prisma
-  const getMeUser = async () => {
-    return await Promise.all([
-      db.user.findUnique({
-        where: { uid: user.uid },
-        include: {
-          notifications: {
-            where: { read: false },
+    const getMeUser = async () => {
+      return await Promise.all([
+        db.user.findUnique({
+          where: { uid: user.uid },
+          include: {
+            notifications: {
+              where: { read: false },
+            },
           },
-        },
-      }),
-      db.account.findMany({
-        where: { uid: user.uid },
-      }),
-    ]);
+        }),
+        db.account.findMany({
+          where: { uid: user.uid },
+        }),
+      ]);
+    };
+
+    let [userData, userAccounts] = await getMeUser();
+
+    if (!userData) {
+      console.error("User not found! Creating new user..", user);
+      await createUser(context, user.uid, user.email, "Plan", "B");
+      [userData, userAccounts] = await getMeUser();
+    }
+
+    return json({
+      me: {
+        uid: userData!.uid,
+        first_name: userData!.first_name,
+        last_name: userData!.last_name,
+        email: userData!.email,
+        notifications: userData!.notifications,
+      },
+      userAccounts,
+    });
+  } catch (error) {
+    if (error instanceof Response) {
+      throw error; // Rethrow redirect responses
+    }
+    // Log other errors and redirect to login
+    console.error("Error in accounts loader:", error);
+    throw redirect("/login");
   }
-
-  let [userData, userAccounts] = await getMeUser();
-
-  if (!userData) {
-    console.error("User, not found! Creating new user..", user)
-    await createUser(context, user.uid, user.email, "Plan", "B");
-    [userData, userAccounts] = await getMeUser();
-  }
-
-  userData = userData!
-
-  return json({
-    me: {
-      uid: userData.uid,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      email: userData.email,
-      notifications: userData.notifications,
-    },
-    userAccounts,
-  });
 };
+
+// Add error boundary to the component as well
+export function ErrorBoundary() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate("/login");
+  }, [navigate]);
+
+  return null;
+}
 
 export default function Dashboard() {
   const { me: user, userAccounts: accounts, error } = useLoaderData<{
