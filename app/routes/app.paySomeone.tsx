@@ -46,9 +46,17 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     }),
   ]);
 
+  // Create a Map to store unique contacts based on contact_acc
+  const uniqueContactsMap = new Map();
   const userPrevContactsWithInfo: UserPrevContactResult[] = [];
 
   for (const contact of userPrevContacts) {
+    
+    // Skip if we've already processed this contact_acc
+    if (uniqueContactsMap.has(contact.contact_acc)) {
+      continue;
+    }
+    
     if (!contact.contact_acc) {
       throw new Error("Contact acc not supplied.");
     }
@@ -76,7 +84,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
       throw new Error("Contact user not found.");
     }
 
-    userPrevContactsWithInfo.push({
+    const contactInfo = {
       ...contact,
       contact_uid: contactUid,
       contact_user: contactUser ?? ((contactMockUser != null ? {
@@ -84,7 +92,11 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         last_name: contactMockUser.last_name ?? '',
         uid: contactAccount.uid,
       } : null))!,
-    });
+    };
+
+    // Add to map and array only if it's a new unique contact
+    uniqueContactsMap.set(contact.contact_acc, true);
+    userPrevContactsWithInfo.push(contactInfo);
   }
 
   return json({
@@ -191,7 +203,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         uid: fromAccount.uid,
         contact_acc: toAccount.acc,
         contact_acc_name: toAccount.acc_name,
-        contact_description: toAccount.acc_name,
+        contact_description: reference,  // Use reference as description for now
         contact_recipient_address: recipientAddress,
       });
     }
