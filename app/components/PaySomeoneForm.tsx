@@ -1,4 +1,4 @@
-import { Button, Card, Input, Select, Tabs, Text, Textarea } from '@geist-ui/core';
+import { Button, Card, Input, Select, Tabs, Text, Textarea,Spacer  } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { Form, useActionData } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
@@ -21,6 +21,8 @@ interface PaySomeoneFormProps {
     actionData: any;
     onBack: () => void;
 }
+
+
 
 const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevContact, onBack, actionData }) => {
     const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
@@ -110,22 +112,98 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userPrevContact]);
-
+    const [isDateHovered, setIsDateHovered] = useState(false);
+    const [isTimeHovered, setIsTimeHovered] = useState(false);
+    const [isDateFocused, setIsDateFocused] = useState(false);
+    const [isTimeFocused, setIsTimeFocused] = useState(false);
+    
+    const dateInputStyle = {
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius:'6px',
+        border: `1px solid ${isDateHovered || isDateFocused ? 'black' : 'white'}`,
+        height:'4vh',
+        transition: 'border-color 0.3s, color 0.3s',
+    };
+    
+    const timeInputStyle = {
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius:'6px',
+        border: `1px solid ${isTimeHovered || isTimeFocused ? 'black' : 'white'}`,
+        height:'4vh',
+        transition: 'border-color 0.3s, color 0.3s',
+    };
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
             <Form method="post">
                 <ResizableText h4>Schedule</ResizableText>
                 <Tabs initialValue="now" hideDivider>
-                    <Tabs.Item label="Now" value="now" />
-                    <Tabs.Item label="Later" value="later">
-                        <Text>Later Ui here</Text>
-                    </Tabs.Item>
+                    <Tabs.Item label="Now" value="now" >
+                    
+                        <Text>Set Up Immediate Payment</Text>
+                        </Tabs.Item>
+                        <Tabs.Item label="Later" value="later">
+                    <Text>Select Date and Time for Transaction</Text>
+                    <label style={{ fontWeight: 'bold' }}>Date:</label>
+                    <input
+                        type="date"
+                        style={dateInputStyle}
+                        onMouseEnter={() => setIsDateHovered(true)}
+                        onMouseLeave={() => setIsDateHovered(false)}
+                        onFocus={() => setIsDateFocused(true)}
+                        onBlur={() => setIsDateFocused(false)}
+                        placeholder="Enter Date"
+                    />
+                    <Spacer />
+                    <label style={{ fontWeight: 'bold' }}>Time:</label>
+                    <input
+                        type="time"
+                        style={timeInputStyle}
+                        onMouseEnter={() => setIsTimeHovered(true)}
+                        onMouseLeave={() => setIsTimeHovered(false)}
+                        onFocus={() => setIsTimeFocused(true)}
+                        onBlur={() => setIsTimeFocused(false)}
+                        placeholder="Enter Time"
+                    />
+                </Tabs.Item>
+                
                     <Tabs.Item label="Recurring" value="recurring">
-                        <Text>Recurring Ui here</Text>
+                        <Text>Set Up Recurring payment</Text>
+                        <div>
+                            <Select placeholder="Select frequency" style={{ width: "100%" }} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
+                                <Select.Option value="weekly">Weekly</Select.Option>
+                                <Select.Option value="fortnightly">Fortnightly</Select.Option>
+                                <Select.Option value="monthly">Monthly</Select.Option>
+                            </Select>
+                         </div>
+                         <label style={{ fontWeight: 'bold' }}>Start Date:</label>
+                    <input
+                        type="date"
+                        style={dateInputStyle}
+                        onMouseEnter={() => setIsDateHovered(true)}
+                        onMouseLeave={() => setIsDateHovered(false)}
+                        onFocus={() => setIsDateFocused(true)}
+                        onBlur={() => setIsDateFocused(false)}
+                        placeholder="Enter Date"
+                    />
+                    <Spacer />
+                    <label style={{ fontWeight: 'bold' }}>End Date:</label>
+                    <input
+                        type="date"
+                        style={dateInputStyle}
+                        onMouseEnter={() => setIsDateHovered(true)}
+                        onMouseLeave={() => setIsDateHovered(false)}
+                        onFocus={() => setIsDateFocused(true)}
+                        onBlur={() => setIsDateFocused(false)}
+                        placeholder="Enter Date"
+                    />
+
+                        
                     </Tabs.Item>
                 </Tabs>
                 <ResizableText h4>From Account</ResizableText>
-                <div style={{ width: '48%' }}>
+                <div style={{ width: '100%' }}>
                     <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                         {// @ts-ignore
                             accounts.map((account: Account) => (
