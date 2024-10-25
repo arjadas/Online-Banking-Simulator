@@ -16,10 +16,6 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
 
-  // Get the redirectTo parameter from the URL
-  const url = new URL(request.url);
-  const redirectTo = url.searchParams.get("redirectTo") || "/app/accounts";
-
   try {
     return await createUserSession(context, uid, email, "/app/accounts");
   } catch (error: any) {

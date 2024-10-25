@@ -1,7 +1,5 @@
 import { createWorkersKVSessionStorage, createCookieSessionStorage } from "@remix-run/cloudflare";
 
-import { redirect } from '@remix-run/node';
-
 declare global {
   // @ts-ignore
   const firebase_storage: KVNamespace;
@@ -11,7 +9,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
   const cookie = {
     name: "session",
     httpOnly: true,
-    maxAge: 10, //60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 24 * 7, // 1 week
     path: "/",
     sameSite: "lax",
     secrets: [import.meta.env.VITE_SESSION_SECRET],
@@ -52,44 +50,15 @@ async function createUserSession(context: any, uid: string, email: string, redir
   });
 }
 
-async function requireUserSession(context: any, request: Request) {
-  const session = await getUserSession(context, request);
-  
-  if (!session) {
-    // Store the original URL they were trying to visit
-    const url = new URL(request.url);
-    const loginRedirect = url.pathname;
-    
-    // Clean up any existing invalid session
-    const { destroySession } = getSessionStorage(context);
-    const currentSession = await getSessionStorage(context).getSession(
-      request.headers.get("Cookie")
-    );
-    
-    throw redirect(`/login?redirectTo=${encodeURIComponent(loginRedirect)}`, {
-      headers: {
-        "Set-Cookie": await destroySession(currentSession),
-      },
-    });
-  }
-  
-  return session;
-}
-
 async function getUserSession(context: any, request: Request) {
   const { getSession } = getSessionStorage(context);
-  try {
-    const session = await getSession(request.headers.get("Cookie"));
-    const uid = session.get("uid");
-    const email = session.get("email");
+  const session = await getSession(request.headers.get("Cookie"));
+  const uid = session.get("uid");
+  const email = session.get("email");
 
-    if (!uid || !email) return null;
+  if (!uid || !email) return null;
 
-    return { uid, email };
-  } catch (error) {
-    // Session is invalid or expired
-    return null;
-  }
+  return { uid, email };
 }
 
 async function logout(context: any, request: Request) {
@@ -103,4 +72,4 @@ async function logout(context: any, request: Request) {
   });
 }
 
-export { createUserSession, getUserSession, requireUserSession, logout };
+export { createUserSession, getUserSession, logout };
