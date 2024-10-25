@@ -1,5 +1,5 @@
 import { PrismaD1 } from '@prisma/adapter-d1';
-import { getPrismaClient } from '~/util/db.server';
+import { getPrismaClient } from '~/service/db.server';
 
 function generateCardNumber() {
     let cardNumber = '';
