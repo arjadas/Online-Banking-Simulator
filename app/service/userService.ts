@@ -6,6 +6,7 @@ import { createMockUserPrevContacts } from './userPrevContactService';
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
     
     await createMockUserPrevContacts(context, uid);
+
     try {
         const date = new Date();
         const adapter = new PrismaD1(context.cloudflare.env.DB);
@@ -22,7 +23,6 @@ export async function createUser(context: any, uid: string, email: string, first
                 last_login: date,
             },
         });
-
 
         // Open "Simple Saver" account
         await openAccount(context, {

@@ -24,7 +24,7 @@ export async function openAccount(context: any, data: Prisma.AccountCreateInput)
             isUnique = true;
         }
     }
-    
+
     return await db.account.create({
         data: {
             ...data,
