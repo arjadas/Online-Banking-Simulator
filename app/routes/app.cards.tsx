@@ -10,6 +10,7 @@ import { CreditCard, DebitCard } from "@prisma/client";
 import ResizableText from '~/components/ResizableText';
 import { useSelector } from 'react-redux';
 import { RootState } from '~/store';
+import { toFixedWithCommas } from '~/util';
 
 interface balance {
   credit: number;
@@ -242,7 +243,7 @@ export default function MyCards() {
                       
                       <Card.Content style={{ position: "relative"}}>
                         <ResizableText b>{cardInfo.cardType}</ResizableText>
-                        <ResizableText>${cardInfo.balance.toFixed(2)} <span style={{ color: 'gray' }}>available</span></ResizableText>
+                        <ResizableText>${toFixedWithCommas(cardInfo.balance / 100, 2)} <span style={{ color: 'gray' }}>available</span></ResizableText>
 
                         <ResizableText >{cardInfo.name}</ResizableText>
                         <ResizableText>EXPIRY {showDetails[index]? cardInfo.expiry : '**/**'}</ResizableText>
