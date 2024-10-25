@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Card, Text, Button, Grid, Spacer, Divider } from "@geist-ui/react";
+import React, { useState } from 'react';
+import { Card, Text, Button, Grid, Spacer, Divider } from '@geist-ui/react';
 import { CreditCard as CreditCardIcon, Eye, EyeOff } from '@geist-ui/react-icons';
 import { useLoaderData } from "@remix-run/react";
 import { LoaderFunction, json } from '@remix-run/cloudflare';
@@ -23,7 +23,7 @@ interface CardInfo {
   expiry: string;
   CSC: string;
   balance: number;
-  cardType: 'Debit Card' | 'Credit Card';
+  cardType: "Debit Card" | "Credit Card";
 }
 
 function isNumeric(value: any): boolean {
@@ -195,7 +195,7 @@ export default function MyCards() {
         }}>
           <Grid>
             {/* Previous button */}
-            <Button auto onClick={goToPrev} style={{ ...styles.arrowButton, left: '10px' }} 
+            <Button auto onClick={goToPrev} style={{ ...styles.arrowButton, left: "10px" }} 
               placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 &#10094;
             </Button>
@@ -214,9 +214,9 @@ export default function MyCards() {
 
             {/* Carousel Content */}
             <Grid.Container style={{
-                display: 'flex',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "center",
                 height: "100%",
                 width: `${cardWidth()}px`,
               }}>
@@ -241,7 +241,7 @@ export default function MyCards() {
                       ...(currentIndex === index ? styles.current : styles.preview),
                     }}>
                       <Card.Content>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
                           <CreditCardIcon size={textScale * 2} />
                           <ResizableText h4>{cardInfo.cardNumber}</ResizableText>
                         </div>
@@ -251,10 +251,10 @@ export default function MyCards() {
                       
                       <Card.Content style={{ position: "relative"}}>
                         <ResizableText b>{cardInfo.cardType}</ResizableText>
-                        <ResizableText>${toFixedWithCommas(cardInfo.balance / 100, 2)} <span style={{ color: 'gray' }}>available</span></ResizableText>
+                        <ResizableText>${toFixedWithCommas(cardInfo.balance / 100, 2)} <span style={{ color: "gray" }}>available</span></ResizableText>
                         <ResizableText>{cardInfo.name}</ResizableText>
-                        <ResizableText>EXPIRY {showDetails[index]? cardInfo.expiry : '**/**'}</ResizableText>
-                        <ResizableText>CSC {showDetails[index]? cardInfo.CSC : '***'}</ResizableText>
+                        <ResizableText>EXPIRY {showDetails[index]? cardInfo.expiry : "**/**"}</ResizableText>
+                        <ResizableText>CSC {showDetails[index]? cardInfo.CSC : "***"}</ResizableText>
 
                         {/* show/hide button */}
                         <Button onClick={() => toggleDetails(index)} shadow auto type="secondary-light" 
@@ -283,7 +283,7 @@ export default function MyCards() {
 
           <Grid>
             {/* Next button */}
-            <Button auto onClick={goToNext} style={{ ...styles.arrowButton, right: '10px' }}
+            <Button auto onClick={goToNext} style={{ ...styles.arrowButton, right: "10px" }}
               placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 &#10095;
             </Button>
