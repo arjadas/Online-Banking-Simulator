@@ -171,6 +171,15 @@ export default function MyCards() {
     setCurrentIndex(index);
   };
 
+  const cardWidth = () => {
+    const maxWidth = 800
+    let width = (textScale/15) * 500;
+    if (width <= maxWidth) {
+      return width;
+    }
+    return maxWidth;
+  }
+
   return (
     <Grid.Container style={{ display:"flex", flexDirection: "column"}}>
       <Grid>
@@ -180,8 +189,6 @@ export default function MyCards() {
           alignItems: "center",
           position: "relative",
           width: "100%",
-          height: "380px",
-          maxHeight: "400px",
           maxWidth: "1000px",
           margin: "50px auto",
           overflow: "hidden",
@@ -200,6 +207,7 @@ export default function MyCards() {
             alignItems: "center",
             width: "85%",
             height: "100%",
+            paddingBottom: "30px",
             overflow: "hidden",
             position: "relative",
           }}>
@@ -210,7 +218,7 @@ export default function MyCards() {
                 justifyContent: 'flex-start',
                 alignItems: 'center',
                 height: "100%",
-                width: '450px',
+                width: `${cardWidth()}px`,
               }}>
               <Grid>
                 <div
@@ -221,8 +229,8 @@ export default function MyCards() {
                   }}
                 >
                   {cards.map((cardInfo, index) => (
-                    <Card shadow width='450px' style={{
-                      minWidth: "450px",
+                    <Card shadow style={{
+                      minWidth: `${cardWidth()}px`,
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
@@ -234,7 +242,7 @@ export default function MyCards() {
                     }}>
                       <Card.Content>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <CreditCardIcon size={textScale} />
+                          <CreditCardIcon size={textScale * 2} />
                           <ResizableText h4>{cardInfo.cardNumber}</ResizableText>
                         </div>
                       </Card.Content>
@@ -244,17 +252,26 @@ export default function MyCards() {
                       <Card.Content style={{ position: "relative"}}>
                         <ResizableText b>{cardInfo.cardType}</ResizableText>
                         <ResizableText>${toFixedWithCommas(cardInfo.balance / 100, 2)} <span style={{ color: 'gray' }}>available</span></ResizableText>
-
-                        <ResizableText >{cardInfo.name}</ResizableText>
+                        <ResizableText>{cardInfo.name}</ResizableText>
                         <ResizableText>EXPIRY {showDetails[index]? cardInfo.expiry : '**/**'}</ResizableText>
                         <ResizableText>CSC {showDetails[index]? cardInfo.CSC : '***'}</ResizableText>
 
                         {/* show/hide button */}
-                        <Button onClick={() => toggleDetails(index)} shadow auto type="secondary-light" style={{ position: "absolute", width: '150px', bottom: "10px", right: "10px"}}
-                          placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-                            {showDetails[index] ? <EyeOff size={textScale} /> : <Eye size={textScale} />}
-                            <Spacer w={1} />
-                            {showDetails[index] ? 'Hide' : 'Show'}
+                        <Button onClick={() => toggleDetails(index)} shadow auto type="secondary-light" 
+                          style={{ 
+                            position: "absolute", 
+                            height: `${textScale * 2}`, 
+                            bottom: "10px", 
+                            right: "10px", 
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center", 
+                          }}
+                          placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                        >
+                          {showDetails[index] ? <EyeOff size={ textScale * 1.3 } /> : <Eye size={ textScale * 1.3 } />}
+                          <Spacer w={1} />
+                          {showDetails[index] ? <ResizableText>Hide</ResizableText> : <ResizableText>Show</ResizableText >}
                         </Button>
                       </Card.Content>
                     </Card>
