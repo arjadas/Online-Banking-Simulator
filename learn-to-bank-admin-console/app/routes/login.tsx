@@ -1,4 +1,5 @@
-import { GeistProvider, Page, Themes } from '@geist-ui/core';
+import { Checkbox, GeistProvider, Page, Themes } from '@geist-ui/core';
+import { CheckboxEvent } from '@geist-ui/core/esm/checkbox';
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
@@ -12,27 +13,32 @@ import { RootState } from '~/store';
 type ActionData = {
   error?: string;
 };
+
 export const action: ActionFunction = async ({ request, context }: { request: Request, context: any }) => {
   const formData = await request.formData();
   const uid = formData.get("uid") as string;
   const email = formData.get("email") as string;
+  const bypassAdmin = Boolean(parseInt(formData.get("bypassAdmin") as string));
 
   try {
-    return await createUserSession(context, uid, email, "/");
+    const userSession = await createUserSession(context, uid, email, bypassAdmin, "/");
+    return userSession;
   } catch (error: any) {
-    return json<ActionData>({ error: error.toString() + 'adsasd' });
+    return json<ActionData>({ error: error.message });
   }
 };
 
 export default function Login() {
   const actionData = useActionData<ActionData>();
+  const submit = useSubmit();
   const [clientError, setClientError] = useState<string | null>(null);
   const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
-
-  const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
-  const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const [loading, setLoading] = useState(false);
-  const submit = useSubmit();
+  const [bypassAdmin, setBypassAdmin] = useState(false);
+
+  const handleCheckboxChange = (e: CheckboxEvent) => {
+    setBypassAdmin(e.target.checked);
+  };
 
   useEffect(() => {
     if (actionData?.error) {
@@ -85,14 +91,17 @@ export default function Login() {
             htmlType="submit"
             type="secondary"
             loading={loading}
-            disabled={loading}
-            placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
+            disabled={loading} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
             Log in
           </Button>
+          <Checkbox checked={bypassAdmin} onChange={handleCheckboxChange}>Bypass admin check</Checkbox>
+          <input
+            type="hidden"
+            name="bypassAdmin"
+            value={Number(bypassAdmin)}
+          />
         </Form>
         {clientError && <Text style={{ marginTop: 10 }} type="error">{clientError}</Text>}
-        <Text p>Don&apos;t have an account? <AuthenticatedLink to="/signup">Sign up</AuthenticatedLink></Text>
-        <AuthenticatedLink to="/forgotPassword" prefetch='render'><Text p>Forgot your password?</Text></AuthenticatedLink>
       </Card>
     </div>
   );

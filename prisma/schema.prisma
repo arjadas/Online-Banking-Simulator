@@ -3,6 +3,10 @@ generator client {
   previewFeatures = ["driverAdapters"]
 }
 
+//npx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/001.sql
+//npx prisma migrate diff --from-local-d1 --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/001.sql
+//npx wrangler d1 migrations apply learn-to-bank --local
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -23,9 +27,8 @@ model Transaction {
   recc_transaction_id Int?
   settled             Boolean
   type                String
-
-  sender    Account @relation("transactionSender", fields: [sender_acc], references: [acc])
-  recipient Account @relation("transactionRecipient", fields: [recipient_acc], references: [acc])
+  sender              Account               @relation("transactionSender", fields: [sender_acc], references: [acc])
+  recipient           Account               @relation("transactionRecipient", fields: [recipient_acc], references: [acc])
 }
 
 model Account {
@@ -49,7 +52,7 @@ model Account {
 }
 
 model RecurringTransaction {
-  recc_transaction_id Int     @id @default(autoincrement())
+  recc_transaction_id Int           @id @default(autoincrement())
   amount              Int
   sender_acc          Int
   recipient_acc       Int
@@ -59,11 +62,9 @@ model RecurringTransaction {
   reference           String
   description         String?
   frequency           String
-
-  sender    Account @relation("reccTransactionSender", fields: [sender_acc], references: [acc])
-  recipient Account @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
-
-  transaction Transaction[]
+  sender              Account       @relation("reccTransactionSender", fields: [sender_acc], references: [acc])
+  recipient           Account       @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
+  transaction         Transaction[]
 }
 
 model CreditCard {
@@ -99,32 +100,17 @@ model MockUser {
   creation_timestamp DateTime
 }
 
-model DefaultTransaction {
-  def_transaction_id Int     @id @default(autoincrement())
-  sender_uid         String
-  recipient_uid      String
-  sender_acc         Int
-  recipient_acc      Int
-  incoming           Boolean
-  amount             Int
-  recipient_address  String
-  reference          String
-  description        String?
-  frequency          String
-}
-
 model UserPrevContact {
-  user_prev_contact_id Int    @id @default(autoincrement())
-  uid                  String
-  contact_acc          Int
-  contact_acc_name     String
-  contact_uid          String
-  contact_description  String
-  user                 User   @relation(fields: [uid], references: [uid])
+  user_prev_contact_id      Int    @id @default(autoincrement())
+  uid                       String
+  contact_acc               Int
+  contact_acc_name          String
+  contact_description       String
+  contact_recipient_address String
 }
 
 model User {
-  uid                String    @id
+  uid                String         @id
   first_name         String
   middle_names       String?
   last_name          String
@@ -133,10 +119,7 @@ model User {
   font_preference    String?
   creation_timestamp DateTime
   last_login         DateTime?
-
-  previous_contacts UserPrevContact[]
-
-  notifications Notification[]
+  notifications      Notification[]
 }
 
 model Notification {
@@ -146,6 +129,5 @@ model Notification {
   type            String
   content         String
   read            Boolean
-
-  user User @relation(fields: [uid], references: [uid])
+  user            User     @relation(fields: [uid], references: [uid])
 }

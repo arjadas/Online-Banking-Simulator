@@ -12,7 +12,7 @@ import { Provider } from 'react-redux';
 import { getUserSession } from "./auth.server";
 import { AuthProvider } from "./components/AuthProvider";
 import store from './store';
-import "./tailwind.css";
+import "./globalStyles.css";
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   const user = await getUserSession(context, request);

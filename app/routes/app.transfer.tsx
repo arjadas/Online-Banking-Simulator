@@ -3,26 +3,27 @@ import { Account } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
-import ResizableText from '~/components/ResizableText';
-import { getPrismaClient } from '~/util/db.server';
 import CurrencyInput from '~/components/CurrencyInput';
+import ResizableText from '~/components/ResizableText';
+import { getPrismaClient } from '~/service/db.server';
 import { getUserSession } from "../auth.server";
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   const formData = await request.formData();
   const fromAcc = parseInt(formData.get('fromAcc') as string);
   const toAcc = parseInt(formData.get('toAcc') as string);
-  const amount = parseInt(formData.get('amount') as string);
+  // Deleting the decimal point converts to cents: $99.99 -> 9999 cents
+  const amount = parseInt((formData.get('amount') as string).replace('.', ''));
   const description = formData.get('description') as string;
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
 
   try {
-    const fromAccount = await db.account.findFirst({
+    const fromAccount = await db.account.findUnique({
       where: { acc: fromAcc },
     });
 
-    const toAccount = await db.account.findFirst({
+    const toAccount = await db.account.findUnique({
       where: { acc: toAcc },
     });
 
@@ -67,16 +68,13 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
     return json({ success: true, ...result });
   } catch (error) {
-    console.error('Transfer error:', error);
     return json({ success: false, error: (error as Error).message }, { status: 400 });
   }
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  console.log(90)
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
-  console.log(23234, user)
 
   // fetch the user details and related data from Prisma
   const [userAccounts] = await Promise.all([
