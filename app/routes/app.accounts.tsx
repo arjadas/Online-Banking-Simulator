@@ -9,6 +9,8 @@ import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
 import { formatDate, toFixedWithCommas } from '~/util';
 import ResizableText from '~/components/ResizableText';
+import { setTextScale } from '~/appSlice';
+import { useDispatch } from 'react-redux';
 
 type MeUser = {
   uid: string;
@@ -54,6 +56,13 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   }
 
   userData = userData!
+
+  // Set user's font preference if they have one
+  if (!userData.font_preference) {
+    const dispatch = useDispatch();
+    dispatch(setTextScale(Number(userData.font_preference!)));
+  }
+  
 
   return json({
     me: {
