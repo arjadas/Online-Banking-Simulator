@@ -1,6 +1,6 @@
 import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
 import React from 'react';
 import { getUserSession } from '~/auth.server';
@@ -23,57 +23,70 @@ type MeUser = {
     timestamp: Date;
   }>;
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  // Ensure the user is authenticated
-  const user = await getUserSession(context, request);
-  const db = getPrismaClient(context);
-
-  if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
-
-  // Fetch the user details and related data from Prisma
-  const getMeUser = async () => {
-    return await Promise.all([
-      db.user.findUnique({
-        where: { uid: user.uid },
-        include: {
-          notifications: {
-            where: { read: false },
-          },
-        },
-      }),
-      db.account.findMany({
-        where: { uid: user.uid },
-      }),
-    ]);
-  }
-
-  let [userData, userAccounts] = await getMeUser();
-
-  if (!userData) {
-    console.error("User, not found! Creating new user..", user)
-    await createUser(context, user.uid, user.email, "Plan", "B");
-    [userData, userAccounts] = await getMeUser();
-  }
-
-  userData = userData!
-
-  // Set user's font preference if they have one
-  if (!userData.font_preference) {
-    const dispatch = useDispatch();
-    dispatch(setTextScale(Number(userData.font_preference!)));
-  }
   
+  try {
+    // Ensure the user is authenticated
+    const user = await getUserSession(context, request);
+    const db = getPrismaClient(context);
 
-  return json({
-    me: {
-      uid: userData.uid,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      email: userData.email,
-      notifications: userData.notifications,
-    },
-    userAccounts,
-  });
+    // if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
+    if (!user) return redirect("/login");  // Direct redirect
+
+    // Fetch the user details and related data from Prisma
+    const getMeUser = async () => {
+      return await Promise.all([
+        db.user.findUnique({
+          where: { uid: user.uid },
+          include: {
+            notifications: {
+              where: { read: false },
+            },
+          },
+        }),
+        db.account.findMany({
+          where: { uid: user.uid },
+        }),
+      ]);
+    }
+
+    let [userData, userAccounts] = await getMeUser();
+
+    if (!userData) {
+      console.error("User, not found! Creating new user..", user)
+      await createUser(context, user.uid, user.email, "Plan", "B");
+      [userData, userAccounts] = await getMeUser();
+    }
+
+    userData = userData!
+
+    // Set user's font preference if they have one
+    if (!userData.font_preference) {
+      const dispatch = useDispatch();
+      dispatch(setTextScale(Number(userData.font_preference!)));
+    }
+    
+
+    return json({
+      me: {
+        uid: userData.uid,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        email: userData.email,
+        notifications: userData.notifications,
+      },
+      userAccounts,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "SessionExpiredError") {
+      throw json(
+        { message: "Your session has expired. Please login again." },
+        { status: 440 }
+      );
+    }
+    throw error;
+  }
 };
 
 export default function Dashboard() {
