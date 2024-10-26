@@ -9,7 +9,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
   const cookie = {
     name: "session",
     httpOnly: true,
-    maxAge: 60 * 60 * 24 * 7, // 1 week
+    maxAge: 10, //60 * 60 * 24 * 7, // 1 week
     path: "/",
     sameSite: "lax",
     secrets: [import.meta.env.VITE_SESSION_SECRET],
@@ -55,8 +55,23 @@ async function getUserSession(context: any, request: Request) {
   const session = await getSession(request.headers.get("Cookie"));
   const uid = session.get("uid");
   const email = session.get("email");
+  const createdAt = session.get("createdAt");
 
   if (!uid || !email) return null;
+
+  // Check if session has expired
+  const MAX_AGE = 10; // 1 week in seconds (should match your cookie maxAge)
+  const currentTime = Math.floor(Date.now() / 1000);
+  
+  if (createdAt && (currentTime - createdAt) >= MAX_AGE) {
+    // Session has expired
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: "/login",
+      },
+    });
+  }
 
   return { uid, email };
 }

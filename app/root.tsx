@@ -17,6 +17,13 @@ import "./globalStyles.css";
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   const user = await getUserSession(context, request);
   const url = new URL(request.url);
+  const isLoginPage = url.pathname === "/login";
+
+  // If no user session or session expired, redirect to login 
+  // (unless already on login page to prevent redirect loops)
+  if (!user && !isLoginPage) {
+    return redirect("/login");
+  }
 
   // Handle initial request
   if (url.pathname === "/") {
