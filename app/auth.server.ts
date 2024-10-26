@@ -9,7 +9,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
   const cookie = {
     name: "session",
     httpOnly: true,
-    maxAge: 10, //60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 4, // 4 hours
     path: "/",
     sameSite: "lax",
     secrets: [import.meta.env.VITE_SESSION_SECRET],
@@ -60,7 +60,7 @@ async function getUserSession(context: any, request: Request) {
   if (!uid || !email) return null;
 
   // Check if session has expired
-  const MAX_AGE = 10; // 1 week in seconds (should match your cookie maxAge)
+  const MAX_AGE = 60 * 60 * 4; // 4 hours
   const currentTime = Math.floor(Date.now() / 1000);
   
   if (createdAt && (currentTime - createdAt) >= MAX_AGE) {
