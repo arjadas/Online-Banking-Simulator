@@ -15,6 +15,27 @@ import { getUserSession } from "./auth.server";
 import { AuthProvider } from "./components/AuthProvider";
 import store from './store';
 import "./globalStyles.css";
+import { useEffect } from "react";
+
+// Add an error boundary component
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (error) {
+      console.error(error);
+      navigate("/login");
+    }
+  }, [error, navigate]);
+
+  return (
+    <div>
+      <h1>Something went wrong</h1>
+      <p>Redirecting to login...</p>
+    </div>
+  );
+}
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   try {
