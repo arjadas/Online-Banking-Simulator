@@ -32,7 +32,7 @@ export function ErrorBoundary() {
   return (
     <div>
       <h1>Something went wrong</h1>
-      <p>Redirecting to login...</p>
+      <p>Please go back to login page...</p>
     </div>
   );
 }
