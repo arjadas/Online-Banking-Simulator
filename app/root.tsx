@@ -6,7 +6,9 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData
+  useLoaderData,
+  useNavigate,
+  useRouteError
 } from "@remix-run/react";
 import { Provider } from 'react-redux';
 import { getUserSession } from "./auth.server";
@@ -15,26 +17,32 @@ import store from './store';
 import "./globalStyles.css";
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
-  const user = await getUserSession(context, request);
-  const url = new URL(request.url);
-  const isLoginPage = url.pathname === "/login";
+  try {
+    const user = await getUserSession(context, request);
+    const url = new URL(request.url);
+    const isLoginPage = url.pathname === "/login";
 
-  // If no user session or session expired, redirect to login 
-  // (unless already on login page to prevent redirect loops)
-  if (!user && !isLoginPage) {
+    // If no user session or session expired, redirect to login 
+    // (unless already on login page to prevent redirect loops)
+    if (!user && !isLoginPage) {
+      return redirect("/login");  // Direct redirect instead of throwing
+    }
+
+    // Handle initial request
+    if (url.pathname === "/") {
+      if (user) {
+        return redirect("/app/accounts");
+      } else {
+        return redirect("/login");
+      }
+    }
+
+    return json({ user });
+    
+  } catch (error) {
+    // Catch any errors and redirect to login
     return redirect("/login");
   }
-
-  // Handle initial request
-  if (url.pathname === "/") {
-    if (user) {
-      return redirect("/app/accounts");
-    } else {
-      return redirect("/login");
-    }
-  }
-
-  return json({ user });
 };
 
 export default function App() {

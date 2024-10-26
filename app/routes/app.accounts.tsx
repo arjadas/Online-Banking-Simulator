@@ -1,6 +1,6 @@
 import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
 import React from 'react';
 import { getUserSession } from '~/auth.server';
@@ -28,7 +28,8 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
 
-  if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
+  //if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
+  if (!user) return redirect("/login");  // Direct redirect
 
   // Fetch the user details and related data from Prisma
   const getMeUser = async () => {
