@@ -19,29 +19,56 @@ import { useEffect } from "react";
 
 // Add an error boundary component
 export function ErrorBoundary() {
-  const error = useRouteError();
+  const error = useRouteError() as any;
   const navigate = useNavigate();
 
   useEffect(() => {
     if (error) {
-      console.error(error);
-      navigate("/login");
+      console.error('Error details:', error);
+      const timeoutId = setTimeout(() => {
+        navigate("/login");
+      }, 3000); // Stay on the screen for 3 seconds
+
+      return () => clearTimeout(timeoutId); // Cleanup timeout on component unmount
     }
   }, [error, navigate]);
 
+  const getErrorMessage = () => {
+
+    // check status codes
+    switch (error?.status) {
+      case 440:
+        return "Your session has expired. Please login again.";
+      case 401:
+        return "Unauthenticated. Please login to continue.";
+      default:
+        return "An unexpected error occurred. Please try again.";
+    }
+  }
+
   return (
-    <div>
-      <h1>Something went wrong</h1>
-      <p>Please go back to login page...</p>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: '100vh',
+      padding: '20px',
+      textAlign: 'center'
+    }}>
+      <h1>{getErrorMessage()}</h1>
+      <p>Redirecting to login page...</p>
     </div>
   );
 }
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
+  
+  const url = new URL(request.url);
+  const isLoginPage = url.pathname === "/login";
+
   try {
     const user = await getUserSession(context, request);
-    const url = new URL(request.url);
-    const isLoginPage = url.pathname === "/login";
 
     // If no user session or session expired, redirect to login 
     // (unless already on login page to prevent redirect loops)
@@ -61,8 +88,17 @@ export const loader: LoaderFunction = async ({ request, context }: { request: Re
     return json({ user });
     
   } catch (error) {
-    // Catch any errors and redirect to login
-    return redirect("/login");
+    if ((error as any).name === "SessionExpiredError") {
+      throw json(
+        { message: "Your session has expired. Please login again." },
+        { status: 440 }
+      );
+    }
+    // Handle other errors
+    throw json(
+      { message: "An unexpected error occurred. Please try again." },
+      { status: 500 }
+    );
   }
 };
 

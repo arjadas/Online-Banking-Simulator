@@ -55,22 +55,20 @@ async function getUserSession(context: any, request: Request) {
   const session = await getSession(request.headers.get("Cookie"));
   const uid = session.get("uid");
   const email = session.get("email");
-  const createdAt = session.get("createdAt");
 
+  // return null if no session
   if (!uid || !email) return null;
-
-  // Check if session has expired
+  
   const MAX_AGE = 60 * 60 * 4; // 4 hours
   const currentTime = Math.floor(Date.now() / 1000);
-  
+  const createdAt = session.get("createdAt");
+
+  // Check if session has expired
   if (createdAt && (currentTime - createdAt) >= MAX_AGE) {
-    // Session has expired
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: "/login",
-      },
-    });
+    // Throw a specific error for session expiry
+    const error = new Error("Session expired");
+    error.name = "SessionExpiredError";
+    throw error;
   }
 
   return { uid, email };
