@@ -124,16 +124,16 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     const dateInputStyle = {
         width: '100%',
         backgroundColor: 'white',
-        borderRadius:'6px',
-        border: `1px solid ${isDateHovered || isDateFocused ? 'black' : 'white'}`,
-        height:'4vh',
+        borderRadius: '6px',
+        border: `1px solid ${isDateHovered || isDateFocused ? 'black' : 'lightgrey'}`,
+        height: '4vh',
         transition: 'border-color 0.3s, color 0.3s',
     };
     const startDateInputStyle = {
         width: '100%',
         backgroundColor: 'white',
         borderRadius:'6px',
-        border: `1px solid ${isStartDateHovered || isStartDateFocused ? 'black' : 'white'}`,
+        border: `1px solid ${isStartDateHovered || isStartDateFocused ? 'black' : 'lightgrey'}`,
         height:'4vh',
         transition: 'border-color 0.3s, color 0.3s',
     };
@@ -141,7 +141,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         width: '100%',
         backgroundColor: 'white',
         borderRadius:'6px',
-        border: `1px solid ${isEndDateHovered || isEndDateFocused ? 'black' : 'white'}`,
+        border: `1px solid ${isEndDateHovered || isEndDateFocused ? 'black' : 'lightgrey'}`,
         height:'4vh',
         transition: 'border-color 0.3s, color 0.3s',
     };
@@ -149,7 +149,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         width: '100%',
         backgroundColor: 'white',
         borderRadius:'6px',
-        border: `1px solid ${isTimeHovered || isTimeFocused ? 'black' : 'white'}`,
+        border: `1px solid ${isTimeHovered || isTimeFocused ? 'black' : 'lightgrey'}`,
         height:'4vh',
         transition: 'border-color 0.3s, color 0.3s',
     };
