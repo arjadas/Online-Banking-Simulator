@@ -1,5 +1,6 @@
+
 import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
-import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
+import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User, CreditCard } from '@geist-ui/react-icons';
 import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
@@ -17,6 +18,7 @@ export const meta: MetaFunction = () => {
 const navItems = [
   { icon: <Home />, label: "Home", to: "/app/accounts" },
   { icon: <List />, label: "History", to: "/app/transactions" },
+  { icon: <CreditCard />, label: "My Cards", to: "/app/cards" },
   { icon: <Settings />, label: "Settings", to: "/app/settings" },
   { icon: <LogOut />, label: "Logout", to: "/logout" },
 ];
@@ -105,9 +107,14 @@ export default function AppLayout() {
 
                         return (<Button
                           key={index}
-                          icon={React.cloneElement(item.icon, { size: `${textScale}` })}
+                          icon={
+                            <span style={{display:'flex',alignItems:'center', scale: `${textScale/13}`}}>
+                              {React.cloneElement(item.icon)}
+                            </span>
+                            }
                           onClick={() => navigate(item.to)}
                           style={{
+                            fontSize: textScale,
                             backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
                             borderBottom: isSelected ? '2px solid #000' : 'none',
                             borderRadius: 0,
@@ -118,7 +125,22 @@ export default function AppLayout() {
                       })}
                     </ButtonGroup>
                     <Spacer w={1} />
-                    <Button icon={<DollarSign size={`${textScale}`}/>} onClick={() => setDrawerOpen(true)} auto scale={6 / 5} type="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Pay</Button>
+                    <Button 
+                      icon={
+                        <span style={{display:'flex',alignItems:'center', scale: `${textScale/13}`}}>
+                          {<DollarSign/>}
+                        </span>
+                      } 
+                      onClick={() => setDrawerOpen(true)} 
+                      auto scale={6 / 5} 
+                      type="success" 
+                      style={{fontSize: textScale}}
+                      placeholder={undefined} 
+                      onPointerEnterCapture={undefined} 
+                      onPointerLeaveCapture={undefined}
+                    >
+                      Pay
+                    </Button>
                   </div>
                 </Card>
               </Grid>

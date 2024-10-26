@@ -23,6 +23,7 @@ type MeUser = {
     timestamp: Date;
   }>;
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   
   try {
@@ -86,8 +87,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     }
     throw error;
   }
-  
-  
 };
 
 export default function Dashboard() {
