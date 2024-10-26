@@ -9,7 +9,7 @@ function createSessionStorage(firebaseStorage: KVNamespace) {
   const cookie = {
     name: "session",
     httpOnly: true,
-    maxAge: 10 ,// 60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 24 * 7, // 1 week
     path: "/",
     sameSite: "lax",
     secrets: [import.meta.env.VITE_SESSION_SECRET],
