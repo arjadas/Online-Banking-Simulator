@@ -23,7 +23,8 @@ export function ErrorBoundary() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (error) {
+    // Only redirect to login for auth-related errors
+    if (error.status === 440 || error.status === 401) {
       console.error('Error details:', error);
       const timeoutId = setTimeout(() => {
         navigate("/login");
@@ -41,24 +42,62 @@ export function ErrorBoundary() {
         return "Your session has expired. Please login again.";
       case 401:
         return "Unauthenticated. Please login to continue.";
+      case 404:
+        return "Page not found";
       default:
         return "An unexpected error occurred. Please try again.";
     }
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: '100vh',
-      padding: '20px',
-      textAlign: 'center'
-    }}>
-      <h1>{getErrorMessage()}</h1>
-      <p>Redirecting to login page...</p>
-    </div>
+    <html lang="en">
+      <head>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100vh',
+            padding: '20px',
+            textAlign: 'center',
+          }}
+        >
+          {error?.status === 404 ? (
+            <>
+              <h1>404 - Page Not Found</h1>
+              <p>The page you're looking for doesn't exist.</p>
+              <button
+                onClick={() => navigate(-1)}
+                style={{
+                  padding: '10px 20px',
+                  marginTop: '20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  backgroundColor: '#0070f3',
+                  color: 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                Go Back
+              </button>
+            </>
+          ) : (
+            <>
+              <h1>{getErrorMessage()}</h1>
+              {(error?.status === 440 || error?.status === 401) && (
+                <p>Redirecting to login page...</p>
+              )}
+            </>
+          )}
+        </div>
+        <Scripts />
+      </body>
+    </html>
   );
 }
 

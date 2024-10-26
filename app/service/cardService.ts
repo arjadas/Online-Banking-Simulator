@@ -56,8 +56,6 @@ export async function openCard(
     const adapter = new PrismaD1(context.cloudflare.env.DB);
     const db = getPrismaClient(context);
     const date = new Date();
-    
-    console.log("something");
 
     try {
         if (cardType === "credit") {
