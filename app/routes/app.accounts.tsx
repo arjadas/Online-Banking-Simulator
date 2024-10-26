@@ -9,6 +9,7 @@ import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
 import { formatDate, toFixedWithCommas } from '~/util';
 import ResizableText from '~/components/ResizableText';
+import { redirect } from "@remix-run/node"
 
 type MeUser = {
   uid: string;

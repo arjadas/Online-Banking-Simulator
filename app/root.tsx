@@ -13,6 +13,7 @@ import { getUserSession } from "./auth.server";
 import { AuthProvider } from "./components/AuthProvider";
 import store from './store';
 import "./globalStyles.css";
+import SessionCheck from './components/SessionCheck';
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   const user = await getUserSession(context, request);
@@ -43,6 +44,7 @@ export default function App() {
         <Provider store={store}>
           <AuthProvider uid={user?.uid}>
             <CssBaseline />
+            {user && <SessionCheck />} {/* Only render if user is logged in */}
             <Outlet />
             <ScrollRestoration />
             <Scripts />
