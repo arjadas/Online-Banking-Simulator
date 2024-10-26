@@ -6,7 +6,7 @@
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx"
-, "app/components/CurrencyInput.tsx"  ],
+, "app/components/CurrencyInput.tsx", "test/tsconfig.json", "test/app.transfer.test.mts", "vitest.config.ts", "test/app.transfer.test.ts"  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": [

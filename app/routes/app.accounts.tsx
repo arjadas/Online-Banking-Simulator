@@ -59,6 +59,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 
   // Set user's font preference if they have one
   if (!userData.font_preference) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const dispatch = useDispatch();
     dispatch(setTextScale(Number(userData.font_preference!)));
   }
