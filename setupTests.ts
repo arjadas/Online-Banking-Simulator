@@ -5,19 +5,50 @@ import '@testing-library/jest-dom';
 global.fetch = vi.fn();
 
 // Mock FormData
-global.FormData = vi.fn(() => ({
-    append: vi.fn(),
-    get: vi.fn(),
-    getAll: vi.fn(),
-    has: vi.fn(),
-    delete: vi.fn(),
-    keys: vi.fn(),
-    values: vi.fn(),
-    entries: vi.fn(),
-    forEach: vi.fn(),
-    set: vi.fn(),
-    [Symbol.iterator]: vi.fn(),
-}));
+global.FormData = class MockFormData {
+    private store: Map<string, string>;
+  
+    constructor() {
+      this.store = new Map();
+    }
+  
+    append(key: string, value: string) {
+      this.store.set(key, value);
+    }
+  
+    get(key: string) {
+      return this.store.get(key);
+    }
+  
+    getAll(key: string) {
+      const value = this.store.get(key);
+      return value ? [value] : [];
+    }
+  
+    has(key: string) {
+      return this.store.has(key);
+    }
+  
+    delete(key: string) {
+      this.store.delete(key);
+    }
+  
+    *keys() {
+      yield* this.store.keys();
+    }
+  
+    *values() {
+      yield* this.store.values();
+    }
+  
+    *entries() {
+      yield* this.store.entries();
+    }
+  
+    forEach(callback: (value: string, key: string) => void) {
+      this.store.forEach(callback);
+    }
+  } as any;
 
 // Mock environment variables
 process.env = {

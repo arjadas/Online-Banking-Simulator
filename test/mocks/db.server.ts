@@ -18,7 +18,7 @@ const mockTransaction = async (operations: any[]) => {
 // Create mock Prisma client
 const mockPrismaClient = {
     account: {
-        findUnique: vi.fn(),
+        findUnique: vi.fn((args: { where: { acc: number } }) => Promise.resolve(null)),
         update: vi.fn(),
         findMany: vi.fn(),
         create: vi.fn(),

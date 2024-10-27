@@ -1,214 +1,139 @@
-import { createExecutionContext } from './mocks/cloudflare-mock';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { action } from '../app/routes/app.transfer';
-import { getPrismaClient, mockDb, createMockContext } from './mocks/db.server';
-
-// Mock the auth.server module
-vi.mock('../app/auth.server', () => ({
-    getUserSession: vi.fn(() => ({ uid: 'test-user-id' })),
-    getSessionStorage: vi.fn(),
-    createSessionStorage: vi.fn(),
-}));
-
-// Mock the db.server module
-//vi.mock('../app/service/db.server', () => ({
-//    getPrismaClient: vi.fn(),
-//}));
+import { mockDb, createMockContext } from './mocks/db.server';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 describe('Transfer Action', () => {
+  const mockContext = createMockContext();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Reset all mocks to their initial state
+    mockDb.account.findUnique.mockReset();
+    mockDb.account.update.mockReset();
+    mockDb.transaction.create.mockReset();
+  });
+
+  const createMockRequest = (data: { fromAcc: string; toAcc: string; amount: string; description: string }) => {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    return new Request('http://localhost', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
+    });
+  };
+
+  it('should successfully transfer money between accounts', async () => {
+    const fromAccount = { acc: 1, balance: 10000, short_description: 'Checking' };
+    const toAccount = { acc: 2, balance: 5000, short_description: 'Savings' };
     
-    let mockContext: any;
-    let mockRequest: Request;
-
-    beforeEach(() => {
-
-        // Clear all mock implementations
-        vi.clearAllMocks();
-
-        // Setup mock Cloudflare context
-        const mockDbContext = createMockContext();
-        mockContext = {
-            ...mockDbContext,
-            executionContext: createExecutionContext(),
-            env: {
-                ...mockDbContext.cloudflare.env,
-                firebase_storage: 'mock-storage',
-            },
-        };
-
-        // Set up the mock database client
-        //const { getPrismaClient } = require('../app/service/db.server');
-        //getPrismaClient.mockReturnValue(mockDb);
+    mockDb.account.findUnique
+      .mockImplementation(({ where }) => {
+        if (where.acc === 1) return Promise.resolve(fromAccount);
+        if (where.acc === 2) return Promise.resolve(toAccount);
+        return Promise.resolve(null);
+      });
+    
+    mockDb.account.update
+      .mockResolvedValueOnce({ ...fromAccount, balance: 9000 })
+      .mockResolvedValueOnce({ ...toAccount, balance: 6000 });
+    
+    mockDb.transaction.create.mockResolvedValue({
+      id: 1,
+      amount: 1000,
+      sender_acc: 1,
+      recipient_acc: 2,
     });
 
-    const createActionArgs = (request: Request): any => ({
-        context: mockContext,
-        request,
-        params: {},
+    const request = createMockRequest({
+      fromAcc: '1',
+      toAcc: '2',
+      amount: '10.00',
+      description: 'Test transfer'
     });
 
-    it('should successfully transfer money between accounts', async () => {
-        // Setup test data
-        const fromAccount = {
-            acc: 123,
-            balance: 10000, // $100.00
-            short_description: 'Checking',
-        };
-        const toAccount = {
-            acc: 456,
-            balance: 5000, // $50.00
-            short_description: 'Savings',
-        };
-        const transferAmount = '50.00'; // $50.00
+    const response = await action({ context: mockContext, request });
+    const result = await response.json();
 
-        // Mock DB responses
-        mockDb.account.findUnique
-            .mockResolvedValueOnce(fromAccount)
-            .mockResolvedValueOnce(toAccount);
+    expect(result.success).toBe(true);
+    expect(mockDb.account.update).toHaveBeenCalledTimes(2);
+    expect(mockDb.transaction.create).toHaveBeenCalledTimes(1);
+  });
 
-        mockDb.account.update
-            .mockResolvedValueOnce({ ...fromAccount, balance: 5000 })
-            .mockResolvedValueOnce({ ...toAccount, balance: 10000 });
+  it('should fail when transferring to the same account', async () => {
+    const account = { acc: 1, balance: 10000, short_description: 'Checking' };
+    
+    mockDb.account.findUnique
+      .mockImplementation(({ where }) => {
+        if (where.acc === 1) return Promise.resolve(account);
+        return Promise.resolve(null);
+      });
 
-        mockDb.transaction.create.mockResolvedValueOnce({
-            transaction_id: 1,
-            amount: 5000,
-            sender_acc: 123,
-            recipient_acc: 456,
-            sender_uid: 'test-user-id',
-            recipient_uid: 'test-recipient-id',
-            reference: 'Test transfer',
-            timestamp: new Date(),
-            settled: true,
-            type: 'TRANSFER'
-        });
-
-        // Create form data
-        const formData = new URLSearchParams();
-        formData.append('fromAcc', '123');
-        formData.append('toAcc', '456');
-        formData.append('amount', transferAmount);
-        formData.append('description', 'Test transfer');
-
-        mockRequest = new Request('http://localhost', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData.toString(),
-        });
-
-        // Execute action
-        const result = await action(createActionArgs(mockRequest)) as Response;
-        const responseData = await result.json() as any;
-
-        // Verify success
-        expect(responseData.success).toBe(true);
-
-        // Verify DB calls
-        expect(mockDb.account.findUnique).toHaveBeenCalledTimes(2);
-        expect(mockDb.account.update).toHaveBeenCalledTimes(2);
-        expect(mockDb.transaction.create).toHaveBeenCalledTimes(1);
-
-        // Verify transaction details
-        const createTransactionCall = mockDb.transaction.create.mock.calls[0][0];
-        expect(createTransactionCall.data.amount).toBe(5000);
-        expect(createTransactionCall.data.sender_acc).toBe(123);
-        expect(createTransactionCall.data.recipient_acc).toBe(456);
+    const request = createMockRequest({
+      fromAcc: '1',
+      toAcc: '1',
+      amount: '10.00',
+      description: 'Test transfer'
     });
 
-    it('should fail when transferring to the same account', async () => {
-        const account = {
-            acc: 123,
-            balance: 10000,
-            short_description: 'Checking',
-        };
+    const response = await action({ context: mockContext, request });
+    const result = await response.json();
 
-        mockDb.account.findUnique.mockResolvedValue(account);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Cannot transfer into the same account.');
+    expect(mockDb.account.update).not.toHaveBeenCalled();
+    expect(mockDb.transaction.create).not.toHaveBeenCalled();
+  });
 
-        const formData = new URLSearchParams();
-        formData.append('fromAcc', '123');
-        formData.append('toAcc', '123');
-        formData.append('amount', '50.00');
-        formData.append('description', 'Test transfer');
+  it('should fail when there are insufficient funds', async () => {
+    const fromAccount = { acc: 1, balance: 500, short_description: 'Checking' };
+    const toAccount = { acc: 2, balance: 5000, short_description: 'Savings' };
+    
+    mockDb.account.findUnique
+      .mockImplementation(({ where }) => {
+        if (where.acc === 1) return Promise.resolve(fromAccount);
+        if (where.acc === 2) return Promise.resolve(toAccount);
+        return Promise.resolve(null);
+      });
 
-        mockDb.transaction.create.mockRejectedValueOnce(new Error('Cannot transfer into the same account.'));
-
-        mockRequest = new Request('http://localhost', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData.toString(),
-        });
-
-        const result = await action(createActionArgs(mockRequest)) as Response;
-        const responseData = await result.json() as any;
-
-        expect(responseData.success).toBe(false);
-        expect(responseData.error).toBe('Cannot transfer into the same account.');
+    const request = createMockRequest({
+      fromAcc: '1',
+      toAcc: '2',
+      amount: '10.00',
+      description: 'Test transfer'
     });
 
-    it('should fail when there are insufficient funds', async () => {
-        const fromAccount = {
-            acc: 123,
-            balance: 2000, // $20.00
-            short_description: 'Checking',
-        };
-        const toAccount = {
-            acc: 456,
-            balance: 5000,
-            short_description: 'Savings',
-        };
+    const response = await action({ context: mockContext, request });
+    const result = await response.json();
 
-        mockDb.account.findUnique
-            .mockResolvedValueOnce(fromAccount)
-            .mockResolvedValueOnce(toAccount);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Insufficient funds');
+    expect(mockDb.account.update).not.toHaveBeenCalled();
+    expect(mockDb.transaction.create).not.toHaveBeenCalled();
+  });
 
-        const formData = new URLSearchParams();
-        formData.append('fromAcc', '123');
-        formData.append('toAcc', '456');
-        formData.append('amount', '50.00'); // Trying to transfer $50.00
-        formData.append('description', 'Test transfer');
+  it('should fail when account is not found', async () => {
+    mockDb.account.findUnique.mockResolvedValue(null);
 
-        mockRequest = new Request('http://localhost', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData.toString(),
-        });
-
-        const result = await action(createActionArgs(mockRequest)) as Response;
-        const responseData = await result.json() as any;
-
-        expect(responseData.success).toBe(false);
-        expect(responseData.error).toBe('Insufficient funds');
+    const request = createMockRequest({
+      fromAcc: '999',
+      toAcc: '888',
+      amount: '10.00',
+      description: 'Test transfer'
     });
 
-    it('should fail when account is not found', async () => {
-        mockDb.account.findUnique
-            .mockResolvedValueOnce(null)
-            .mockResolvedValueOnce(null);
+    const response = await action({ context: mockContext, request });
+    const result = await response.json();
 
-        const formData = new URLSearchParams();
-        formData.append('fromAcc', '123');
-        formData.append('toAcc', '456');
-        formData.append('amount', '50.00');
-        formData.append('description', 'Test transfer');
-
-        mockRequest = new Request('http://localhost', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData.toString(),
-        });
-
-        const result = await action(createActionArgs(mockRequest)) as Response;
-        const responseData = await result.json() as any;
-
-        expect(responseData.success).toBe(false);
-        expect(responseData.error).toBe('One or both accounts not found');
-    });
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('One or both accounts not found');
+    expect(mockDb.account.update).not.toHaveBeenCalled();
+    expect(mockDb.transaction.create).not.toHaveBeenCalled();
+  });
 });
