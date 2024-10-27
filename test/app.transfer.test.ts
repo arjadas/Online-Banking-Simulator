@@ -1,48 +1,44 @@
-const { createExecutionContext } = await import('cloudflare:test');
+import { createExecutionContext } from './mocks/cloudflare-mock';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { action } from '../app/routes/app.transfer';
+import { getPrismaClient, mockDb, createMockContext } from './mocks/db.server';
+
+// Mock the auth.server module
+vi.mock('../app/auth.server', () => ({
+    getUserSession: vi.fn(() => ({ uid: 'test-user-id' })),
+    getSessionStorage: vi.fn(),
+    createSessionStorage: vi.fn(),
+}));
+
+// Mock the db.server module
+//vi.mock('../app/service/db.server', () => ({
+//    getPrismaClient: vi.fn(),
+//}));
 
 describe('Transfer Action', () => {
-    let mockDb: any;
+    
     let mockContext: any;
     let mockRequest: Request;
-    let mockUserSession: any;
 
     beforeEach(() => {
-        // Reset mocks before each test
-        mockDb = {
-            account: {
-                findUnique: vi.fn(),
-                update: vi.fn(),
-            },
-            transaction: {
-                create: vi.fn(),
-            },
-            $transaction: async (operations: any[]) => {
-                for (const operation of operations) {
-                    await operation;
-                }
-                return operations;
-            },
-        };
 
+        // Clear all mock implementations
+        vi.clearAllMocks();
+
+        // Setup mock Cloudflare context
+        const mockDbContext = createMockContext();
         mockContext = {
-            env: {},
+            ...mockDbContext,
             executionContext: createExecutionContext(),
+            env: {
+                ...mockDbContext.cloudflare.env,
+                firebase_storage: 'mock-storage',
+            },
         };
 
-        // Mock getUserSession
-        mockUserSession = {
-            uid: 'test-user-id',
-        };
-
-        vi.mock('~/service/db.server', () => ({
-            getPrismaClient: () => mockDb,
-        }));
-
-        vi.mock('../auth.server', () => ({
-            getUserSession: () => mockUserSession,
-        }));
+        // Set up the mock database client
+        //const { getPrismaClient } = require('../app/service/db.server');
+        //getPrismaClient.mockReturnValue(mockDb);
     });
 
     const createActionArgs = (request: Request): any => ({
@@ -75,12 +71,20 @@ describe('Transfer Action', () => {
             .mockResolvedValueOnce({ ...toAccount, balance: 10000 });
 
         mockDb.transaction.create.mockResolvedValueOnce({
-            id: 'test-transaction',
+            transaction_id: 1,
             amount: 5000,
+            sender_acc: 123,
+            recipient_acc: 456,
+            sender_uid: 'test-user-id',
+            recipient_uid: 'test-recipient-id',
+            reference: 'Test transfer',
+            timestamp: new Date(),
+            settled: true,
+            type: 'TRANSFER'
         });
 
         // Create form data
-        const formData = new FormData();
+        const formData = new URLSearchParams();
         formData.append('fromAcc', '123');
         formData.append('toAcc', '456');
         formData.append('amount', transferAmount);
@@ -88,10 +92,13 @@ describe('Transfer Action', () => {
 
         mockRequest = new Request('http://localhost', {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
         });
 
-        // Execute action with proper ActionFunctionArgs
+        // Execute action
         const result = await action(createActionArgs(mockRequest)) as Response;
         const responseData = await result.json() as any;
 
@@ -119,15 +126,20 @@ describe('Transfer Action', () => {
 
         mockDb.account.findUnique.mockResolvedValue(account);
 
-        const formData = new FormData();
+        const formData = new URLSearchParams();
         formData.append('fromAcc', '123');
         formData.append('toAcc', '123');
         formData.append('amount', '50.00');
         formData.append('description', 'Test transfer');
 
+        mockDb.transaction.create.mockRejectedValueOnce(new Error('Cannot transfer into the same account.'));
+
         mockRequest = new Request('http://localhost', {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
         });
 
         const result = await action(createActionArgs(mockRequest)) as Response;
@@ -153,7 +165,7 @@ describe('Transfer Action', () => {
             .mockResolvedValueOnce(fromAccount)
             .mockResolvedValueOnce(toAccount);
 
-        const formData = new FormData();
+        const formData = new URLSearchParams();
         formData.append('fromAcc', '123');
         formData.append('toAcc', '456');
         formData.append('amount', '50.00'); // Trying to transfer $50.00
@@ -161,7 +173,10 @@ describe('Transfer Action', () => {
 
         mockRequest = new Request('http://localhost', {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
         });
 
         const result = await action(createActionArgs(mockRequest)) as Response;
@@ -176,7 +191,7 @@ describe('Transfer Action', () => {
             .mockResolvedValueOnce(null)
             .mockResolvedValueOnce(null);
 
-        const formData = new FormData();
+        const formData = new URLSearchParams();
         formData.append('fromAcc', '123');
         formData.append('toAcc', '456');
         formData.append('amount', '50.00');
@@ -184,7 +199,10 @@ describe('Transfer Action', () => {
 
         mockRequest = new Request('http://localhost', {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
         });
 
         const result = await action(createActionArgs(mockRequest)) as Response;
