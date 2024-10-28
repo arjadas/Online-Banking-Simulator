@@ -1,8 +1,8 @@
+import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { sendResetPasswordEmail } from "~/auth.client";
-import { Button, Card, Image, Input, Text } from '@geist-ui/react';
-import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import AuthenticatedLink from '~/components/AuthenticatedLink';
 
 type ActionData = {
   error?: string;

@@ -4,7 +4,7 @@ import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { signup } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
-import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from "~/service/userService";
 

@@ -4,7 +4,7 @@ import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, Us
 import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { RootState } from '../store';
 

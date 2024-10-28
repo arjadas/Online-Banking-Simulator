@@ -160,12 +160,12 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 <Tabs style ={{fontWeight:'bold'}}initialValue="now" hideDivider>
                     <Tabs.Item label="Now" value="now" >
                     
-                        <Text>Set Up Instant Transaction For Immediate Payments</Text>
+                        <ResizableText>Set Up Instant Transaction For Immediate Payments</ResizableText>
                         <Spacer />
                         </Tabs.Item>
                         <Tabs.Item label="Later" value="later">
-                    <Text>Set Up Scheduled Transaction For Future Payments</Text>
-                    <label style={{ fontWeight: 'bold' }}>Date:</label>
+                    <ResizableText>Set Up Scheduled Transaction For Future Payments</ResizableText>
+                    <ResizableText style={{ fontWeight: 'bold' }}>Date:</ResizableText>
                     <input
                         type="date"
                         style={dateInputStyle}
@@ -176,7 +176,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                         placeholder="Enter Date"
                     />
                     <Spacer />
-                    <label style={{ fontWeight: 'bold' }}>Time:</label>
+                    <ResizableText style={{ fontWeight: 'bold' }}>Time:</ResizableText>
                     <input
                         type="time"
                         style={timeInputStyle}
@@ -190,9 +190,9 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 </Tabs.Item>
 
                     <Tabs.Item label="Recurring" value="recurring">
-                        <Text>Set Up Automatic Transaction For Regular Payments</Text>
+                        <ResizableText>Set Up Automatic Transaction For Regular Payments</ResizableText>
                         <div>
-                            <label style={{ fontWeight: 'bold' }}>Frequency:</label>
+                            <ResizableText style={{ fontWeight: 'bold' }}>Frequency:</ResizableText>
                             <Select placeholder="Select frequency" style={{ width: "100%" }} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
                                 <Select.Option value="weekly">Weekly</Select.Option>
                                 <Select.Option value="fortnightly">Fortnightly</Select.Option>
@@ -200,7 +200,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                             </Select>
                             <Spacer />
                          </div>
-                         <label style={{ fontWeight: 'bold' }}>Start Date:</label>
+                         <ResizableText style={{ fontWeight: 'bold' }}>Start Date:</ResizableText>
                     <input
                         type="date"
                         style={startDateInputStyle}
@@ -211,7 +211,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                         placeholder="Enter Date"
                     />
                     <Spacer />
-                    <label style={{ fontWeight: 'bold' }}>End Date:</label>
+                    <ResizableText style={{ fontWeight: 'bold' }}>End Date:</ResizableText>
                     <input
                         type="date"
                         style={endDateInputStyle}
@@ -241,7 +241,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 <ResizableText h4>Payment Method</ResizableText>
                 <Tabs  style ={{fontWeight:'bold'}} value={activeTab} onChange={setActiveTab} hideDivider >
                     <Tabs.Item label="ACC / BSB" value="acc-bsb">
-                        <Text>Instant Transfers Between Bank Accounts</Text>
+                        <ResizableText>Instant Transfers Between Bank Accounts</ResizableText>
                         <Spacer />
                         <ResizableText h4>Account Name</ResizableText>
                         <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
@@ -251,13 +251,13 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                         <Input width="100%" placeholder="Enter bsb" aria-label="BSB" value={recipientAddress.bsb === -1 ? '' : recipientAddress.bsb.toString()} onChange={handleBsbChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="PayID" value="pay-id">
-                    <Text>Instant Payments Using Your Email or Mobile Number</Text>
+                    <ResizableText>Instant Payments Using Your Email or Mobile Number</ResizableText>
                         <Spacer />
                         <ResizableText h4>PayID</ResizableText>
                         <Input width="100%" placeholder="Enter PayID" aria-label="PayID" value={recipientAddress.payId} onChange={handlePayIdChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="BPay" value="b-pay">
-                    <Text> Easy Bill Payments from Your Bank Account</Text>
+                    <ResizableText> Easy Bill Payments from Your Bank Account</ResizableText>
                         <Spacer />
                         <ResizableText h4>Biller Code</ResizableText>
                         <Input width="100%" placeholder="Enter biller code" aria-label="Biller Code" value={recipientAddress.billerCode === -1 ? '' : recipientAddress.billerCode.toString()} onChange={handleBillerCodeChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />

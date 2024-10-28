@@ -64,7 +64,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     throw new Response("No Debit Account found!", { status: 404 });
   }
 
-  let accBalance: balance = {
+  const accBalance: balance = {
     credit: userCreditAcc[0].balance,
     debit: userDebitAcc[0].balance,
   }
@@ -173,7 +173,7 @@ export default function MyCards() {
 
   const cardWidth = () => {
     const maxWidth = 800
-    let width = (textScale/15) * 500;
+    const width = (textScale/15) * 500;
     if (width <= maxWidth) {
       return width;
     }
@@ -229,7 +229,7 @@ export default function MyCards() {
                   }}
                 >
                   {cards.map((cardInfo, index) => (
-                    <Card shadow style={{
+                    <Card key={index} shadow style={{
                       minWidth: `${cardWidth()}px`,
                       display: "flex",
                       justifyContent: "center",
@@ -300,6 +300,7 @@ export default function MyCards() {
           marginTop: "20px",
           }}>
           {cards.map((_, index) => (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
               key={index}
               style={{
@@ -331,7 +332,7 @@ const styles = {
   },
   arrowButton: {
     fontSize: "2rem",
-    position: "absolute" as "absolute",
+    position: "absolute" as const,
     top: "50%",
     transform: "translateY(-50%)",
     zIndex: 1,

@@ -267,7 +267,7 @@ export default function Settings() {
             <Modal.Title>Delete Account</Modal.Title>
             <Modal.Content>
               <Form>
-                <ResizableText>To confirm, type <span style={{ fontWeight: "bold"}}>"DELETE"</span></ResizableText>
+                <ResizableText>To confirm, type <span style={{ fontWeight: "bold"}}>&quot;DELETE&quot;</span></ResizableText>
                 <Input
                     name="delete"
                     htmlType="text"
@@ -285,7 +285,7 @@ export default function Settings() {
                     onPointerLeaveCapture={undefined}
                 />
               </Form>
-              {deleteError && <ResizableText style={{ color:"red" }}>type <span style={{ fontWeight: "bold"}}>"DELETE"</span> to enable delete button</ResizableText>}
+              {deleteError && <ResizableText style={{ color:"red" }}>type <span style={{ fontWeight: "bold"}}>&quot;DELETE&quot;</span> to enable delete button</ResizableText>}
               <ResizableText> <span style={{ color: "red", fontWeight: "bold" }}>Warning:</span> Account deletion is permanent and irreversible—once deleted, all data will be lost!</ResizableText>
             </Modal.Content>
             <Modal.Action passive onClick={() => setModalState(false)} style={{ fontSize:`${textScale}px` }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Cancel</Modal.Action>
