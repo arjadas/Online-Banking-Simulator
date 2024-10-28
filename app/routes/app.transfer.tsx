@@ -91,8 +91,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     userAccounts,
   });
 };
-
-const TransferBetweenAccounts = () => {
+export default function TransferBetweenAccounts() {
   const actionData: any = useActionData();
   const { userAccounts: accounts } = useLoaderData<{ userAccounts: Account[] }>();
   const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
@@ -199,6 +198,4 @@ const TransferBetweenAccounts = () => {
       </Page.Content>
     </Page>
   );
-};
-
-export default TransferBetweenAccounts;
+}
