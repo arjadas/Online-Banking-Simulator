@@ -25,7 +25,6 @@ type MeUser = {
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  
   try {
     // Ensure the user is authenticated
     const user = await getUserSession(context, request);
@@ -66,7 +65,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
       const dispatch = useDispatch();
       dispatch(setTextScale(Number(userData.font_preference!)));
     }
-    
 
     return json({
       me: {

@@ -70,7 +70,7 @@ export function ErrorBoundary() {
           {error?.status === 404 ? (
             <>
               <h1>404 - Page Not Found</h1>
-              <p>The page you're looking for doesn't exist.</p>
+              <p>The page you&apos;re looking for doesn&apos;t exist.</p>
               <button
                 onClick={() => navigate(-1)}
                 style={{

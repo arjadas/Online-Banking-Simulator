@@ -21,3 +21,5 @@ const AuthenticatedLink: React.FC<LinkProps> = (props: LinkProps) => {
 
     return <Link {...props} />;
 }
+
+export default AuthenticatedLink;
