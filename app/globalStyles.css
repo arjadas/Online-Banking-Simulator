@@ -10,7 +10,7 @@ body {
 }
 
 body {
-    background: repeating-linear-gradient(#009dff, rgb(198, 237, 255)) !important;
+    background: repeating-linear-gradient(rgb(0, 157, 255), rgb(198, 237, 255)) !important;
     position: relative !important;
     z-index: 1 !important;
     overflow: auto !important;
