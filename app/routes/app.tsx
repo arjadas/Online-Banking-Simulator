@@ -18,7 +18,7 @@ export const meta: MetaFunction = () => {
 const navItems = [
   { icon: <Home />, label: "Home", to: "/app/accounts" },
   { icon: <List />, label: "History", to: "/app/transactions" },
-  { icon: <CreditCard />, label: "My Cards", to: "/app/cards" },
+  { icon: <CreditCard />, label: "Cards", to: "/app/cards" },
   { icon: <Settings />, label: "Settings", to: "/app/settings" },
   { icon: <LogOut />, label: "Logout", to: "/logout" },
 ];
@@ -35,20 +35,12 @@ export default function AppLayout() {
   // Determine the current path from matches
   const currentPath = matches[matches.length - 1]?.pathname || '/';
 
-  // Handle tab change
-  const handleTabChange = (route: string) => {
-    navigate(route);
-  };
-
   const buttonStyle = {
     width: textScale * 20,
     height: 75,
     fontSize: textScale,
-
     gap: 16,
   };
-
-
 
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
