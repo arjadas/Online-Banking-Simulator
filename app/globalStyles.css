@@ -5,18 +5,15 @@
 
 html,
 body {
-    height: 100%;
+    height: auto;
     margin: 0;
 }
 
-html {
-    background: repeating-linear-gradient(rgb(198, 237, 255), rgb(0, 157, 255)) !important;
-}
-
 body {
-    background: repeating-linear-gradient(#009dff, rgb(198, 237, 255)) !important;
+    background: repeating-linear-gradient(rgb(0, 157, 255), rgb(198, 237, 255)) !important;
     position: relative !important;
     z-index: 1 !important;
+    overflow: auto !important;
 }
 
 /* workaround to tabs issue? */
