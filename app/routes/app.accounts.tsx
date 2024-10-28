@@ -2,7 +2,7 @@ import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { getUserSession } from '~/auth.server';
 import { createUser } from '~/service/userService';
 import AccountCard from '../components/AccountCard';
@@ -17,6 +17,7 @@ type MeUser = {
   first_name: string;
   last_name: string;
   email: string;
+  font_preference?: string;
   notifications: Array<{
     notification_id: string;
     content: string;
@@ -25,7 +26,7 @@ type MeUser = {
 };
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  
+
   try {
     // Ensure the user is authenticated
     const user = await getUserSession(context, request);
@@ -61,13 +62,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 
     userData = userData!
 
-    // Set user's font preference if they have one
-    if (!userData.font_preference) {
-      const dispatch = useDispatch();
-      dispatch(setTextScale(Number(userData.font_preference!)));
-    }
-    
-
     return json({
       me: {
         uid: userData.uid,
@@ -75,6 +69,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         last_name: userData.last_name,
         email: userData.email,
         notifications: userData.notifications,
+        font_preference: userData.font_preference,
       },
       userAccounts,
     });
@@ -99,6 +94,7 @@ export default function Dashboard() {
   const [viewingNotifications, setViewingNotifications] = React.useState(false);
   const [localNotifications, setLocalNotifications] = React.useState(user.notifications);
   const fetcher = useFetcher();
+  const dispatch = useDispatch();
 
   const handleModalClose = () => {
     setViewingNotifications(false);
@@ -110,6 +106,12 @@ export default function Dashboard() {
       setLocalNotifications([]);
     }
   };
+
+  useEffect(() => {
+    if (user.font_preference) {
+      dispatch(setTextScale(Number(user.font_preference)));
+    }
+  });
 
   console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
@@ -129,6 +131,7 @@ export default function Dashboard() {
       </>
     );
   }
+
   return (
     <>
       <Spacer h={2} />
@@ -142,7 +145,7 @@ export default function Dashboard() {
         {(localNotifications.length > 0) && <Button style={{ marginTop: 10 }} onClick={() => setViewingNotifications(true)} auto scale={6 / 5} type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>View</Button>}
       </Card>
 
-        <Spacer h={2} />
+      <Spacer h={2} />
 
       {accounts.map((account: any) => (
         <React.Fragment key={account.acc}>
@@ -157,7 +160,7 @@ export default function Dashboard() {
         </React.Fragment>
       ))}
 
-        <Spacer h={2} />
+      <Spacer h={2} />
 
       <Card width="100%">
         <Grid.Container gap={2} justify="space-between" alignItems="center">
