@@ -58,6 +58,8 @@ export const formatDate = (transactionDate: Date) => {
     formattedDate += " (Today)";
   } else if (differenceInDays === 1) {
     formattedDate += " (Yesterday)";
+  }  else if (differenceInDays === -1) {
+    formattedDate += " (Tomorrow)";
   } else if (differenceInDays > 0) {
     formattedDate += ` (${differenceInDays} days ago)`;
   } else {
