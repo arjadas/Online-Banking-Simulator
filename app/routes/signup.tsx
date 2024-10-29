@@ -120,7 +120,7 @@ export default function Signup() {
                     </Button>
                 </Form>
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
-                <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></AuthenticatedLink>
+                <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back to Login</ResizableText></AuthenticatedLink>
             </Card>
             <style>{`
                 .shake {
