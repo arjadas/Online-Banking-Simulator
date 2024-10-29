@@ -69,5 +69,9 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "browser": {
+    "jspdf": "jspdf",
+    "jspdf-autotable": "jspdf-autotable"
   }
 }

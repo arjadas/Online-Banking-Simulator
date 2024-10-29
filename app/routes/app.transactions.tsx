@@ -64,21 +64,26 @@ export default function Transactions() {
     return accountMatches && queryMatches;
   });
 
-  const handleDownloadPDF = () => {
-    const transactionData = filteredTransactions.map(tx => {
-      const isExternalSender = !userAccountIds.includes(tx.sender_acc);
-      const isExternalRecipient = !userAccountIds.includes(tx.recipient_acc);
-      const senderDisplayName = tx.sender.acc_name;
-      const recipientDisplayName = tx.recipient.acc_name;
-
-      return {
-        ...tx,
-        sender: isExternalSender ? senderDisplayName : tx.sender.short_description,
-        recipient: isExternalRecipient ? recipientDisplayName : tx.recipient.short_description,
-        description: tx.description || "No Description Provided",
-      };
-    });
-    generateTransactionsPDF(transactionData);
+  const handleDownloadPDF = async () => {
+    try {
+      const transactionData = filteredTransactions.map(tx => {
+        const isExternalSender = !userAccountIds.includes(tx.sender_acc);
+        const isExternalRecipient = !userAccountIds.includes(tx.recipient_acc);
+        const senderDisplayName = tx.sender.acc_name;
+        const recipientDisplayName = tx.recipient.acc_name;
+  
+        return {
+          ...tx,
+          sender: isExternalSender ? senderDisplayName : tx.sender.short_description,
+          recipient: isExternalRecipient ? recipientDisplayName : tx.recipient.short_description,
+          description: tx.description || "No Description Provided",
+        };
+      });
+      await generateTransactionsPDF(transactionData);
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      throw new Error('Failed to generate PDF. Please try again.');
+    }
   };
 
   const toggleTransactionDetails = (transactionId: number) => {

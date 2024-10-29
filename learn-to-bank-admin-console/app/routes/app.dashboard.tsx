@@ -1,5 +1,5 @@
 import { Button, Card, Grid, Input, Modal, Page, Select, Spacer, Table, Text, useToasts } from '@geist-ui/core';
-import { Edit, Plus, Trash2 } from '@geist-ui/icons';
+import { ArrowDown, ArrowUp, Edit, Plus, Trash2 } from '@geist-ui/icons';
 import { LoaderFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -36,24 +36,24 @@ export default function Dashboard() {
 	const [formData, setFormData] = useState<Record<string, any>>({});
 	const [dataVisible, setDataVisible] = useState(true);
 	const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
+	const [sortConfig, setSortConfig] = useState<Record<string, string>>({})
 	const { setToast, removeAll } = useToasts();
-
-	const fetchTableSchema = useCallback(async (tableName: string) => {
-		try {
-			const response = await fetch(`/api/table-schema?table=${tableName}`);
-			const { fields } = await response.json() as any;
-			setTableSchema(fields);
-		} catch (error) {
-			console.error('Error fetching table schema:', error);
-			setToast({ text: 'Error fetching table schema', type: 'error' });
-		}
-	}, [setToast]);
 
 	const fetchTableData = async (tableName: string) => {
 		try {
-			const response = await fetch(`/api/table-data?table=${tableName}`);
-			const newData = await response.json() as any[];
+			const tableSchemaResponse = await fetch(`/api/table-schema?table=${tableName}`);
+			const tableDataResponse = await fetch(`/api/table-data?table=${tableName}`);
+			const { tableSchema } = await tableSchemaResponse.json() as any;
+			const newData = await tableDataResponse.json() as any[];
+			const sortConfig: Record<string, string> = {}
+
+			for (const field of tableSchema) {
+				sortConfig[field.name] = 'desc'
+			}
+
+			setSortConfig(sortConfig)
 			setTableData(newData ?? []);
+			setTableSchema(tableSchema)
 		} catch (error) {
 			console.error('Error fetching table data:', error);
 			setToast({ text: 'Error fetching table data', type: 'error' });
@@ -73,7 +73,6 @@ export default function Dashboard() {
 					setDataVisible(true);
 				}, 50);
 			});
-			fetchTableSchema(selectedTable);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedTable]);
@@ -203,6 +202,29 @@ export default function Dashboard() {
 		});
 	};
 
+	const handleSort = (key: string) => {
+		if (tableData) {
+			let direction = sortConfig[key];
+
+			if (direction == 'asc') {
+				direction = 'desc'
+			} else {
+				direction = 'asc'
+			}
+
+			sortConfig[key] = direction
+
+			const sortedData = [...tableData].sort((a, b) => {
+				if (a[key] < b[key]) return direction === 'asc' ? 1 : -1
+				if (a[key] > b[key]) return direction === 'asc' ? -1 : 1
+				return 0
+			})
+
+			setTableData(sortedData)
+			setSortConfig(sortConfig)
+		}
+	}
+
 	return (
 		<Page.Header center style={{ margin: 0, padding: 30, width: "100vw", }}>
 			<Card width="100%" padding={2} style={{
@@ -278,9 +300,25 @@ export default function Dashboard() {
 										</div>
 									)}
 								/>
-								{tableSchema.map(field => (
-									<Table.Column key={field.name} prop={field.name} label={field.name.replace("_", " ")} />
-								))}
+								{tableSchema.map((field) => {
+									return (
+										<Table.Column key={field.name} prop={field.name} label={field.name.replace("_", " ")} >
+											<Grid.Container direction='row' justify="space-between" alignItems="center" style={{ paddingRight: 20 }}>
+												<Grid xs={1}>
+													<Text style={{ whiteSpace: 'nowrap', paddingRight: 20 }}>{field.name.replace("_", " ")}</Text>
+												</Grid>
+												<Grid xs={2}>
+													<Button
+														auto
+														scale={1}
+														icon={sortConfig[field.name] == 'asc' ? <ArrowUp /> : <ArrowDown />}
+														onClick={() => handleSort(field.name)}
+														style={{ border: 'none', padding: 2, margin: 5 }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+												</Grid>
+											</Grid.Container>
+										</Table.Column>
+									)
+								})}
 							</Table>
 						) : (<></>)}
 					</Grid>
@@ -294,6 +332,6 @@ export default function Dashboard() {
 					<Modal.Action onClick={handleFormSubmit} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Submit</Modal.Action>
 				</Modal>
 			</Card>
-		</Page.Header>
+		</Page.Header >
 	);
 }

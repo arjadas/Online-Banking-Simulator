@@ -1,10 +1,11 @@
 import { Link, LinkProps, useFetcher } from "@remix-run/react";
 import { useAuth } from "./AuthProvider";
 
-export function AuthenticatedLink(props: LinkProps) {
+// We are leaving this logic here in case we want to use it in the future, and fix its associated issues.
+const AuthenticatedLink: React.FC<LinkProps> = (props: LinkProps) => {
     const { uid } = useAuth();
     const fetcher = useFetcher();
-    const age =  60 * 60 * 24 * 7; // 1 week
+    const age = 60 * 60 * 24 * 7; // 1 week
 
     const handlePrefetch = () => {
         fetcher.submit(
@@ -20,3 +21,5 @@ export function AuthenticatedLink(props: LinkProps) {
 
     return <Link {...props} />;
 }
+
+export default AuthenticatedLink;

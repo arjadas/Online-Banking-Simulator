@@ -1,70 +1,87 @@
 import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { getUserSession } from '~/auth.server';
 import { createUser } from '~/service/userService';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
 import { formatDate, toFixedWithCommas } from '~/util';
 import ResizableText from '~/components/ResizableText';
+import { setTextScale } from '~/appSlice';
+import { useDispatch } from 'react-redux';
 
 type MeUser = {
   uid: string;
   first_name: string;
   last_name: string;
   email: string;
+  font_preference?: string;
   notifications: Array<{
     notification_id: string;
     content: string;
     timestamp: Date;
   }>;
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
-  // Ensure the user is authenticated
-  const user = await getUserSession(context, request);
-  const db = getPrismaClient(context);
 
-  if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
+  try {
+    // Ensure the user is authenticated
+    const user = await getUserSession(context, request);
+    const db = getPrismaClient(context);
 
-  // Fetch the user details and related data from Prisma
-  const getMeUser = async () => {
-    return await Promise.all([
-      db.user.findUnique({
-        where: { uid: user.uid },
-        include: {
-          notifications: {
-            where: { read: false },
+    // if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
+    if (!user) return redirect("/login");  // Direct redirect
+
+    // Fetch the user details and related data from Prisma
+    const getMeUser = async () => {
+      return await Promise.all([
+        db.user.findUnique({
+          where: { uid: user.uid },
+          include: {
+            notifications: {
+              where: { read: false },
+            },
           },
-        },
-      }),
-      db.account.findMany({
-        where: { uid: user.uid },
-      }),
-    ]);
+        }),
+        db.account.findMany({
+          where: { uid: user.uid },
+        }),
+      ]);
+    }
+
+    let [userData, userAccounts] = await getMeUser();
+
+    if (!userData) {
+      console.error("User, not found! Creating new user..", user)
+      await createUser(context, user.uid, user.email, "Plan", "B");
+      [userData, userAccounts] = await getMeUser();
+    }
+
+    userData = userData!
+
+    return json({
+      me: {
+        uid: userData.uid,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        email: userData.email,
+        notifications: userData.notifications,
+        font_preference: userData.font_preference,
+      },
+      userAccounts,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "SessionExpiredError") {
+      throw json(
+        { message: "Your session has expired. Please login again." },
+        { status: 440 }
+      );
+    }
+    throw error;
   }
-
-  let [userData, userAccounts] = await getMeUser();
-
-  if (!userData) {
-    console.error("User, not found! Creating new user..", user)
-    await createUser(context, user.uid, user.email, "Plan", "B");
-    [userData, userAccounts] = await getMeUser();
-  }
-
-  userData = userData!
-
-  return json({
-    me: {
-      uid: userData.uid,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      email: userData.email,
-      notifications: userData.notifications,
-    },
-    userAccounts,
-  });
 };
 
 export default function Dashboard() {
@@ -77,6 +94,7 @@ export default function Dashboard() {
   const [viewingNotifications, setViewingNotifications] = React.useState(false);
   const [localNotifications, setLocalNotifications] = React.useState(user.notifications);
   const fetcher = useFetcher();
+  const dispatch = useDispatch();
 
   const handleModalClose = () => {
     setViewingNotifications(false);
@@ -88,6 +106,12 @@ export default function Dashboard() {
       setLocalNotifications([]);
     }
   };
+
+  useEffect(() => {
+    if (user.font_preference) {
+      dispatch(setTextScale(Number(user.font_preference)));
+    }
+  });
 
   console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
@@ -107,6 +131,7 @@ export default function Dashboard() {
       </>
     );
   }
+
   return (
     <>
       <Spacer h={2} />

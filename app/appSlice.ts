@@ -9,7 +9,7 @@ interface AppState {
 
 export const initialState: AppState = {
     isDarkTheme: false,
-    textScale: 100,
+    textScale: 16,
 };
 
 const appSlice = createSlice({
