@@ -4,7 +4,8 @@ import { Form, useActionData, useNavigate } from "@remix-run/react";
 import { sendResetPasswordEmail } from "~/auth.client";
 import AuthenticatedLink from '~/components/AuthenticatedLink';
 
-/*type ActionData = {
+/*
+type ActionData = {
   error?: string;
   success?: string;
 };
@@ -23,28 +24,36 @@ export const action: ActionFunction = async ({ request } : { request: Request })
 */
 
 // firebase auth is handled client-side and not server-side
-const handleSendEmail = async (event: React.FormEvent) => {
-  event.preventDefault();
-  
-  const formData = new FormData(event.target as HTMLFormElement);
-  const email = formData.get("email") as string;
 
-  try {
-    const navigate = useNavigate();
-    
-    await sendResetPasswordEmail(email);
-    // Show success message
-    alert("Password reset email has been sent!");
-    // Navigate to login page after showing the alert
-    navigate("/login");
-  } catch (error: any) {
-    // Handle error
-    console.error('Password reset error:', error);
-  }
-}
 
 export default function ForgotPassword() {
   //const actionData = useActionData<ActionData>();
+  const navigate = useNavigate();
+
+  const handleSendEmail = async (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target as HTMLFormElement);
+    const email = formData.get("email") as string;
+
+    if (!email) {
+      // Handle empty email input
+      alert("Please enter an email address.");
+      return;
+    }
+  
+    try {
+      
+      await sendResetPasswordEmail(email);
+      // Show success message
+      alert("You will receive an email with instructions to reset your password if it exists in our system. You'll be redirected to the login page.");
+      // Navigate to login page after showing the alert
+      navigate("/login");
+    } catch (error: any) {
+      // Handle error
+      console.error('Password reset error:', error);
+    }
+  }
 
   return (
     <div style={{
