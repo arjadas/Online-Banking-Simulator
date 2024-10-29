@@ -103,7 +103,7 @@ export default function Settings() {
     try {
       await sendResetPasswordEmail(user.email);
       // Show success message
-      alert("Password reset email has been sent!");
+      alert("Email sent! Check your inbox for the password reset link.");
       setEndResponse(false);
     } catch (error: any) {
       // Handle error
