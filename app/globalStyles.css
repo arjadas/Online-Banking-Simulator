@@ -1,12 +1,13 @@
-/*TODO make a nice scrollbar*/
+/*TODO make a nice scrollbar
 ::-webkit-scrollbar {
     display: none;
-}
+}*/
 
 html,
 body {
     height: auto;
     margin: 0;
+    overflow-x: hidden;
 }
 
 body {

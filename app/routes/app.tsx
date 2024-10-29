@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { RootState } from '../store';
+import { ChevronRightCircle } from '@geist-ui/icons';
 
 export const meta: MetaFunction = () => {
   return [
@@ -16,8 +17,9 @@ export const meta: MetaFunction = () => {
 };
 
 const navItems = [
-  { icon: <Home />, label: "Home", to: "/app/accounts" },
-  { icon: <List />, label: "History", to: "/app/transactions" },
+  { icon: <Home />, label: "Home", to: "/app/home" },
+  { icon: <List />, label: "History", to: "/app/history" },
+  { icon: <ChevronRightCircle />, label: "Upcoming", to: "/app/upcoming" },
   { icon: <CreditCard />, label: "Cards", to: "/app/cards" },
   { icon: <Settings />, label: "Settings", to: "/app/settings" },
   { icon: <LogOut />, label: "Logout", to: "/logout" },
@@ -56,7 +58,7 @@ export default function AppLayout() {
           <Drawer.Title>
             <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
-          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Instantiate a transfer</Drawer.Subtitle>
+          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Initiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
           <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button

@@ -1,11 +1,11 @@
 import { Button, Grid, Input, Modal, Select, Spacer, Text, useModal } from '@geist-ui/react';
 import React, { useEffect, useState } from 'react';
-import { getFullDay, joinWithAmpersand } from '~/util';
+import { getFullDay, joinWithAmpersand } from '~/util/util';
 import ResizableText from './ResizableText';
 
-type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
+export type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
 
-interface WeekDays {
+export interface WeekDays {
     mon: boolean;
     tue: boolean;
     wed: boolean;
@@ -15,29 +15,29 @@ interface WeekDays {
     sun: boolean;
 }
 
-interface MonthlyOccurrences {
+export interface MonthlyOccurrences {
     occurrence1: boolean;
     occurrence2: boolean;
     occurrence3: boolean;
     occurrence4: boolean;
 }
 
-interface DayFrequency {
+export interface DayFrequency {
     unit: 'days';
     count: number;
 }
 
-interface WeekFrequency extends WeekDays {
+export interface WeekFrequency extends WeekDays {
     unit: 'weeks';
     count: number;
 }
 
-interface MonthFrequency extends WeekDays, MonthlyOccurrences {
+export interface MonthFrequency extends WeekDays, MonthlyOccurrences {
     unit: 'months';
     count: number;
 }
 
-interface YearFrequency {
+export interface YearFrequency {
     unit: 'years';
     count: number;
     date: string;
