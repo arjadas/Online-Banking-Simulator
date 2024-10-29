@@ -42,17 +42,6 @@ export const action: ActionFunction = async ({ context, request } : { context: a
     }
   }
 
-  if (actionType === "sendEmail") {
-    const email = formData.get("email") as string;
-
-    try {
-      await sendResetPasswordEmail(email);
-      return json ({ success: "Password reset email sent!" });
-    } catch (error: any) {
-      return json ({ error: error.message });
-    }
-  }
-
   if (actionType === "deleteAccount") {
     deleteUser(user!.uid);
     return json ({ success: "Account Deleted" });
@@ -109,13 +98,17 @@ export default function Settings() {
 
   const handleSendEmail = async (event: React.FormEvent) => {
     event.preventDefault();
-    const formData = new FormData();
-
-    formData.append("actionType", "sendEmail");
-    formData.append("userId", user.uid);
-    formData.append("email", user.email);
-    submit(formData, { method: "post" });
-    setEndResponse(false);
+    
+    // handle this client side instead of server side
+    try {
+      await sendResetPasswordEmail(user.email);
+      // Show success message
+      alert("Email sent! Check your inbox for the password reset link.");
+      setEndResponse(false);
+    } catch (error: any) {
+      // Handle error
+      console.error('Password reset error:', error);
+    }
   }
 
   const handleDeleteAccount = () => {
@@ -203,7 +196,8 @@ export default function Settings() {
 
               <Grid>
                 <ResizableText h5>Change Password</ResizableText>
-                <Button auto onClick={handleSendEmail} height={`${textScale * 2}px`} style={{ width: "100%", fontSize:`${textScale}px` }}
+                <ResizableText p>An email with instructions will be sent</ResizableText>
+                <Button auto onClick={handleSendEmail} style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
                   placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 >
                   Reset password via Email
