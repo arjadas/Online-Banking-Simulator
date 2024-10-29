@@ -29,7 +29,6 @@ export const action: ActionFunction = async ({ context, request } : { context: a
     const first_name = formData.get("firstName") as string;
     const last_name = formData.get("lastName") as string;
     const font_preference = formData.get("fontSize") as string;
-    const theme_preference = formData.get("theme") as string;
 
     try {
       await db.user.update({
@@ -92,7 +91,6 @@ export default function Settings() {
   const [previewFont, setPreviewFont] = useState(textScale);
   const [modalState, setModalState] = useState(false);
   const [endResponse, setEndResponse] = useState(true);
-  const [themeSelect, setThemeSelect] = useState({ option: "light" });
   const [deleteInput, setDeleteInput] = useState("");
   const [deleteButton, setDeleteButton] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
@@ -103,7 +101,6 @@ export default function Settings() {
 
     formData.append("actionType", "saveSettings");
     formData.append("fontSize", String(previewFont));
-    formData.append("theme", String(themeSelect));
 
     submit(formData, { method: "post" });
     dispatch(setTextScale(previewFont));
@@ -164,12 +161,6 @@ export default function Settings() {
 
   }
 
-  const handleThemeSelect = (value: string | string[]) => {
-    if (typeof value === "string") {
-      setThemeSelect({ ...themeSelect, option: value });
-    }
-  }
-
   return (
     <Page>
       <Page.Content style={{ display: "flex", justifyContent: "center"}}>
@@ -219,14 +210,6 @@ export default function Settings() {
                 </Button>
                 {!endResponse && actionData?.error && <ResizableText type="error">{actionData.error}</ResizableText>}
                 {!endResponse && actionData?.success && <ResizableText type="success">{actionData.success}</ResizableText>}
-              </Grid>
-
-              <Grid>
-                <ResizableText h5>Change Theme</ResizableText>
-                <Select onChange={handleThemeSelect} initialValue={"light"} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
-                  <Select.Option style={{ fontSize:`${textScale}px` }} value="light">Light</Select.Option>
-                  <Select.Option style={{ fontSize:`${textScale}px` }} value="dark">Dark</Select.Option>
-                </Select>
               </Grid>
 
               <Grid>
