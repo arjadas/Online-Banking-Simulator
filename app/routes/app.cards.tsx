@@ -319,7 +319,7 @@ export default function MyCards() {
       </Grid>
     </Grid.Container>
   );
-};
+}
 
 const styles = {
   current: {

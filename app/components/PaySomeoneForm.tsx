@@ -1,10 +1,12 @@
-import { Button, Card, Input, Select, Tabs, Text, Textarea,Spacer  } from '@geist-ui/core';
+import { Button, Card, Input, Select, Tabs, Text, Textarea, Spacer, Grid } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { Form, useActionData } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
 import CurrencyInput from '~/components/CurrencyInput';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
 import ResizableText from './ResizableText';
+import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
+import { s } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 
 type RecipientAddress = {
     accountName: string;
@@ -22,12 +24,14 @@ interface PaySomeoneFormProps {
     onBack: () => void;
 }
 
-
-
 const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevContact, onBack, actionData }) => {
     const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
     const [amount, setAmount] = useState('-.--');
+    const [frequency, setFrequency] = useState<FrequencyObject | null>(null);
     const [reference, setReference] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [laterDateTime, setLaterDateTime] = useState('');
     const [description, setDescription] = useState('');
     const [activeTab, setActiveTab] = useState('acc-bsb');
     const [recipientAddress, setRecipientAddress] = useState<RecipientAddress>({
@@ -41,6 +45,12 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
     const handleFromAccChange = (value: string | string[]) => {
         setFromAcc(parseInt(value as string));
+    };
+
+    const handleLaterDateTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        console.log(value)
+        if (value) setLaterDateTime(value);
     };
 
     const toDigits = (value: string): number => {
@@ -110,119 +120,44 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
             setDescription(userPrevContact.contact_description || '');
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userPrevContact]);
-    const [isDateHovered, setIsDateHovered] = useState(false);
-    const [isTimeHovered, setIsTimeHovered] = useState(false);
-    const [isDateFocused, setIsDateFocused] = useState(false);
-    const [isTimeFocused, setIsTimeFocused] = useState(false);
-    const [isStartDateHovered, setIsStartDateHovered] = useState(false);
-    const [isStartDateFocused, setIsStartDateFocused] = useState(false);
-    const [isEndDateHovered, setIsEndDateHovered] = useState(false);
-    const [isEndDateFocused, setIsEndDateFocused] = useState(false);
-    
-    const dateInputStyle = {
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '6px',
-        border: `1px solid ${isDateHovered || isDateFocused ? 'black' : 'lightgrey'}`,
-        height: '4vh',
-        transition: 'border-color 0.3s, color 0.3s',
-    };
-    const startDateInputStyle = {
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius:'6px',
-        border: `1px solid ${isStartDateHovered || isStartDateFocused ? 'black' : 'lightgrey'}`,
-        height:'4vh',
-        transition: 'border-color 0.3s, color 0.3s',
-    };
-    const endDateInputStyle = {
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius:'6px',
-        border: `1px solid ${isEndDateHovered || isEndDateFocused ? 'black' : 'lightgrey'}`,
-        height:'4vh',
-        transition: 'border-color 0.3s, color 0.3s',
-    };
-    const timeInputStyle = {
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius:'6px',
-        border: `1px solid ${isTimeHovered || isTimeFocused ? 'black' : 'lightgrey'}`,
-        height:'4vh',
-        transition: 'border-color 0.3s, color 0.3s',
-    };
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
             <Form method="post">
                 <ResizableText h4>Schedule</ResizableText>
-                <Tabs style ={{fontWeight:'bold'}}initialValue="now" hideDivider>
+                <Tabs style={{ fontWeight: '600' }} initialValue="now" hideDivider>
                     <Tabs.Item label="Now" value="now" >
-                    
-                        <ResizableText>Set Up Instant Transaction For Immediate Payments</ResizableText>
+                        <ResizableText>Transfer will be settled instantly.</ResizableText>
                         <Spacer />
-                        </Tabs.Item>
-                        <Tabs.Item label="Later" value="later">
-                    <ResizableText>Set Up Scheduled Transaction For Future Payments</ResizableText>
-                    <ResizableText style={{ fontWeight: 'bold' }}>Date:</ResizableText>
-                    <input
-                        type="date"
-                        style={dateInputStyle}
-                        onMouseEnter={() => setIsDateHovered(true)}
-                        onMouseLeave={() => setIsDateHovered(false)}
-                        onFocus={() => setIsDateFocused(true)}
-                        onBlur={() => setIsDateFocused(false)}
-                        placeholder="Enter Date"
-                    />
-                    <Spacer />
-                    <ResizableText style={{ fontWeight: 'bold' }}>Time:</ResizableText>
-                    <input
-                        type="time"
-                        style={timeInputStyle}
-                        onMouseEnter={() => setIsTimeHovered(true)}
-                        onMouseLeave={() => setIsTimeHovered(false)}
-                        onFocus={() => setIsTimeFocused(true)}
-                        onBlur={() => setIsTimeFocused(false)}
-                        placeholder="Enter Time"
-                    />
-                    <Spacer />
-                </Tabs.Item>
-
+                    </Tabs.Item>
+                    <Tabs.Item label="Later" value="later">
+                        <ResizableText h4>Date and time</ResizableText>
+                        <Input
+                            name="laterDateTime"
+                            htmlType="datetime-local"
+                            value={laterDateTime}
+                            onChange={handleLaterDateTimeChange}
+                            placeholder="Enter Date" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                        <Spacer />
+                    </Tabs.Item>
+                    <input type="hidden" name="frequencyObject" value={frequency ? frequencyObjectToString(frequency) : ''} />
+                    <input type="hidden" name="startDate" value={startDate} />
+                    <input type="hidden" name="endDate" value={endDate} />
                     <Tabs.Item label="Recurring" value="recurring">
-                        <ResizableText>Set Up Automatic Transaction For Regular Payments</ResizableText>
-                        <div>
-                            <ResizableText style={{ fontWeight: 'bold' }}>Frequency:</ResizableText>
-                            <Select placeholder="Select frequency" style={{ width: "100%" }} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
-                                <Select.Option value="weekly">Weekly</Select.Option>
-                                <Select.Option value="fortnightly">Fortnightly</Select.Option>
-                                <Select.Option value="monthly">Monthly</Select.Option>
-                            </Select>
-                            <Spacer />
-                         </div>
-                         <ResizableText style={{ fontWeight: 'bold' }}>Start Date:</ResizableText>
-                    <input
-                        type="date"
-                        style={startDateInputStyle}
-                        onMouseEnter={() => setIsStartDateHovered(true)}
-                        onMouseLeave={() => setIsStartDateHovered(false)}
-                        onFocus={() => setIsStartDateFocused(true)}
-                        onBlur={() => setIsStartDateFocused(false)}
-                        placeholder="Enter Date"
-                    />
-                    <Spacer />
-                    <ResizableText style={{ fontWeight: 'bold' }}>End Date:</ResizableText>
-                    <input
-                        type="date"
-                        style={endDateInputStyle}
-                        onMouseEnter={() => setIsEndDateHovered(true)}
-                        onMouseLeave={() => setIsEndDateHovered(false)}
-                        onFocus={() => setIsEndDateFocused(true)}
-                        onBlur={() => setIsEndDateFocused(false)}
-                        placeholder="Enter Date"
-                    />
-                     <Spacer />
-                        
+                        <ResizableText h4>Frequency</ResizableText>
+                        {frequency ?
+                            <ResizableText>{frequencyObjectToString(frequency)}</ResizableText>
+                            : <Spacer h={0.5} />}
+                        <FutureTransactionModal onFrequencyChange={function (frequency: FrequencyObject): void {
+                            setFrequency(frequency);
+                        }} onStartDateChange={function (date: string): void {
+                            setStartDate(date);
+                        }} onEndDateChange={function (date: string): void {
+                            setEndDate(date);
+                        }} />
+                        <Spacer />
                     </Tabs.Item>
                 </Tabs>
                 <ResizableText h4>From Account</ResizableText>
@@ -239,7 +174,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 </div>
                 <input type="hidden" name="fromAcc" value={fromAcc || ''} />
                 <ResizableText h4>Payment Method</ResizableText>
-                <Tabs  style ={{fontWeight:'bold'}} value={activeTab} onChange={setActiveTab} hideDivider >
+                <Tabs style={{ fontWeight: '600' }} value={activeTab} onChange={setActiveTab} hideDivider >
                     <Tabs.Item label="ACC / BSB" value="acc-bsb">
                         <ResizableText>Instant Transfers Between Bank Accounts</ResizableText>
                         <Spacer />
@@ -251,13 +186,13 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                         <Input width="100%" placeholder="Enter bsb" aria-label="BSB" value={recipientAddress.bsb === -1 ? '' : recipientAddress.bsb.toString()} onChange={handleBsbChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="PayID" value="pay-id">
-                    <ResizableText>Instant Payments Using Your Email or Mobile Number</ResizableText>
+                        <ResizableText>Instant Payments Using Your Email or Mobile Number</ResizableText>
                         <Spacer />
                         <ResizableText h4>PayID</ResizableText>
                         <Input width="100%" placeholder="Enter PayID" aria-label="PayID" value={recipientAddress.payId} onChange={handlePayIdChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Tabs.Item>
                     <Tabs.Item label="BPay" value="b-pay">
-                    <ResizableText> Easy Bill Payments from Your Bank Account</ResizableText>
+                        <ResizableText> Easy Bill Payments from Your Bank Account</ResizableText>
                         <Spacer />
                         <ResizableText h4>Biller Code</ResizableText>
                         <Input width="100%" placeholder="Enter biller code" aria-label="Biller Code" value={recipientAddress.billerCode === -1 ? '' : recipientAddress.billerCode.toString()} onChange={handleBillerCodeChange} crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
@@ -278,6 +213,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                     <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={onBack} >Back</Button>
                     <Button auto htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Confirm</Button>
                 </div>
+                <input type="hidden" name="activeTab" value={activeTab} />
             </Form>
             {actionData && (
                 <div style={{ marginTop: '20px' }}>

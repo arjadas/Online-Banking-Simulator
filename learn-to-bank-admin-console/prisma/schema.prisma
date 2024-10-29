@@ -47,7 +47,7 @@ model Account {
 }
 
 model RecurringTransaction {
-  recc_transaction_id Int     @id @default(autoincrement())
+  recc_transaction_id Int      @id @default(autoincrement())
   amount              Int
   sender_acc          Int
   recipient_acc       Int
@@ -57,9 +57,10 @@ model RecurringTransaction {
   reference           String
   description         String?
   frequency           String
-
-  sender    Account @relation("reccTransactionSender", fields: [sender_acc], references: [acc])
-  recipient Account @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
+  starts_on           DateTime
+  ends_on             DateTime?
+  sender              Account  @relation("reccTransactionSender", fields: [sender_acc], references: [acc])
+  recipient           Account  @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
 
   transaction Transaction[]
 }
@@ -110,5 +111,5 @@ model Notification {
   user User @relation(fields: [uid], references: [uid])
 }
 
-///npx prisma migrate diff --from-remote-d1 --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/0004.sql
+///npx prisma migrate diff --from-local-d1 --to-schema-datamodel ./prisma/schema.prisma --script --output migrations/0004.sql
 //npx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script > migrations/0004.sql
