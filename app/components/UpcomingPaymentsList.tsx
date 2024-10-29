@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Text } from '@geist-ui/core';
 import { GeneratedTransaction, getTransactionsForPeriodBulk } from '~/util/futureTransactionUtil';
-import { addMonths } from 'date-fns';
+import { addMonths, startOfDay } from 'date-fns';
 import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 
 interface UpcomingPaymentsListProps {
@@ -23,8 +23,8 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
+    //console.log(8989, recurringTransactions, getTransactionsForPeriodBulk(recurringTransactions, startOfDay(new Date('2024-11-29T13:33:29.740Z')), startOfDay(new Date('2024-12-29T13:33:29.740Z'))))
 
-    // Separate data fetching logic
     const fetchNextPage = useCallback(async () => {
         if (isLoading || !hasMore) return;
 
@@ -32,19 +32,22 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
         try {
             const startDate = addMonths(new Date(), page);
             const endDate = addMonths(startDate, 1);
-            const newItems = getTransactionsForPeriodBulk(recurringTransactions, startDate, endDate);
+            const newItems = getTransactionsForPeriodBulk(recurringTransactions, startOfDay(startDate), startOfDay(endDate));
+            const gotSome = newItems.length > 0;
             
-            if (newItems.length > 0) {
+            if (gotSome) {
                 setDisplayedTransactions(prev => [...prev, ...newItems]);
                 setPage(prevPage => prevPage + 1);
+            } else {
+                console.warn(8989, startDate.toISOString(), endDate.toISOString())
             }
-            setHasMore(newItems.length > 0);
+
+            setHasMore(gotSome);
         } finally {
             setIsLoading(false);
         }
     }, [page, isLoading, hasMore, recurringTransactions]);
 
-    // Separate scroll detection logic
     const checkIfScrolledToBottom = useCallback(() => {
         if (!containerRef.current) return false;
 
@@ -93,11 +96,6 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
             resizeObserver.disconnect();
         };
     }, [checkIfScrolledToBottom, fetchNextPage]);
-
-    // Initial load
-    useEffect(() => {
-        fetchNextPage();
-    }, [fetchNextPage]);
 
     return (
         <div
