@@ -56,7 +56,7 @@ export default function AppLayout() {
           <Drawer.Title>
             <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
-          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Instantiate a transfer</Drawer.Subtitle>
+          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Initiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
           <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button

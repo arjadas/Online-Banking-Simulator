@@ -8,7 +8,6 @@ type ActionData = {
   error?: string;
   success?: string;
 };
-
 export const action: ActionFunction = async ({ request } : { request: Request }) => {
   const formData = await request.formData();
   const email = formData.get("email") as string;
