@@ -1,30 +1,10 @@
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
-import { ActionFunction, json } from "@remix-run/cloudflare";
-import { Form, useActionData, useNavigate } from "@remix-run/react";
+import { Form, useNavigate } from "@remix-run/react";
 import { sendResetPasswordEmail } from "~/auth.client";
 import AuthenticatedLink from '~/components/AuthenticatedLink';
 
-/*
-type ActionData = {
-  error?: string;
-  success?: string;
-};
-
-export const action: ActionFunction = async ({ request } : { request: Request }) => {
-  const formData = await request.formData();
-  const email = formData.get("email") as string;
-
-  try {
-    await sendResetPasswordEmail(email);
-    return json<ActionData>({ success: "Password reset email sent!" });
-  } catch (error: any) {
-    return json<ActionData>({ error: error.message });
-  }
-};
-*/
 
 // firebase auth is handled client-side and not server-side
-
 
 export default function ForgotPassword() {
   //const actionData = useActionData<ActionData>();
