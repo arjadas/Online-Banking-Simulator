@@ -14,10 +14,4 @@ body {
     background: repeating-linear-gradient(rgb(0, 157, 255), rgb(198, 237, 255)) !important;
     position: relative !important;
     z-index: 1 !important;
-    overflow: auto !important;
-}
-
-/* workaround to tabs issue? */
-.scroll-container {
-    padding-right: 10px;
 }

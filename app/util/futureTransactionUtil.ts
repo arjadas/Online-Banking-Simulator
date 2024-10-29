@@ -1,4 +1,4 @@
-import { addDays, addMonths, addWeeks, addYears, endOfDay, isAfter, isBefore, startOfDay } from 'date-fns';
+import { addDays, addMonths, addWeeks, addYears, isAfter, isBefore } from 'date-fns';
 import { DayFrequency, FrequencyObject, MonthFrequency, MonthlyOccurrences, WeekDays, WeekFrequency, YearFrequency } from '~/components/ReccuringTransactionModal';
 import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 
@@ -161,15 +161,6 @@ function* generateTransactions(
     }
 }
 
-// Helper function to get an array of transactions for a specific period
-function getTransactionsForPeriod(
-    transaction: RecurringTransactionWithRecipient,
-    startDate: Date = new Date(),
-    endDate: Date = addYears(new Date(), 1)
-): GeneratedTransaction[] {
-    return Array.from(generateTransactions(transaction, startDate, endDate));
-}
-
 function getTransactionsForPeriodBulk(
     transactions: RecurringTransactionWithRecipient[],
     startDate: Date = new Date(),
@@ -242,10 +233,7 @@ function getNextPaymentDate(
 }
 
 export {
-    generateTransactions,
-    getTransactionsForPeriod,
-    getTransactionsForPeriodBulk,
-    getNextPaymentDate,
-    type GeneratedTransaction
+    generateTransactions, getNextPaymentDate,
+    getTransactionsForPeriodBulk, type GeneratedTransaction
 };
 
