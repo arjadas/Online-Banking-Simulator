@@ -31,6 +31,14 @@ export const getFullDay = (day: string) => {
   }
 };
 
+export const joinWithAmpersand = (arr: string[]) => {
+  if (!arr.length) return '';
+  if (arr.length === 1) return arr[0];
+  if (arr.length === 2) return `${arr[0]} & ${arr[1]}`;
+  
+  return `${arr.slice(0, -1).join(', ')} & ${arr.slice(-1)}`;
+};
+
 // Function to format the date as "Day, 23rd Sep (Today)" for display
 export const formatDate = (transactionDate: Date) => {
   const now = new Date();

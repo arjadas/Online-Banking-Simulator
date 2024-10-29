@@ -1,6 +1,6 @@
-import { Button, Grid, Input, Modal, Select, Text, useModal } from '@geist-ui/react';
+import { Button, Grid, Input, Modal, Select, Spacer, Text, useModal } from '@geist-ui/react';
 import React, { useEffect, useState } from 'react';
-import { getFullDay } from '~/util';
+import { getFullDay, joinWithAmpersand } from '~/util';
 import ResizableText from './ResizableText';
 
 type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
@@ -72,26 +72,25 @@ export const frequencyObjectToString = (frequency: FrequencyObject) => {
 
     switch (frequency.unit) {
         case 'days':
-            return `Every ${frequency.count > 1 ? frequency.count : ''} day${frequency.count > 1 ? 's' : ''}`;
+            return `Every ${frequency.count > 1 ? frequency.count : ''} day${frequency.count > 1 ? 's' : ''}.`;
 
         case 'weeks': {
-            const weekDays = Object.entries(frequency)
+            const weekDays = joinWithAmpersand(Object.entries(frequency)
                 .filter((keyVal) => includesDay(keyVal))
-                .map(([key]) => getFullDay(key))
-                .join(', ');
+                .map(([key]) => getFullDay(key)));
             return `Every ${countStr}week${frequency.count > 1 ? 's' : ''} on ${weekDays}.`;
         }
 
         case 'months': {
-            const monthDays = Object.entries(frequency)
+            const monthDays = joinWithAmpersand(Object.entries(frequency)
                 .filter((keyVal) => includesDay(keyVal))
-                .map(([key]) => getFullDay(key))
-                .join(', ');
+                .map(([key]) => getFullDay(key)));
             const occurrences = Object.entries(frequency)
                 .filter(([key, value]) => key.startsWith('occurrence') && value)
-                .map(([key]) => key.replace('occurrence', ''))
-                .join(', ');
-            return `Every ${countStr}month${frequency.count > 1 ? 's' : ''} on week ${occurrences}, on ${monthDays}.`;
+                .map(([key]) => key.replace('occurrence', ''));
+            const occurrencesStr = joinWithAmpersand(occurrences);
+
+            return `Every ${countStr}month${frequency.count > 1 ? 's' : ''} on week${occurrences.length > 1 ? 's' : ''} ${occurrencesStr}, on ${monthDays}.`;
         }
 
         case 'years': {
@@ -189,7 +188,15 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
         }
     };
 
-    const generateFrequencyObject = (): FrequencyObject => {
+    const generateFrequencyObject = (): FrequencyObject | null => {
+        if ((unit == 'weeks' || unit == 'months') && Object.values(selectedDays).every(value => value === false)) {
+            return null
+        }
+
+        if (unit == 'months' && Object.values(monthlyOccurrences).every(value => value === false)) {
+            return null
+        }
+
         switch (unit) {
             case 'days':
                 return { unit: 'days', count, };
@@ -207,14 +214,16 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
         }
     };
 
+    // remove focus from the clicked button
+    const globalBlur = () => (window?.document?.activeElement as HTMLElement)?.blur();
+
     const handleDayToggle = (day: keyof WeekDays): void => {
         setSelectedDays(prev => ({
             ...prev,
             [day]: !prev[day]
         }));
 
-        // remove focus from the clicked button
-        (window?.document?.activeElement as HTMLElement)?.blur();
+        globalBlur();
     };
 
     const handleOccurrenceToggle = (occurrence: keyof MonthlyOccurrences): void => {
@@ -222,6 +231,8 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
             ...prev,
             [occurrence]: !prev[occurrence]
         }));
+
+        globalBlur();
     };
 
     const handleDone = (): void => {
@@ -232,7 +243,7 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
             return;
         }
 
-        const frequencyObject = generateFrequencyObject();
+        const frequencyObject = generateFrequencyObject()!;
 
         // Setting to 12 am, in local time zone
         const startOfStartDate = new Date(startDate);
@@ -269,6 +280,8 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
         }
 
     }, [initialVisible, setVisible]);
+
+    const frequency = generateFrequencyObject();
 
     return (
         <>
@@ -314,7 +327,7 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
                                             <Button
                                                 auto
                                                 scale={0.75}
-                                                type={selectedDays[id] ? "secondary" : "default"}
+                                                type={selectedDays[id] ? "success" : "default"}
                                                 onClick={() => handleDayToggle(id)}
                                                 style={{ minWidth: '32px', height: '32px', padding: 0 }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                            >
                                                 {label}
@@ -334,7 +347,7 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
                                             <Button
                                                 auto
                                                 scale={0.75}
-                                                type={monthlyOccurrences[id] ? "secondary" : "default"}
+                                                type={monthlyOccurrences[id] ? "success" : "default"}
                                                 onClick={() => handleOccurrenceToggle(id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                            >
                                                 {label}
                                             </Button>
@@ -394,6 +407,9 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
                         </Grid>
                     </Grid.Container>
                 </Modal.Content>
+                {frequency ?
+                    <ResizableText>{frequencyObjectToString(frequency)}</ResizableText>
+                    : <Spacer h={0.5} />}
                 {error && (
                     <Modal.Content>
                         <Text type="error">{error}</Text>
