@@ -169,7 +169,7 @@ export default function Settings() {
                   placeholder="First Name"
                   initialValue={user.first_name}
                   width="100%" 
-                  height={`${textScale}px * 2` }
+                  height={`${textScale * 2}px` }
                   font={`${textScale}px`}
                   clearable
                   required 
@@ -184,7 +184,7 @@ export default function Settings() {
                   placeholder="Last Name"
                   initialValue={user.last_name}
                   width="100%" 
-                  height={`${textScale}px * 2` }
+                  height={`${textScale * 2}px` }
                   font={`${textScale}px`}
                   clearable
                   required 
@@ -225,7 +225,7 @@ export default function Settings() {
                   </Text>
                 </Card>
               </Grid>
-              <Button type="success" htmlType="submit" style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
+              <Button type="success" htmlType="submit" height={`${textScale * 2}px`} style={{ width: "100%", fontSize:`${textScale}px` }}
                 placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
               >
                 Save Settings
@@ -235,7 +235,7 @@ export default function Settings() {
           {endResponse && actionData?.error && <ResizableText type="error">{actionData.error}</ResizableText>}
           {endResponse && actionData?.success && <ResizableText type="success">{actionData.success}</ResizableText>}
           <Spacer h={1}/>
-          <Button auto onClick={openModal} type="error" ghost style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
+          <Button auto onClick={openModal} type="error" ghost height={`${textScale * 2}px`} style={{ width: "100%", fontSize:`${textScale}px` }}
             placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           >
             Delete Account
@@ -250,7 +250,7 @@ export default function Settings() {
                     htmlType="text"
                     placeholder="type here"
                     width="100%" 
-                    height={`${textScale}px * 2` }
+                    height={`${textScale * 2}px` }
                     font={`${textScale}px`}
                     clearable
                     required
