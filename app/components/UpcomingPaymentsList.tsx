@@ -23,11 +23,9 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
-    //console.log(8989, recurringTransactions, getTransactionsForPeriodBulk(recurringTransactions, startOfDay(new Date('2024-11-29T13:33:29.740Z')), startOfDay(new Date('2024-12-29T13:33:29.740Z'))))
 
     const fetchNextPage = useCallback(async () => {
         if (isLoading || !hasMore) return;
-
         setIsLoading(true);
         try {
             const startDate = addMonths(new Date(), page);
@@ -108,7 +106,7 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
         >
             {displayedTransactions.map((transaction) => (
                 <div
-                    key={`${transaction.transaction.recc_transaction_id}-${transaction.generatedDate.getTime()}`}
+                    key={`${transaction.transaction.recc_transaction_id}-${new Date(transaction.generatedDate).getTime()}`}
                 >
                     {renderUpcomingPaymentCard({
                         generatedTransaction: transaction,

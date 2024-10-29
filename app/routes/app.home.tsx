@@ -5,12 +5,14 @@ import { useFetcher, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setTextScale } from '~/appSlice';
+import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 import { getUserSession } from '~/auth.server';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from '~/service/userService';
-import { formatDate, toFixedWithCommas } from '~/util/util';
+import { formatDate, getRelativeDateInfo, toFixedWithCommas } from '~/util/util';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
+import { getNextPaymentDate } from '~/util/futureTransactionUtil';
 
 type MeUser = {
   uid: string;
@@ -46,18 +48,37 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
             },
           },
         }),
+        db.recurringTransaction.findMany({
+          where: { sender_uid: user!.uid },
+          include: {
+            recipient: {
+              select: {
+                acc: true,
+                acc_name: true,
+                short_description: true
+              }
+            },
+            sender: {
+              select: {
+                acc: true,
+                acc_name: true,
+                short_description: true
+              }
+            }
+          }
+        }),
         db.account.findMany({
           where: { uid: user.uid },
         }),
       ]);
     }
 
-    let [userData, userAccounts] = await getMeUser();
+    let [userData, recurringTransactions, userAccounts] = await getMeUser();
 
     if (!userData) {
       console.error("User, not found! Creating new user..", user)
       await createUser(context, user.uid, user.email, "Plan", "B");
-      [userData, userAccounts] = await getMeUser();
+      [userData, recurringTransactions, userAccounts] = await getMeUser();
     }
 
     userData = userData!
@@ -71,6 +92,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         notifications: userData.notifications,
         font_preference: userData.font_preference,
       },
+      recurringTransactions,
       userAccounts,
     });
   } catch (error) {
@@ -85,9 +107,10 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 };
 
 export default function Dashboard() {
-  const { me: user, userAccounts: accounts, error } = useLoaderData<{
+  const { me: user, userAccounts: accounts, recurringTransactions, error } = useLoaderData<{
     me: MeUser;
     userAccounts: Account[];
+    recurringTransactions: RecurringTransactionWithRecipient[];
     error?: string
   }>();
 
@@ -95,6 +118,7 @@ export default function Dashboard() {
   const [localNotifications, setLocalNotifications] = React.useState(user.notifications);
   const fetcher = useFetcher();
   const dispatch = useDispatch();
+  const nextPaymentDate = getNextPaymentDate(recurringTransactions as any as RecurringTransactionWithRecipient[]);
 
   const handleModalClose = () => {
     setViewingNotifications(false);
@@ -116,29 +140,13 @@ export default function Dashboard() {
   console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
-  function renderForm() {
-    return (
-      <>
-        {user.notifications.map((notification, index) => (
-          <React.Fragment key={notification.notification_id}>
-            <Card shadow>
-              <ResizableText b>{notification.content}<br /></ResizableText>
-              <ResizableText small>{formatDate(new Date(notification.timestamp))}</ResizableText>
-            </Card>
-            {index < user.notifications.length - 1 && <Spacer h={1} />}
-          </React.Fragment>
-        ))}
-      </>
-    );
-  }
-
   return (
     <>
       <Spacer h={2} />
       <Card padding={1} >
         <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
         <ResizableText h1>Hi {user.first_name}</ResizableText>
-        <ResizableText small>Next scheduled payment is in <ResizableText b>3 days<br /></ResizableText></ResizableText>
+        {nextPaymentDate && <ResizableText small>Next scheduled payment is <ResizableText b>{getRelativeDateInfo(nextPaymentDate).toLowerCase()}</ResizableText></ResizableText>}.
         <Spacer h={0.5} />
         <ResizableText small  >You have <ResizableText b>{localNotifications.length} unread notification
           {localNotifications.length == 1 ? "" : "s"}.<br /></ResizableText></ResizableText>

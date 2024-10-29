@@ -17,7 +17,7 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   const email = formData.get("email") as string;
 
   try {
-    return await createUserSession(context, uid, email, "/app/accounts");
+    return await createUserSession(context, uid, email, "/app/home");
   } catch (error: any) {
     return json<ActionData>({ error: error.toString() });
   }

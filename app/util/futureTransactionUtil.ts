@@ -4,15 +4,17 @@ import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 
 type GeneratedTransaction = {
     generatedDate: Date;
+    processed: boolean;
     transaction: RecurringTransactionWithRecipient
 }
 
+//TODO login info with a default recc payment
 function parseFrequency(frequencyStr: string): FrequencyObject {
     return JSON.parse(frequencyStr) as FrequencyObject;
 }
 
 function isOneOffPayment(transaction: RecurringTransactionWithRecipient): boolean {
-    return !transaction.frequency; // One-off payments don't have frequency
+    return transaction.starts_on === transaction.ends_on; // rule for one-off payments
 }
 
 function* generateTransactions(
@@ -20,43 +22,24 @@ function* generateTransactions(
     startDate: Date = new Date(),
     endDate: Date = addYears(new Date(), 1)
 ): Generator<GeneratedTransaction> {
-    // Debug logging
-    console.log(8989, 'Transaction start:', transaction.starts_on);
-    console.log(8989, 'Input startDate:', startDate.toISOString());
-    console.log(8989, 'Input endDate:', endDate.toISOString());
-
     // Handle one-off payments
     if (isOneOffPayment(transaction)) {
-        console.log('One-off payment detected');
         if (isAfter(transaction.starts_on, startDate) && isBefore(transaction.starts_on, endDate)) {
             yield {
                 transaction,
+                processed: false,
                 generatedDate: transaction.starts_on
             };
         }
         return;
     }
 
-    // Normalize dates to UTC midnight
-    const normalizedStartDate = new Date(startDate);
-  //  normalizedStartDate.setUTCHours(0, 0, 0, 0);
-
-    const normalizedEndDate = new Date(endDate);
-   // normalizedEndDate.setUTCHours(23, 59, 59, 999);
-
-    // Use normalized dates for initial currentDate calculation
     let currentDate = new Date(Math.max(
         Date.parse(transaction.starts_on as any as string),
-        normalizedStartDate.getTime()
+        startDate.getTime()
     ));
 
-    console.log(8989, 44, transaction.starts_on as any as string, normalizedStartDate.toISOString())
-
-    console.log(8989, 'Calculated currentDate:', currentDate.toISOString());
-    console.log(8989, 'Using frequency:', transaction.frequency);
-
-    while (isBefore(currentDate, normalizedEndDate) && (!transaction.ends_on || isBefore(currentDate, transaction.ends_on))) {
-        console.log(8989, 'fired')
+    while (isBefore(currentDate, endDate) && (!transaction.ends_on || isBefore(currentDate, transaction.ends_on))) {
         const frequency = parseFrequency(transaction.frequency);
         switch (frequency.unit) {
             case 'days': {
@@ -64,6 +47,7 @@ function* generateTransactions(
                 if (isBefore(currentDate, endDate)) {
                     yield {
                         transaction,
+                        processed: false,
                         generatedDate: currentDate
                     };
                 }
@@ -82,12 +66,12 @@ function* generateTransactions(
                     { day: 'fri', value: 5 },
                     { day: 'sat', value: 6 }
                 ];
-                
+
                 // Get all enabled days for this frequency
                 const enabledDays = weekDays
                     .filter(({ day }) => weekFreq[day])
                     .map(({ value }) => value);
-                
+
                 if (enabledDays.length > 0) {
                     // Find next occurrence for each enabled day
                     for (const dayValue of enabledDays) {
@@ -96,22 +80,22 @@ function* generateTransactions(
                         if (daysToAdd === 0 && dayValue === currentDate.getDay()) {
                             daysToAdd = 0;
                         }
-                        
+
                         const transactionDate = addDays(currentDate, daysToAdd);
-                        
-                        if (isBefore(transactionDate, endDate)) {
+
+                        if (isBefore(transactionDate, endDate) && transactionDate > new Date()) {
                             yield {
                                 transaction,
+                                processed: false,
                                 generatedDate: transactionDate
                             };
                         }
                     }
                 }
-                
+
                 currentDate = addWeeks(currentDate, weekFreq.count);
                 break;
             }
-
             case 'months': {
                 const monthFreq = frequency as MonthFrequency;
                 const weekDays: Array<{ day: keyof WeekDays; value: number }> = [
@@ -147,6 +131,7 @@ function* generateTransactions(
                                     isAfter(transactionDate, startDate)) {
                                     yield {
                                         transaction,
+                                        processed: false,
                                         generatedDate: transactionDate
                                     };
                                 }
@@ -157,7 +142,6 @@ function* generateTransactions(
                 currentDate = addMonths(currentDate, monthFreq.count);
                 break;
             }
-
             case 'years': {
                 const yearFreq = frequency as YearFrequency;
                 const [month, day] = yearFreq.date.split('-').map(num => parseInt(num));
@@ -166,6 +150,7 @@ function* generateTransactions(
                 if (isBefore(transactionDate, endDate) && isAfter(transactionDate, startDate)) {
                     yield {
                         transaction,
+                        processed: false,
                         generatedDate: transactionDate
                     };
                 }
@@ -190,52 +175,77 @@ function getTransactionsForPeriodBulk(
     startDate: Date = new Date(),
     endDate: Date = addYears(new Date(), 1)
 ): GeneratedTransaction[] {
-    console.log('Processing bulk transactions');
-    console.log('Number of transactions:', transactions.length);
-
-    // Create generators for all transactions
     const generators = transactions.map(transaction =>
         generateTransactions(transaction, startDate, endDate)
     );
 
-    // Initialize array to track the next transaction from each generator
     const nextTransactions: (GeneratedTransaction | null)[] = generators.map(gen => {
         const next = gen.next();
-        return next.done ? null : next.value;
+        return next.value;
     });
 
     const result: GeneratedTransaction[] = [];
 
-    // Keep going while we have any valid next transactions
-    while (nextTransactions.some(t => t !== null)) {
-        // Find the earliest transaction among all next transactions
+    while (nextTransactions.some(t => t && !t.processed && t.generatedDate <= endDate)) {
         let earliestIndex = -1;
-        let earliestDate = new Date(8640000000000000); // Max date
+        let earliestDate = new Date(8640000000000000);
 
         nextTransactions.forEach((transaction, index) => {
-            if (transaction && transaction.generatedDate < earliestDate) {
+            if (transaction && !transaction.processed && new Date(transaction.generatedDate) < new Date(earliestDate) && new Date(transaction.generatedDate) <= new Date(endDate)) {
                 earliestDate = transaction.generatedDate;
                 earliestIndex = index;
             }
         });
 
         if (earliestIndex !== -1) {
-            // Add the earliest transaction to our result
-            result.push(nextTransactions[earliestIndex]!);
+            const transactionToProcess = nextTransactions[earliestIndex]!;
 
-            // Get the next transaction from the generator that produced the earliest
-            const next = generators[earliestIndex].next();
-            nextTransactions[earliestIndex] = next.done ? null : next.value;
+            // Process the transaction
+            transactionToProcess.processed = true;
+            result.push(transactionToProcess);
+
+            // For one-off transactions, set the next transaction to null
+            if (isOneOffPayment(transactionToProcess.transaction)) {
+                nextTransactions[earliestIndex] = null;
+            } else {
+                // For recurring transactions, get the next one
+                const next = generators[earliestIndex].next();
+                nextTransactions[earliestIndex] = next.done ? null : next.value;
+            }
         }
     }
 
     return result;
 }
 
+function getNextPaymentDate(
+    transactions: RecurringTransactionWithRecipient[],
+    startDate: Date = new Date()
+): Date | null {
+    const generators = transactions.map(transaction =>
+        generateTransactions(transaction, startDate)
+    );
+
+    let earliestDate: Date | null = null;
+
+    for (const generator of generators) {
+        const next = generator.next();
+        if (!next.done) {
+            const nextDate = next.value.generatedDate;
+            if (earliestDate === null || nextDate < earliestDate) {
+                earliestDate = nextDate;
+            }
+        }
+    }
+
+    return earliestDate;
+}
+
 export {
     generateTransactions,
     getTransactionsForPeriod,
     getTransactionsForPeriodBulk,
+    getNextPaymentDate,
     type GeneratedTransaction
 };
 

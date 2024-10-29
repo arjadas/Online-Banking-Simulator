@@ -17,8 +17,8 @@ export const meta: MetaFunction = () => {
 };
 
 const navItems = [
-  { icon: <Home />, label: "Home", to: "/app/accounts" },
-  { icon: <List />, label: "History", to: "/app/transactions" },
+  { icon: <Home />, label: "Home", to: "/app/home" },
+  { icon: <List />, label: "History", to: "/app/history" },
   { icon: <ChevronRightCircle />, label: "Upcoming", to: "/app/upcoming" },
   { icon: <CreditCard />, label: "Cards", to: "/app/cards" },
   { icon: <Settings />, label: "Settings", to: "/app/settings" },

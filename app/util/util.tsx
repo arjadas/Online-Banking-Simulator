@@ -41,32 +41,43 @@ export const joinWithAmpersand = (arr: string[]) => {
   return `${arr.slice(0, -1).join(', ')} & ${arr.slice(-1)}`;
 };
 
+export function splitLists<T>(items: T[], predicate: (item: T) => boolean): [T[], T[]] {
+  return [
+      items.filter(predicate),
+      items.filter(item => !predicate(item))
+  ];
+}
+
 // Function to format the date as "Day, 23rd Sep (Today)" for display
 export const formatDate = (transactionDate: Date) => {
-  const now = new Date();
-  const differenceInDays = Math.floor((now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24));
-
   const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     day: 'numeric',
     month: 'short',
   };
 
-  let formattedDate = new Intl.DateTimeFormat('en-US', options).format(transactionDate);
+  const formattedDate = new Intl.DateTimeFormat('en-US', options).format(transactionDate);
+  const relativeDateInfo = getRelativeDateInfo(transactionDate);
+
+  return `${formattedDate}${relativeDateInfo ? ` (${relativeDateInfo})` : ''}`;
+};
+
+export const getRelativeDateInfo = (transactionDate: Date): string => {
+  const now = new Date();
+  const differenceInDays = Math.floor((now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24));
 
   if (differenceInDays === 0) {
-    formattedDate += " (Today)";
+    return "Today";
   } else if (differenceInDays === 1) {
-    formattedDate += " (Yesterday)";
-  }  else if (differenceInDays === -1) {
-    formattedDate += " (Tomorrow)";
+    return "Yesterday";
+  } else if (differenceInDays === -1) {
+    return "Tomorrow";
   } else if (differenceInDays > 0) {
-    formattedDate += ` (${differenceInDays} days ago)`;
-  } else {
-    formattedDate += ` (in ${-differenceInDays} days)`;
+    return `${differenceInDays} days ago`;
+  } else if (differenceInDays < 0) {
+    return `in ${-differenceInDays} days`;
   }
-
-  return formattedDate;
+  return '';
 };
 
 // Function to convert a date into "DD/MM/YYYY" for search comparison

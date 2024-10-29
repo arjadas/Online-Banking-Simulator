@@ -1,17 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Badge, Card, Grid, Text } from '@geist-ui/core';
+import { Card, Grid, Text } from '@geist-ui/core';
 import { Account, RecurringTransaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import React, { useCallback } from 'react';
 import { getUserSession } from '~/auth.server';
-import { frequencyObjectToString } from '~/components/ReccuringTransactionModal';
-import ResizableText from '~/components/ResizableText';
-import { formatDate, getBadgeColor, getTransactionIcon, toFixedWithCommas } from '~/util/util';
-import { getPrismaClient } from "../service/db.server";
-import { GeneratedTransaction, getTransactionsForPeriodBulk } from '~/util/futureTransactionUtil';
-import { addMonths, addYears } from 'date-fns';
+import { RecurringTransactionCard } from '~/components/FuturePaymentCard';
 import { UpcomingPaymentsList } from '~/components/UpcomingPaymentsList';
+import { GeneratedTransaction } from '~/util/futureTransactionUtil';
+import { splitLists } from '~/util/util';
+import { getPrismaClient } from "../service/db.server";
 
 export type RecurringTransactionWithRecipient = RecurringTransaction & {
   recipient: {
@@ -68,104 +66,60 @@ export default function UpcomingPayments() {
     userAccounts: Account[];
   }>();
 
-  const recurringPayments = recurringTransactions.filter((transaction) => {
+  const [recurringPayments, oneOffPayments] = splitLists(recurringTransactions, (transaction) => {
     return !transaction.ends_on || new Date(transaction.starts_on).getTime() !== new Date(transaction.ends_on).getTime()
   });
 
   const userAccountIds = userAccounts.map((account) => account.acc);
 
   const renderRecurringTransactionCard = (transaction: RecurringTransactionWithRecipient) => {
-    const isExternalSender = !userAccountIds.includes(transaction.sender_acc);
-    const isExternalRecipient = !userAccountIds.includes(transaction.recipient_acc);
-    const senderDisplayName = transaction.sender.acc_name;
-    const recipientDisplayName = transaction.recipient.acc_name;
-
-    return (
-      <Card key={transaction.recc_transaction_id} shadow style={{ marginBottom: '1rem' }} >
-        <Grid.Container gap={2}>
-          <Grid xs={3} alignItems="center" justify="center">
-            {getTransactionIcon(userAccountIds, transaction.recipient_acc)}
-          </Grid>
-          <Grid xs={21} alignItems="center">
-            <Grid.Container gap={1}>
-              <Grid xs={24}>
-                <ResizableText small>
-                  From: <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.sender.short_description, isExternalSender) }}>
-                    {isExternalSender ? senderDisplayName : transaction.sender.short_description}
-                  </Badge>
-                  &nbsp;To: <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description, isExternalRecipient) }}>
-                    {isExternalRecipient ? recipientDisplayName : transaction.recipient.short_description}
-                  </Badge>
-                </ResizableText>
-              </Grid>
-              <Grid xs={24}>
-                <ResizableText small>Amount: ${toFixedWithCommas(transaction.amount / 100, 2)}</ResizableText>
-              </Grid>
-              <Grid xs={24}>
-                <ResizableText small>Frequency: {frequencyObjectToString(JSON.parse(transaction.frequency))}</ResizableText>
-              </Grid>
-              <Grid xs={24}>
-                <ResizableText small>Starts on: {formatDate(new Date(transaction.starts_on))}</ResizableText>
-              </Grid>
-              <Grid xs={24}>
-                <ResizableText small>
-                  Ends on: {transaction.ends_on ? formatDate(new Date(transaction.ends_on)) : 'Indefinite'}
-                </ResizableText>
-              </Grid>
-            </Grid.Container>
-          </Grid>
-        </Grid.Container>
-      </Card>
-    );
+    return <RecurringTransactionCard
+      key={transaction.recc_transaction_id}
+      transaction={transaction}
+      userAccountIds={userAccountIds}
+    />
   };
 
   const renderUpcomingPaymentCard = useCallback(({ generatedTransaction, style }: { generatedTransaction: GeneratedTransaction, style: React.CSSProperties }) => {
-    const isExternalSender = !userAccountIds.includes(generatedTransaction.transaction.sender.acc);
-    const isExternalRecipient = !userAccountIds.includes(generatedTransaction.transaction.recipient.acc);
-
-    return (
-      <div style={style}>
-        <Card margin={1} shadow>
-          <Grid.Container gap={2}>
-            <Grid xs={2} alignItems="center" justify="flex-end">
-              {getTransactionIcon(userAccountIds, generatedTransaction.transaction.recipient.acc)}
-            </Grid>
-            <Grid xs={22} alignItems="center">
-              <Grid.Container gap={1}>
-                <Grid xs={24}>
-                  <ResizableText small>
-                    From: <Badge type="secondary" style={{ backgroundColor: getBadgeColor(generatedTransaction.transaction.sender.short_description, isExternalSender) }}>
-                      {isExternalSender ? generatedTransaction.transaction.sender.acc_name : generatedTransaction.transaction.sender.short_description}
-                    </Badge>
-                    &nbsp;To: <Badge type="secondary" style={{ backgroundColor: getBadgeColor(generatedTransaction.transaction.recipient.short_description, isExternalRecipient) }}>
-                      {isExternalRecipient ? generatedTransaction.transaction.recipient.acc_name : generatedTransaction.transaction.recipient.short_description}
-                    </Badge>
-                  </ResizableText>
-                </Grid>
-                <Grid xs={24}>
-                  <ResizableText small>Amount: ${toFixedWithCommas(generatedTransaction.transaction.amount / 100, 2)}</ResizableText>
-                </Grid>
-                <Grid xs={24}>
-                  <ResizableText small>Date: {formatDate(new Date(generatedTransaction.generatedDate))}</ResizableText>
-                </Grid>
-              </Grid.Container>
-            </Grid>
-          </Grid.Container>
-        </Card>
-      </div>
-    );
+    return <RecurringTransactionCard
+      key={generatedTransaction.transaction.recc_transaction_id}
+      transaction={generatedTransaction}
+      userAccountIds={userAccountIds}
+    />
   }, [userAccountIds]);
 
   return (
     <Grid.Container gap={2} direction="row">
-      <Grid xs={12}>
-        <Card padding={1} width="100%">
-          <Text h2>Recurring Transactions</Text>
-          {(recurringPayments as any as RecurringTransactionWithRecipient[]).map(renderRecurringTransactionCard)}
-        </Card>
+      <Grid xs={12} style={{ display: 'flex', flexDirection: 'column', }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: "100%",
+        }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, }}>
+            <Card padding={1} margin={1} width="100%" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <Card.Content style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <Text h2>Recurring Transactions</Text>
+                <div style={{ flex: 1, overflowY: 'scroll' }}>
+                  {(recurringPayments as any as RecurringTransactionWithRecipient[]).map(renderRecurringTransactionCard)}
+                </div>
+              </Card.Content>
+            </Card>
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Card padding={1} margin={1} width="100%" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <Card.Content style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <Text h2>Future One-off Transactions</Text>
+                <div style={{ flex: 1, overflowY: 'scroll' }}>
+                  {(oneOffPayments as any as RecurringTransactionWithRecipient[]).map(renderRecurringTransactionCard)}
+                </div>
+              </Card.Content>
+            </Card>
+          </div>
+        </div>
       </Grid>
-      <Grid xs={12}>
-        <Card width="100%" padding={1}>
+      <Grid xs={12} style={{ display: 'flex', flexDirection: 'column' }}>
+        <Card width="100%" padding={1} margin={1}>
           <Text h2>Upcoming Payments</Text>
           <UpcomingPaymentsList
             recurringTransactions={recurringTransactions as any as RecurringTransactionWithRecipient[]}

@@ -187,7 +187,10 @@ export default function Transactions() {
                   <Grid xs={1} alignItems="center" justify="flex-end">
                     {getTransactionIcon(userAccountIds, transaction.sender_acc)}
                   </Grid>
-                  <Grid xs={17} alignItems="center">
+                  <Grid xs={2} alignItems="center" justify='center' alignContent='center'>
+                    <ResizableText h3 style={{ margin: "0px 0px 0px 20px" }}>${toFixedWithCommas(transaction.amount / 100, 2)}</ResizableText>
+                  </Grid>
+                  <Grid xs={15} alignItems="center">
                     <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                       {/* Icon and "From" */}
                       &nbsp;&nbsp;From:&nbsp;
@@ -198,8 +201,7 @@ export default function Transactions() {
                       <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description, isExternalRecipient) }}>
                         {isExternalRecipient ? recipientDisplayName : transaction.recipient.short_description}
                       </Badge>
-                      &nbsp;&nbsp;Amount: ${toFixedWithCommas(transaction.amount / 100, 2)}
-                      &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
+                      &nbsp;&nbsp;&nbsp;&nbsp;On {formatDate(new Date(transaction.timestamp))}
                     </ResizableText>
                   </Grid>
                   <Grid xs={6} alignItems="center" justify="flex-end">

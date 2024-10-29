@@ -20,7 +20,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         await createUser(context, uid, email, first_name, last_name);
 
         // Store session data in KV
-        return await createUserSession(context, uid, email, "/app/accounts");
+        return await createUserSession(context, uid, email, "/app/home");
     } catch (error: any) {
         return json({ error: error.message, context: context.cloudflare.env.firebase_storage });
     }
