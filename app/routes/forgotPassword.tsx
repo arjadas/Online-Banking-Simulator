@@ -46,7 +46,7 @@ export default function ForgotPassword() {
       
       await sendResetPasswordEmail(email);
       // Show success message
-      alert("You will receive an email with instructions to reset your password if it exists in our system. You'll be redirected to the login page.");
+      alert("Email sent! Check your inbox for the password reset link.");
       // Navigate to login page after showing the alert
       navigate("/login");
     } catch (error: any) {
@@ -66,6 +66,7 @@ export default function ForgotPassword() {
       <Image width="400px" style={{ textAlign: "center", paddingBottom: 30 }} src="logo.png" />
       <Card width="400px" style={{ padding: 10 }}>
         <Text h3>Forgot Password</Text>
+        <Text p>You will receive an email with instructions to reset your password if it exists in our system. You will be redirected to the login page after submitting.</Text>
         <Text h6>Email</Text>
         <Form onSubmit={handleSendEmail} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Input name="email" htmlType="email" clearable placeholder="Enter your Email" required width="100%" crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
@@ -73,7 +74,7 @@ export default function ForgotPassword() {
             htmlType="submit" 
             type="secondary"
             placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-            Reset Password
+            Submit Email
           </Button>
         </Form>
         {/*actionData?.error && <p style={{ color: "red" }}>{actionData.error}</p>*/}

@@ -196,6 +196,7 @@ export default function Settings() {
 
               <Grid>
                 <ResizableText h5>Change Password</ResizableText>
+                <ResizableText p>An email with instructions will be sent</ResizableText>
                 <Button auto onClick={handleSendEmail} style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
                   placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 >
