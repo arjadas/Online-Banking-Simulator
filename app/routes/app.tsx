@@ -23,7 +23,6 @@ const navItems = [
   { icon: <LogOut />, label: "Logout", to: "/logout" },
 ];
 
-//TODO set up second auth
 export default function AppLayout() {
   const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
   const [drawerOpen, setDrawerOpen] = React.useState(false)
