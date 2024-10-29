@@ -1,11 +1,11 @@
-import { Button, Card, Input, Select, Tabs, Text, Textarea, Spacer, Grid } from '@geist-ui/core';
+import { Button, Card, Input, Select, Spacer, Tabs, Textarea } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { Form, useActionData } from '@remix-run/react';
+import { Form } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
 import CurrencyInput from '~/components/CurrencyInput';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
-import ResizableText from './ResizableText';
 import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
+import ResizableText from './ResizableText';
 
 type RecipientAddress = {
     accountName: string;
@@ -34,6 +34,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     const [description, setDescription] = useState('');
     const [addressTypeTab, setAddressTypeTab] = useState('acc-bsb');
     const [temporalTab, setTemporalTab] = useState('now');
+    const [recurringModalVisible, setRecurringModalVisible] = useState(false);
     const [recipientAddress, setRecipientAddress] = useState<RecipientAddress>({
         accountName: '',
         acc: -1,
@@ -42,6 +43,14 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         billerCode: -1,
         crn: -1
     });
+
+    const handleTemporalTabChange = (value: React.SetStateAction<string>) => {
+        if (value == 'recurring') {
+            setRecurringModalVisible(true);
+        }
+
+        setTemporalTab(value);
+    };
 
     const handleFromAccChange = (value: string | string[]) => {
         setFromAcc(parseInt(value as string));
@@ -127,7 +136,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
             <Form method="post">
                 <ResizableText h4>Schedule</ResizableText>
-                <Tabs style={{ fontWeight: '600' }} value={temporalTab} onChange={setTemporalTab} hideDivider>
+                <Tabs style={{ fontWeight: '600' }} value={temporalTab} onChange={handleTemporalTabChange} hideDivider>
                     <Tabs.Item label="Now" value="now" >
                         <ResizableText>Transfer will be settled instantly.</ResizableText>
                         <Spacer />
@@ -150,13 +159,15 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                         {frequency ?
                             <ResizableText>{frequencyObjectToString(frequency)}</ResizableText>
                             : <Spacer h={0.5} />}
-                        <FutureTransactionModal onFrequencyChange={function (frequency: FrequencyObject): void {
+                        <FutureTransactionModal visible={recurringModalVisible} onFrequencyChange={function (frequency: FrequencyObject): void {
                             setFrequency(frequency);
-                        }} onStartDateChange={function (date: string): void {
+                        } } onStartDateChange={function (date: string): void {
                             setStartDate(date);
-                        }} onEndDateChange={function (date: string): void {
+                        } } onEndDateChange={function (date: string): void {
                             setEndDate(date);
-                        }} />
+                        } } onNotVisible={function (): void {
+                            setRecurringModalVisible(false);
+                        } } />
                         <Spacer />
                     </Tabs.Item>
                 </Tabs>

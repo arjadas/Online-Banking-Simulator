@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Modal, Button, Select, Input, useModal, Grid, Text } from '@geist-ui/react';
-import ResizableText from './ResizableText';
+import { Button, Grid, Input, Modal, Select, Text, useModal } from '@geist-ui/react';
+import React, { useEffect, useState } from 'react';
 import { getFullDay } from '~/util';
+import ResizableText from './ResizableText';
 
 type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
 
@@ -56,13 +56,19 @@ interface OccurrenceConfig {
 }
 
 interface FrequencySelectorProps {
+    visible?: boolean;
     onFrequencyChange: (frequency: FrequencyObject) => void;
     onStartDateChange: (date: string) => void;
     onEndDateChange: (date: string) => void;
+    onNotVisible: () => void;
 }
 
 export const frequencyObjectToString = (frequency: FrequencyObject) => {
     const countStr = frequency.count > 1 ? `${frequency.count} ` : '';
+    const includesDay = (keyVal: [string, string]) => {
+        const [key, value] = keyVal;
+        return ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key) && value;
+    }
 
     switch (frequency.unit) {
         case 'days':
@@ -70,7 +76,7 @@ export const frequencyObjectToString = (frequency: FrequencyObject) => {
 
         case 'weeks': {
             const weekDays = Object.entries(frequency)
-                .filter(([key, value]) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key) && value)
+                .filter((keyVal) => includesDay(keyVal))
                 .map(([key]) => getFullDay(key))
                 .join(', ');
             return `Every ${countStr}week${frequency.count > 1 ? 's' : ''} on ${weekDays}.`;
@@ -78,7 +84,7 @@ export const frequencyObjectToString = (frequency: FrequencyObject) => {
 
         case 'months': {
             const monthDays = Object.entries(frequency)
-                .filter(([key, value]) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key) && value)
+                .filter((keyVal) => includesDay(keyVal))
                 .map(([key]) => getFullDay(key))
                 .join(', ');
             const occurrences = Object.entries(frequency)
@@ -100,8 +106,8 @@ export const frequencyObjectToString = (frequency: FrequencyObject) => {
     }
 }
 
-const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ onFrequencyChange, onStartDateChange,
-    onEndDateChange }) => {
+const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: initialVisible, onFrequencyChange, onStartDateChange,
+    onEndDateChange, onNotVisible }) => {
     const { visible, setVisible, bindings } = useModal();
     const [unit, setUnit] = useState<FrequencyUnit>('weeks');
     const [count, setCount] = useState<number>(1);
@@ -243,6 +249,7 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ onFrequencyC
         }
 
         setVisible(false);
+        onNotVisible();
     };
 
     const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -256,10 +263,17 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ onFrequencyC
         setYearlyDate(new Date(e.target.value).toISOString());
     };
 
+    useEffect(() => {
+        if (initialVisible) {
+            setVisible(true);
+        }
+
+    }, [initialVisible, setVisible]);
+
     return (
         <>
             <Button auto onClick={() => setVisible(true)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Set Frequency</Button>
-            <Modal {...bindings} width="600px">
+            <Modal {...bindings} width="600px" onAbort={onNotVisible}>
                 <Modal.Title>Recurring Payment</Modal.Title>
                 <Modal.Content padding={2}>
                     <Grid.Container gap={1}>
@@ -385,7 +399,7 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ onFrequencyC
                         <Text type="error">{error}</Text>
                     </Modal.Content>
                 )}
-                <Modal.Action passive onClick={() => setVisible(false)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} placeholder={undefined}>Cancel</Modal.Action>
+                <Modal.Action passive onClick={() => { setVisible(false); onNotVisible() }} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} placeholder={undefined}>Cancel</Modal.Action>
                 <Modal.Action onClick={handleDone} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} placeholder={undefined}>Done</Modal.Action>
             </Modal >
         </>
