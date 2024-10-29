@@ -1,3 +1,5 @@
+import { Shuffle, User } from "@geist-ui/icons";
+
 // Helper function to get the badge color based on the account type
 export const getBadgeColor = (accountName: string, isExternalUser = false) => {
   if (isExternalUser) return "gray";
@@ -35,7 +37,7 @@ export const joinWithAmpersand = (arr: string[]) => {
   if (!arr.length) return '';
   if (arr.length === 1) return arr[0];
   if (arr.length === 2) return `${arr[0]} & ${arr[1]}`;
-  
+
   return `${arr.slice(0, -1).join(', ')} & ${arr.slice(-1)}`;
 };
 
@@ -56,8 +58,10 @@ export const formatDate = (transactionDate: Date) => {
     formattedDate += " (Today)";
   } else if (differenceInDays === 1) {
     formattedDate += " (Yesterday)";
-  } else {
+  } else if (differenceInDays > 0) {
     formattedDate += ` (${differenceInDays} days ago)`;
+  } else {
+    formattedDate += ` (in ${-differenceInDays} days)`;
   }
 
   return formattedDate;
@@ -70,4 +74,11 @@ export const formatSearchDate = (date: Date) => {
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`; // Australian date format
+};
+
+// Determine the correct icon based on whether the transaction is internal or external
+export const getTransactionIcon = (userAccountIds: number[], accountId: number) => {
+  return userAccountIds.includes(accountId)
+    ? <Shuffle size={24} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+    : <User size={24} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
 };

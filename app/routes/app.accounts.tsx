@@ -1,16 +1,16 @@
-import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
+import { Button, Card, Grid, Modal, Spacer } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, useFetcher } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setTextScale } from '~/appSlice';
 import { getUserSession } from '~/auth.server';
+import ResizableText from '~/components/ResizableText';
 import { createUser } from '~/service/userService';
+import { formatDate, toFixedWithCommas } from '~/util/util';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
-import { formatDate, toFixedWithCommas } from '~/util';
-import ResizableText from '~/components/ResizableText';
-import { setTextScale } from '~/appSlice';
-import { useDispatch } from 'react-redux';
 
 type MeUser = {
   uid: string;
