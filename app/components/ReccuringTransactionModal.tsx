@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Select, Input, useModal, Grid, Text } from '@geist-ui/react';
 import ResizableText from './ResizableText';
+import { getFullDay } from '~/util';
 
 type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
 
@@ -70,26 +71,15 @@ export const frequencyObjectToString = (frequency: FrequencyObject) => {
         case 'weeks': {
             const weekDays = Object.entries(frequency)
                 .filter(([key, value]) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key) && value)
-                .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1))
+                .map(([key]) => getFullDay(key))
                 .join(', ');
-            return `Every ${countStr}week${frequency.count > 1 ? 's' : ''} on ${weekDays}`;
+            return `Every ${countStr}week${frequency.count > 1 ? 's' : ''} on ${weekDays}.`;
         }
 
         case 'months': {
             const monthDays = Object.entries(frequency)
                 .filter(([key, value]) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key) && value)
-                .map(([key]) => {
-                    switch (key) {
-                        case 'mon': return 'Monday';
-                        case 'tue': return 'Tuesday';
-                        case 'wed': return 'Wednesday';
-                        case 'thu': return 'Thursday';
-                        case 'fri': return 'Friday';
-                        case 'sat': return 'Saturday';
-                        case 'sun': return 'Sunday';
-                        default: return key;
-                    }
-                })
+                .map(([key]) => getFullDay(key))
                 .join(', ');
             const occurrences = Object.entries(frequency)
                 .filter(([key, value]) => key.startsWith('occurrence') && value)
@@ -156,15 +146,13 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ onFrequencyC
     ];
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newStartDate = e.target.value;
+        const newStartDate = e.target.value
         setStartDate(newStartDate);
-        onStartDateChange(newStartDate);
     };
 
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newEndDate = e.target.value;
         setEndDate(newEndDate);
-        onEndDateChange(newEndDate);
     };
 
     const validateInputs = (): string | null => {
@@ -239,7 +227,21 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ onFrequencyC
         }
 
         const frequencyObject = generateFrequencyObject();
+
+        // Setting to 12 am, in local time zone
+        const startOfStartDate = new Date(startDate);
+        startOfStartDate.setHours(0, 0, 0, 0);
+        const startIsoString = startOfStartDate.toISOString();
         onFrequencyChange(frequencyObject);
+        onStartDateChange(startIsoString);
+
+        if (endDate) {
+            const startOfEndDate = new Date(endDate);
+            startOfEndDate.setHours(0, 0, 0, 0);
+            const endIsoString = startOfEndDate.toISOString();
+            onEndDateChange(endIsoString);
+        }
+
         setVisible(false);
     };
 

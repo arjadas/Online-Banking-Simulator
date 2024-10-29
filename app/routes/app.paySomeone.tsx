@@ -5,9 +5,8 @@ import { useState } from 'react';
 import { getUserSession } from '~/auth.server';
 import PaySomeoneForm from '~/components/PaySomeoneForm';
 import UserPrevContactForm from '~/components/UserPrevContactForm';
-import { createNotification, makeSendReceiveNotifications as makeSendReceiveNotifications } from '~/service/notificationService';
+import { makeSendReceiveNotifications } from '~/service/notificationService';
 import { createUserPrevContact } from '~/service/userPrevContactService';
-import { toFixedWithCommas } from '~/util';
 import { getPrismaClient } from "../service/db.server";
 
 export type UserPrevContactResult = {
@@ -115,8 +114,8 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const reference = formData.get('reference') as string;
   const description = formData.get('description') as string;
   const laterDateTime = formData.get('laterDateTime') as string;
-  const frequency = formData.get('frequency') as string;
-  const activeTab = formData.get('activeTab') as string;
+  const frequency = formData.get('frequencyObject') as string;
+  const temporalTab = formData.get('temporalTab') as string;
   const startDate = formData.get('startDate') as string;
   const endDate = formData.get('endDate') as string;
 
@@ -134,11 +133,11 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
 
   try {
-    if (activeTab == 'later' && !laterDateTime) {
+    if (temporalTab == 'later' && !laterDateTime) {
       throw new Error('Must specify a date and time when transferring setting a future payment.');
     }
 
-    if (activeTab == 'recurring') {
+    if (temporalTab == 'recurring') {
       if (!frequency) {
         throw new Error('Must specify a frequency when setting a recurring payment.');
       }
@@ -198,7 +197,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     // so it doesn't support transactions now, but when it does, this code will support it.
     let result;
 
-    if (activeTab == 'now') {
+    if (temporalTab == 'now') {
       result = await db.$transaction([
         db.account.update({
           where: { acc: fromAccount.acc },
@@ -224,7 +223,9 @@ export const action: ActionFunction = async ({ context, request }: { context: an
           },
         }),
       ]);
-    } else if (activeTab == 'later') {
+    } else if (temporalTab == 'later') {
+      const laterDateTimeISO = (new Date(laterDateTime)).toISOString();
+
       // instead of setting up another table we'll use the RecurringTransaction table for all 'future' payments
       result = await db.recurringTransaction.create({
         data: {
@@ -237,11 +238,11 @@ export const action: ActionFunction = async ({ context, request }: { context: an
           reference: reference,
           description: description,
           frequency: '{}',
-          starts_on: laterDateTime,
-          ends_on: laterDateTime,
+          starts_on: laterDateTimeISO,
+          ends_on: laterDateTimeISO,
         }
       });
-    } else if (activeTab == 'recurring') {
+    } else if (temporalTab == 'recurring') {
       result = await db.recurringTransaction.create({
         data: {
           amount: amount,
@@ -277,7 +278,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       });
     }
 
-    if (activeTab == 'now') {
+    if (temporalTab == 'now') {
       makeSendReceiveNotifications(context, toAccount, fromAccount, amount);
     }
 

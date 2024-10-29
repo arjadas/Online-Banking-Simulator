@@ -6,7 +6,6 @@ import CurrencyInput from '~/components/CurrencyInput';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
 import ResizableText from './ResizableText';
 import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
-import { s } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 
 type RecipientAddress = {
     accountName: string;
@@ -33,7 +32,8 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     const [endDate, setEndDate] = useState('');
     const [laterDateTime, setLaterDateTime] = useState('');
     const [description, setDescription] = useState('');
-    const [activeTab, setActiveTab] = useState('acc-bsb');
+    const [addressTypeTab, setAddressTypeTab] = useState('acc-bsb');
+    const [temporalTab, setTemporalTab] = useState('now');
     const [recipientAddress, setRecipientAddress] = useState<RecipientAddress>({
         accountName: '',
         acc: -1,
@@ -49,7 +49,6 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
     const handleLaterDateTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        console.log(value)
         if (value) setLaterDateTime(value);
     };
 
@@ -66,11 +65,11 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
         // Set active tab based on the input field
         if (key === 'acc' || key === 'bsb' || key === 'accountName') {
-            setActiveTab('acc-bsb');
+            setAddressTypeTab('acc-bsb');
         } else if (key === 'payId') {
-            setActiveTab('pay-id');
+            setAddressTypeTab('pay-id');
         } else if (key === 'billerCode' || key === 'crn') {
-            setActiveTab('b-pay');
+            setAddressTypeTab('b-pay');
         }
     };
 
@@ -123,11 +122,12 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userPrevContact]);
+
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
             <Form method="post">
                 <ResizableText h4>Schedule</ResizableText>
-                <Tabs style={{ fontWeight: '600' }} initialValue="now" hideDivider>
+                <Tabs style={{ fontWeight: '600' }} value={temporalTab} onChange={setTemporalTab} hideDivider>
                     <Tabs.Item label="Now" value="now" >
                         <ResizableText>Transfer will be settled instantly.</ResizableText>
                         <Spacer />
@@ -142,7 +142,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                             placeholder="Enter Date" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                         <Spacer />
                     </Tabs.Item>
-                    <input type="hidden" name="frequencyObject" value={frequency ? frequencyObjectToString(frequency) : ''} />
+                    <input type="hidden" name="frequencyObject" value={frequency ? JSON.stringify(frequency) : ''} />
                     <input type="hidden" name="startDate" value={startDate} />
                     <input type="hidden" name="endDate" value={endDate} />
                     <Tabs.Item label="Recurring" value="recurring">
@@ -174,7 +174,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 </div>
                 <input type="hidden" name="fromAcc" value={fromAcc || ''} />
                 <ResizableText h4>Payment Method</ResizableText>
-                <Tabs style={{ fontWeight: '600' }} value={activeTab} onChange={setActiveTab} hideDivider >
+                <Tabs style={{ fontWeight: '600' }} value={addressTypeTab} onChange={setAddressTypeTab} hideDivider >
                     <Tabs.Item label="ACC / BSB" value="acc-bsb">
                         <ResizableText>Instant Transfers Between Bank Accounts</ResizableText>
                         <Spacer />
@@ -213,7 +213,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                     <Button auto placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={onBack} >Back</Button>
                     <Button auto htmlType="submit" type="secondary" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Confirm</Button>
                 </div>
-                <input type="hidden" name="activeTab" value={activeTab} />
+                <input type="hidden" name="temporalTab" value={temporalTab} />
             </Form>
             {actionData && (
                 <div style={{ marginTop: '20px' }}>
