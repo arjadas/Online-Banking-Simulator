@@ -42,17 +42,6 @@ export const action: ActionFunction = async ({ context, request } : { context: a
     }
   }
 
-  if (actionType === "sendEmail") {
-    const email = formData.get("email") as string;
-
-    try {
-      await sendResetPasswordEmail(email);
-      return json ({ success: "Password reset email sent!" });
-    } catch (error: any) {
-      return json ({ error: error.message });
-    }
-  }
-
   if (actionType === "deleteAccount") {
     deleteUser(user!.uid);
     return json ({ success: "Account Deleted" });
@@ -109,13 +98,17 @@ export default function Settings() {
 
   const handleSendEmail = async (event: React.FormEvent) => {
     event.preventDefault();
-    const formData = new FormData();
-
-    formData.append("actionType", "sendEmail");
-    formData.append("userId", user.uid);
-    formData.append("email", user.email);
-    submit(formData, { method: "post" });
-    setEndResponse(false);
+    
+    // handle this client side instead of server side
+    try {
+      await sendResetPasswordEmail(user.email);
+      // Show success message
+      alert("Password reset email has been sent!");
+      setEndResponse(false);
+    } catch (error: any) {
+      // Handle error
+      console.error('Password reset error:', error);
+    }
   }
 
   const handleDeleteAccount = () => {
