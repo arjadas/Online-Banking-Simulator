@@ -1,6 +1,6 @@
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useNavigate } from "@remix-run/react";
 import { sendResetPasswordEmail } from "~/auth.client";
 import AuthenticatedLink from '~/components/AuthenticatedLink';
 
@@ -30,10 +30,13 @@ const handleSendEmail = async (event: React.FormEvent) => {
   const email = formData.get("email") as string;
 
   try {
+    const navigate = useNavigate();
+    
     await sendResetPasswordEmail(email);
     // Show success message
     alert("Password reset email has been sent!");
-    
+    // Navigate to login page after showing the alert
+    navigate("/login");
   } catch (error: any) {
     // Handle error
     console.error('Password reset error:', error);
