@@ -1,11 +1,12 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
     test: {
         globals: true,
-        environment: 'node',
+        environment: 'jsdom',
         setupFiles: ['./setupTests.ts'],
         include: ['**/*.test.{js,jsx,ts,tsx}'],
         exclude: ['node_modules', 'build', '.cache'],
@@ -17,7 +18,7 @@ export default defineConfig({
             ]
         }
     },
-    plugins: [tsconfigPaths()],
+    plugins: [tsconfigPaths(), vue()],
     resolve: {
         alias: {
             '~': resolve(__dirname, './app'),
