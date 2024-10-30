@@ -45,7 +45,7 @@ export default function Signup() {
         event.preventDefault();
 
         if (password !== confirmPassword) {
-            setClientError("Password Does Not Match - Please Try Again.");
+            setClientError("Passwords Do Not Match - Please Try Again.");
             setShake(true);
             setTimeout(() => setShake(false), 500); // Remove shake effect after animation
             return;
@@ -65,7 +65,8 @@ export default function Signup() {
             formData.append("uid", user.uid);
             submit(formData, { method: "post", action: "/signup" });
         } catch (error: any) {
-            setClientError(error.message);
+            setClientError("An Account With This Email Already Exist.");
+            console.error(error.message);
         } finally {
             setLoading(false);
         }
