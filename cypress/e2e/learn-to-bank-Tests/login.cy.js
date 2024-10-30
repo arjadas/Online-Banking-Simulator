@@ -22,12 +22,46 @@ describe('Login Page', () => {
       cy.get('input:invalid').should('have.length', 2);
     });
   
-    it('shows an error if login credentials are incorrect', () => {
-      cy.get('input[name="email"]').type('wrong@example.com');
+    it('shows an error if the email is incorrect', () => {
+      cy.get('input[name="email"]').type('wrong@email.com');
+      cy.get('input[name="password"]').type('correctpassword');
+      cy.get('button[type="submit"]').click();
+  
+      cy.contains('Invalid email or password').should('be.visible');
+    });
+
+    it('shows an error if the email is correct, but not the password', () => {
+      cy.get('input[name="email"]').type('test@email.com');
       cy.get('input[name="password"]').type('wrongpassword');
       cy.get('button[type="submit"]').click();
   
       cy.contains('Invalid email or password').should('be.visible');
     });
-  });
+
+    it('logs in successfully with correct credentials', () => {
+      cy.get('input[name="email"]').type('test@email.com');
+      cy.get('input[name="password"]').type('correctpassword');
+      cy.get('button[type="submit"]').click();
+  
+      cy.url().should('not.include', '/login');
+    });
+  
+    it('displays loading state on login button when submitting', () => {
+      cy.get('input[name="email"]').type('test@email.com');
+      cy.get('input[name="password"]').type('correctpassword');
+      cy.get('button[type="submit"]').click();
+  
+      cy.get('button[type="submit"]').should('be.disabled');
+    });
+  
+    it('navigates to the sign-up page when clicking "Sign up"', () => {
+      cy.contains('a', 'Sign up').click();
+      cy.url().should('include', '/signup');
+    });
+  
+    it('navigates to the forgot password page when clicking "Forgot your password?"', () => {
+      cy.contains('a', 'Forgot your password?').click();
+      cy.url().should('include', '/forgotPassword');
+    });
+});
   
