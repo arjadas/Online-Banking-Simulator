@@ -30,7 +30,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # Method : Using write-file action to restore wrangler.toml
+      # Method : Using write-file action to restore wrangler.toml from secrets
       - name: Restore wrangler.toml (write-file)
         uses: DamianReeves/write-file-action@master
         with:
