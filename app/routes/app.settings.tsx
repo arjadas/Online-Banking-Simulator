@@ -42,17 +42,6 @@ export const action: ActionFunction = async ({ context, request } : { context: a
     }
   }
 
-  if (actionType === "sendEmail") {
-    const email = formData.get("email") as string;
-
-    try {
-      await sendResetPasswordEmail(email);
-      return json ({ success: "Password reset email sent!" });
-    } catch (error: any) {
-      return json ({ error: error.message });
-    }
-  }
-
   if (actionType === "deleteAccount") {
     deleteUser(user!.uid);
     return json ({ success: "Account Deleted" });
@@ -71,10 +60,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
           where: { uid: user!.uid }
       }),
   ]);
-
-  if (!userData) {
-      throw new Response("No user data Found! This is a catastrophic error since user should have been created on sign-up :/", { status: 404 });
-  }
 
   return json({
       userData,
@@ -109,18 +94,20 @@ export default function Settings() {
 
   const handleSendEmail = async (event: React.FormEvent) => {
     event.preventDefault();
-    const formData = new FormData();
-
-    formData.append("actionType", "sendEmail");
-    formData.append("userId", user.uid);
-    formData.append("email", user.email);
-    submit(formData, { method: "post" });
-    setEndResponse(false);
+    
+    // handle this client side instead of server side
+    try {
+      await sendResetPasswordEmail(user.email);
+      // Show success message
+      alert("Email sent! Check your inbox for the password reset link.");
+      setEndResponse(false);
+    } catch (error: any) {
+      // Handle error
+      console.error('Password reset error:', error);
+    }
   }
 
   const handleDeleteAccount = () => {
-    
-    console.log("handling deletion");
     const formData = new FormData();
 
     formData.append("actionType", "deleteAccount")
@@ -176,7 +163,7 @@ export default function Settings() {
                   placeholder="First Name"
                   initialValue={user.first_name}
                   width="100%" 
-                  height={`${textScale}px * 2` }
+                  height={`${textScale * 2}px` }
                   font={`${textScale}px`}
                   clearable
                   required 
@@ -191,7 +178,7 @@ export default function Settings() {
                   placeholder="Last Name"
                   initialValue={user.last_name}
                   width="100%" 
-                  height={`${textScale}px * 2` }
+                  height={`${textScale * 2}px` }
                   font={`${textScale}px`}
                   clearable
                   required 
@@ -203,6 +190,7 @@ export default function Settings() {
 
               <Grid>
                 <ResizableText h5>Change Password</ResizableText>
+                <ResizableText p>An email with instructions will be sent</ResizableText>
                 <Button auto onClick={handleSendEmail} style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
                   placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 >
@@ -231,7 +219,7 @@ export default function Settings() {
                   </Text>
                 </Card>
               </Grid>
-              <Button type="success" htmlType="submit" style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
+              <Button type="success" htmlType="submit" height={`${textScale * 2}px`} style={{ width: "100%", fontSize:`${textScale}px` }}
                 placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
               >
                 Save Settings
@@ -241,7 +229,7 @@ export default function Settings() {
           {endResponse && actionData?.error && <ResizableText type="error">{actionData.error}</ResizableText>}
           {endResponse && actionData?.success && <ResizableText type="success">{actionData.success}</ResizableText>}
           <Spacer h={1}/>
-          <Button auto onClick={openModal} type="error" ghost style={{ width: "100%", height:`${textScale}px * 2`, fontSize:`${textScale}px` }}
+          <Button auto onClick={openModal} type="error" ghost height={`${textScale * 2}px`} style={{ width: "100%", fontSize:`${textScale}px` }}
             placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           >
             Delete Account
@@ -256,7 +244,7 @@ export default function Settings() {
                     htmlType="text"
                     placeholder="type here"
                     width="100%" 
-                    height={`${textScale}px * 2` }
+                    height={`${textScale * 2}px` }
                     font={`${textScale}px`}
                     clearable
                     required

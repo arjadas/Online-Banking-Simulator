@@ -5,11 +5,13 @@ export type TransferState = { fromAcc: number | null, toAcc: number | null, amou
 interface AppState {
     isDarkTheme: boolean;
     textScale: number;
+    inTransactionFlow: boolean;
 }
 
 export const initialState: AppState = {
     isDarkTheme: false,
     textScale: 16,
+    inTransactionFlow: false,
 };
 
 const appSlice = createSlice({
@@ -19,8 +21,11 @@ const appSlice = createSlice({
         setTextScale(state, action: PayloadAction<number>) {
             state.textScale = action.payload;
         },
+        setInTransactionFlow(state, action: PayloadAction<boolean>) {
+            state.inTransactionFlow = action.payload;
+        },
     },
 });
 
-export const { setTextScale } = appSlice.actions;
+export const { setTextScale, setInTransactionFlow } = appSlice.actions;
 export default appSlice.reducer;

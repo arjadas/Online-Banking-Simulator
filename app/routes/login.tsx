@@ -17,7 +17,7 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   const email = formData.get("email") as string;
 
   try {
-    return await createUserSession(context, uid, email, "/app/accounts");
+    return await createUserSession(context, uid, email, "/app/home");
   } catch (error: any) {
     return json<ActionData>({ error: error.toString() });
   }
@@ -53,7 +53,8 @@ export default function Login() {
       uid = user.uid;
       submit(formData, { method: "post", action: "/login" });
     } catch (error: any) {
-      setClientError(error.message);
+      setClientError("Invalid email or password");
+      console.error(error.message);
     } finally {
       if (uid) {
         localStorage.setItem('uid', uid);
