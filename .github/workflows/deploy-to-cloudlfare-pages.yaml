@@ -21,16 +21,26 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
+      # Remove existing node_modules and package-lock.json
+      - name: Clean npm cache
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
 
-      # Method : Using write-file action to restore wrangler.toml
+      - name: Install Dependencies
+        run: npm install
+
+      # Method : Using write-file action to restore wrangler.toml from secrets
       - name: Restore wrangler.toml (write-file)
         uses: DamianReeves/write-file-action@master
         with:
           path: wrangler.toml
           contents: ${{ secrets.WRANGLER_TOML }}
           write-mode: overwrite
+
+       # Generate Prisma Client
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
       - name: Build
         run: npm run build
