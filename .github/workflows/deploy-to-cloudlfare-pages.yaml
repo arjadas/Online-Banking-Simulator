@@ -38,6 +38,10 @@ jobs:
           contents: ${{ secrets.WRANGLER_TOML }}
           write-mode: overwrite
 
+       # Generate Prisma Client
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
       - name: Build
         run: npm run build
 
