@@ -7,7 +7,7 @@ node_modules
 .history
 .vscode
 wrangler.toml
-#package-lock.json
+package-lock.json
 learn-to-bank-admin-console/.cache
 learn-to-bank-admin-console/build
 learn-to-bank-admin-console/.env
