@@ -1,24 +1,108 @@
-import { addDays, addMonths, addWeeks, addYears, endOfDay, isAfter, isBefore, startOfDay } from 'date-fns';
-import { DayFrequency, FrequencyObject, MonthFrequency, MonthlyOccurrences, WeekDays, WeekFrequency, YearFrequency } from '~/components/ReccuringTransactionModal';
-import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { addDays, addMonths, addWeeks, addYears, endOfDay, isAfter, isBefore } from 'date-fns';
+import { getFullDay, joinWithAmpersand } from './util';
+import { RecurringTransaction } from '@prisma/client';
+
+export type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
+
+export interface WeekDays {
+    mon: boolean;
+    tue: boolean;
+    wed: boolean;
+    thu: boolean;
+    fri: boolean;
+    sat: boolean;
+    sun: boolean;
+}
+
+export interface MonthlyOccurrences {
+    occurrence1: boolean;
+    occurrence2: boolean;
+    occurrence3: boolean;
+    occurrence4: boolean;
+}
+
+export interface DayFrequency {
+    unit: 'days';
+    count: number;
+}
+
+export interface WeekFrequency extends WeekDays {
+    unit: 'weeks';
+    count: number;
+}
+
+export interface MonthFrequency extends WeekDays, MonthlyOccurrences {
+    unit: 'months';
+    count: number;
+}
+
+export interface YearFrequency {
+    unit: 'years';
+    count: number;
+    date: string;
+}
+
+export type FrequencyObject = DayFrequency | WeekFrequency | MonthFrequency | YearFrequency;
+
+export const frequencyObjectToString = (frequency: FrequencyObject) => {
+    const countStr = frequency.count > 1 ? `${frequency.count} ` : '';
+    const includesDay = (keyVal: [string, string]) => {
+        const [key, value] = keyVal;
+        return ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key) && value;
+    }
+
+    switch (frequency.unit) {
+        case 'days':
+            return `Every ${frequency.count > 1 ? frequency.count : ''} day${frequency.count > 1 ? 's' : ''}.`;
+
+        case 'weeks': {
+            const weekDays = joinWithAmpersand(Object.entries(frequency)
+                .filter((keyVal) => includesDay(keyVal))
+                .map(([key]) => getFullDay(key)));
+            return `Every ${countStr}week${frequency.count > 1 ? 's' : ''} on ${weekDays}.`;
+        }
+
+        case 'months': {
+            const monthDays = joinWithAmpersand(Object.entries(frequency)
+                .filter((keyVal) => includesDay(keyVal))
+                .map(([key]) => getFullDay(key)));
+            const occurrences = Object.entries(frequency)
+                .filter(([key, value]) => key.startsWith('occurrence') && value)
+                .map(([key]) => key.replace('occurrence', ''));
+            const occurrencesStr = joinWithAmpersand(occurrences);
+
+            return `Every ${countStr}month${frequency.count > 1 ? 's' : ''} on week${occurrences.length > 1 ? 's' : ''} ${occurrencesStr}, on ${monthDays}.`;
+        }
+
+        case 'years': {
+            const date = new Date(frequency.date);
+            const monthName = date.toLocaleString('default', { month: 'long' });
+            const day = date.getDate();
+            return `Every ${countStr}year${frequency.count > 1 ? 's' : ''} on ${monthName} ${day}`;
+        }
+
+        default:
+            return 'Invalid frequency';
+    }
+}
 
 type GeneratedTransaction = {
     generatedDate: Date;
     processed: boolean;
-    transaction: RecurringTransactionWithRecipient
+    transaction: RecurringTransaction
 }
 
-//TODO login info with a default recc payment
 function parseFrequency(frequencyStr: string): FrequencyObject {
     return JSON.parse(frequencyStr) as FrequencyObject;
 }
 
-function isOneOffPayment(transaction: RecurringTransactionWithRecipient): boolean {
+function isOneOffPayment(transaction: RecurringTransaction): boolean {
     return transaction.starts_on === transaction.ends_on; // rule for one-off payments
 }
 
 function* generateTransactions(
-    transaction: RecurringTransactionWithRecipient,
+    transaction: RecurringTransaction,
     startDate: Date = new Date(),
     endDate: Date = addYears(new Date(), 1)
 ): Generator<GeneratedTransaction> {
@@ -161,19 +245,10 @@ function* generateTransactions(
     }
 }
 
-// Helper function to get an array of transactions for a specific period
-function getTransactionsForPeriod(
-    transaction: RecurringTransactionWithRecipient,
-    startDate: Date = new Date(),
-    endDate: Date = addYears(new Date(), 1)
-): GeneratedTransaction[] {
-    return Array.from(generateTransactions(transaction, startDate, endDate));
-}
-
 function getTransactionsForPeriodBulk(
-    transactions: RecurringTransactionWithRecipient[],
-    startDate: Date = new Date(),
-    endDate: Date = addYears(new Date(), 1)
+    transactions: RecurringTransaction[],
+    startDate: Date = addDays(new Date(), -2),
+    endDate: Date = endOfDay(new Date())
 ): GeneratedTransaction[] {
     const generators = transactions.map(transaction =>
         generateTransactions(transaction, startDate, endDate)
@@ -198,6 +273,7 @@ function getTransactionsForPeriodBulk(
         });
 
         if (earliestIndex !== -1) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const transactionToProcess = nextTransactions[earliestIndex]!;
 
             // Process the transaction
@@ -219,7 +295,7 @@ function getTransactionsForPeriodBulk(
 }
 
 function getNextPaymentDate(
-    transactions: RecurringTransactionWithRecipient[],
+    transactions: RecurringTransaction[],
     startDate: Date = new Date()
 ): Date | null {
     const generators = transactions.map(transaction =>
@@ -242,10 +318,7 @@ function getNextPaymentDate(
 }
 
 export {
-    generateTransactions,
-    getTransactionsForPeriod,
-    getTransactionsForPeriodBulk,
-    getNextPaymentDate,
-    type GeneratedTransaction
+    generateTransactions, getNextPaymentDate,
+    getTransactionsForPeriodBulk, type GeneratedTransaction
 };
 
