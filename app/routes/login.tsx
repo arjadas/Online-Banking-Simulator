@@ -53,7 +53,8 @@ export default function Login() {
       uid = user.uid;
       submit(formData, { method: "post", action: "/login" });
     } catch (error: any) {
-      setClientError(error.message);
+      setClientError("Invalid email or password");
+      console.error(error.message);
     } finally {
       if (uid) {
         localStorage.setItem('uid', uid);
