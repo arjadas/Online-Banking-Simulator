@@ -8,8 +8,9 @@ import { useState } from 'react';
 import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/service/db.server';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
-import { formatDate, formatSearchDate, getBadgeColor, getTransactionIcon, toFixedWithCommas } from '~/util/util';
 import { getUserSession } from "../auth.server";
+import { formatSearchDate, toFixedWithCommas, getBadgeColor, formatDate } from '~/util/util';
+import { getTransactionIcon } from '~/util/util.tsx';
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await getUserSession(context, request);

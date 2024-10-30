@@ -9,10 +9,11 @@ import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 import { getUserSession } from '~/auth.server';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from '~/service/userService';
-import { formatDate, getRelativeDateInfo, toFixedWithCommas } from '~/util/util';
 import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
 import { getNextPaymentDate } from '~/util/futureTransactionUtil';
+import { getRelativeDateInfo, toFixedWithCommas, formatDate } from '~/util/util';
+import { getRecurringTransactions } from '~/service/recurringTransactionService';
 
 type MeUser = {
   uid: string;
@@ -48,40 +49,22 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
             },
           },
         }),
-        db.recurringTransaction.findMany({
-          where: { sender_uid: user!.uid },
-          include: {
-            recipient: {
-              select: {
-                acc: true,
-                acc_name: true,
-                short_description: true
-              }
-            },
-            sender: {
-              select: {
-                acc: true,
-                acc_name: true,
-                short_description: true
-              }
-            }
-          }
-        }),
         db.account.findMany({
           where: { uid: user.uid },
         }),
       ]);
     }
 
-    let [userData, recurringTransactions, userAccounts] = await getMeUser();
+    let [userData, userAccounts] = await getMeUser();
 
     if (!userData) {
       console.error("User, not found! Creating new user..", user)
       await createUser(context, user.uid, user.email, "Plan", "B");
-      [userData, recurringTransactions, userAccounts] = await getMeUser();
+      [userData, userAccounts] = await getMeUser();
     }
 
     userData = userData!
+    const recurringTransactions = await getRecurringTransactions(context, user!.uid);
 
     return json({
       me: {
@@ -127,7 +110,7 @@ export default function Dashboard() {
         { action: "markAsRead" },
         { method: "post", action: "/api/notifications" }
       );
-      setLocalNotifications([]);
+      setTimeout(() => setLocalNotifications([]), 500);
     }
   };
 

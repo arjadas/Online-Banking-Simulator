@@ -5,6 +5,8 @@ import { Env } from '.';
 
 let prisma: any = null;
 
+// We'll use Primsa for types, but it doesn't seem to work for this codebase easily and we'll use raw queries in the interest of time.
+// keep this here in case
 export function getPrismaClient(env: Env): PrismaClient {
 	if (!prisma) {
 		const adapter = new PrismaD1(env.DB)

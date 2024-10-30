@@ -5,14 +5,19 @@
     "**/.server/**/*.ts",
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
-    "**/.client/**/*.tsx"
-, "app/components/CurrencyInput.tsx"  ],
+    "**/.client/**/*.tsx",
+    "app/components/CurrencyInput.tsx"
+  ],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
     "types": [
-        "@remix-run/cloudflare",
-        "vite/client",
-        "@cloudflare/workers-types/2023-07-01"
+      "@remix-run/cloudflare",
+      "vite/client",
+      "@cloudflare/workers-types/2023-07-01"
     ],
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -20,6 +25,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "target": "ES2022",
     "strict": true,
     "allowJs": true,
@@ -27,9 +33,10 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"]
+      "~/*": [
+        "./app/*"
+      ]
     },
-
     // Vite takes care of building everything, not tsc.
     "noEmit": true
   }

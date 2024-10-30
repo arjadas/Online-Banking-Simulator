@@ -9,7 +9,6 @@ export async function createUser(context: any, uid: string, email: string, first
 
     try {
         const date = new Date();
-        const adapter = new PrismaD1(context.cloudflare.env.DB);
         const db = getPrismaClient(context);
         const user = await db.user.create({
             data: {
