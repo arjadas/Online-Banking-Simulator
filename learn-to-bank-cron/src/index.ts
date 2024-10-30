@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { RecurringTransaction, Transaction } from "@prisma/client";
-import { getTransactionsForPeriodBulk } from "./util/futureTransactionUtil";
-import { toFixedWithCommas } from "./util/util";
+import { getTransactionsForPeriodBulk } from "@parent/app/util/futureTransactionUtil";
+import { toFixedWithCommas } from "@parent/app/util/util.ts";
 
 export interface Env {
 	// @ts-ignore
@@ -196,8 +196,6 @@ async function createNotificationRaw(db: D1Database, notificationData: {
 		if (!result.success) {
 			throw new Error(`Failed to create notification: ${result.error}`);
 		}
-
-		console.log(`Created notification for user ${notificationData.uid}`);
 
 	} catch (error) {
 		console.error('Error creating notification:', error);

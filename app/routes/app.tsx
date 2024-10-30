@@ -26,13 +26,13 @@ const navItems = [
 ];
 
 export default function AppLayout() {
-  const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
+  const { isDarkTheme, textScale, inTransactionFlow } = useSelector((state: RootState) => state.app);
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
   const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const matches = useMatches();
   const navigate = useNavigate();
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
   // Determine the current path from matches
   const currentPath = matches[matches.length - 1]?.pathname || '/';
@@ -141,7 +141,7 @@ export default function AppLayout() {
             </Grid.Container>
           </Page.Header>
           <Page.Content>
-            {navigation.state === "loading" ? <div style={{
+            {(navigation.state === "loading" && !inTransactionFlow) ? <div style={{
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',

@@ -7,6 +7,7 @@ import React, { useCallback } from 'react';
 import { getUserSession } from '~/auth.server';
 import { RecurringTransactionCard } from '~/components/FuturePaymentCard';
 import { UpcomingPaymentsList } from '~/components/UpcomingPaymentsList';
+import { getRecurringTransactions } from '~/service/recurringTransactionService';
 import { GeneratedTransaction } from '~/util/futureTransactionUtil';
 import { splitLists } from '~/util/util';
 import { getPrismaClient } from "../service/db.server";
@@ -30,30 +31,10 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 
   if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
 
-  const [recurringTransactions, userAccounts] = await Promise.all([
-    db.recurringTransaction.findMany({
-      where: { sender_uid: user!.uid },
-      include: {
-        recipient: {
-          select: {
-            acc: true,
-            acc_name: true,
-            short_description: true
-          }
-        },
-        sender: {
-          select: {
-            acc: true,
-            acc_name: true,
-            short_description: true
-          }
-        }
-      }
-    }),
-    db.account.findMany({
-      where: { uid: user!.uid },
-    }),
-  ]);
+  const recurringTransactions = await getRecurringTransactions(context, user!.uid);
+  const userAccounts = await db.account.findMany({
+    where: { uid: user!.uid },
+  })
 
   return json({
     recurringTransactions,
@@ -66,9 +47,12 @@ export default function UpcomingPayments() {
     userAccounts: Account[];
   }>();
 
-  const [recurringPayments, oneOffPayments] = splitLists(recurringTransactions, (transaction) => {
-    return !transaction.ends_on || new Date(transaction.starts_on).getTime() !== new Date(transaction.ends_on).getTime()
+  let [recurringPayments, oneOffPayments] = splitLists(recurringTransactions, (transaction) => {
+    return !transaction.ends_on || new Date(transaction.starts_on) !== new Date(transaction.ends_on)
   });
+
+  oneOffPayments = oneOffPayments.filter((transaction) => new Date(transaction.starts_on) > new Date())
+  recurringPayments = recurringPayments.filter((transaction) => new Date(transaction.starts_on) <= new Date())
 
   const userAccountIds = userAccounts.map((account) => account.acc);
 
@@ -110,9 +94,11 @@ export default function UpcomingPayments() {
             <Card padding={1} margin={1} width="100%" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Card.Content style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Text h2>Future One-off Transactions</Text>
-                <div style={{ flex: 1, overflowY: 'scroll' }}>
-                  {(oneOffPayments as any as RecurringTransactionWithRecipient[]).map(renderRecurringTransactionCard)}
-                </div>
+                <UpcomingPaymentsList
+                  recurringTransactions={oneOffPayments as any as RecurringTransactionWithRecipient[]}
+                  userAccountIds={userAccountIds}
+                  renderCard={renderRecurringTransactionCard}
+                />
               </Card.Content>
             </Card>
           </div>
@@ -124,7 +110,7 @@ export default function UpcomingPayments() {
           <UpcomingPaymentsList
             recurringTransactions={recurringTransactions as any as RecurringTransactionWithRecipient[]}
             userAccountIds={userAccountIds}
-            renderUpcomingPaymentCard={renderUpcomingPaymentCard}
+            renderGeneratedCard={renderUpcomingPaymentCard}
           />
         </Card>
       </Grid>

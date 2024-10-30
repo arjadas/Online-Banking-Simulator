@@ -3,8 +3,10 @@ import { Card, Grid, Badge } from '@geist-ui/react';
 import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 import { GeneratedTransaction } from '~/util/futureTransactionUtil';
 import ResizableText from './ResizableText';
-import { formatDate, getBadgeColor, getTransactionIcon, toFixedWithCommas } from '~/util/util';
+import { formatDate, getBadgeColor, toFixedWithCommas } from '~/util/util';
 import { frequencyObjectToString } from './ReccuringTransactionModal';
+import { getTransactionIcon } from '~/util/util.tsx';
+import { RecurringTransaction } from '@prisma/client';
 
 interface RecurringTransactionCardProps {
     transaction: RecurringTransactionWithRecipient | GeneratedTransaction;
@@ -17,7 +19,7 @@ function isGeneratedTransaction(value: any): value is GeneratedTransaction {
 
 export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> = ({ transaction, userAccountIds }) => {
     const generatedTransaction = isGeneratedTransaction(transaction)
-    const mTransaction = generatedTransaction ? (transaction as GeneratedTransaction).transaction : transaction;
+    const mTransaction = generatedTransaction ? (transaction as GeneratedTransaction).transaction as RecurringTransactionWithRecipient: transaction;
     const oneOffPayment = mTransaction.starts_on == mTransaction.ends_on;
     const isExternalSender = !userAccountIds.includes(mTransaction.sender_acc);
     const isExternalRecipient = !userAccountIds.includes(mTransaction.recipient_acc);
@@ -45,7 +47,7 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                                 </Badge>
                             </ResizableText>
                         </Grid>
-                        {!oneOffPayment && <Grid xs={24}>
+                        {(!oneOffPayment && !generatedTransaction) &&<Grid xs={24}>
                             <ResizableText small>Frequency: {frequencyObjectToString(JSON.parse(mTransaction.frequency))}</ResizableText>
                         </Grid>}
                         {(oneOffPayment) ? (<Grid xs={24}>

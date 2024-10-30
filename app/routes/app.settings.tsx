@@ -61,10 +61,6 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
       }),
   ]);
 
-  if (!userData) {
-      throw new Response("No user data Found! This is a catastrophic error since user should have been created on sign-up :/", { status: 404 });
-  }
-
   return json({
       userData,
   });
@@ -112,8 +108,6 @@ export default function Settings() {
   }
 
   const handleDeleteAccount = () => {
-    
-    console.log("handling deletion");
     const formData = new FormData();
 
     formData.append("actionType", "deleteAccount")

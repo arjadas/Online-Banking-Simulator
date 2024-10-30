@@ -1,20 +1,12 @@
-import { Button, Card, Input, Select, Spacer, Tabs, Textarea } from '@geist-ui/core';
+import { Button, Card, Input, Modal, Select, Spacer, Tabs, Textarea } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { Form } from '@remix-run/react';
+import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
 import CurrencyInput from '~/components/CurrencyInput';
 import { UserPrevContactResult } from '~/routes/app.paySomeone';
-import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
 import ResizableText from './ResizableText';
-
-type RecipientAddress = {
-    accountName: string;
-    acc: number;
-    bsb: number;
-    payId: string;
-    billerCode: number;
-    crn: number;
-};
+import { TransactionTemporalTabs } from './TransactionTemporalTabs';
+import { RecipientAddress } from '~/service/transactionsService';
 
 interface PaySomeoneFormProps {
     accounts: Account[];
@@ -26,15 +18,12 @@ interface PaySomeoneFormProps {
 const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevContact, onBack, actionData }) => {
     const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
     const [amount, setAmount] = useState('-.--');
-    const [frequency, setFrequency] = useState<FrequencyObject | null>(null);
     const [reference, setReference] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [laterDateTime, setLaterDateTime] = useState('');
     const [description, setDescription] = useState('');
     const [addressTypeTab, setAddressTypeTab] = useState('acc-bsb');
     const [temporalTab, setTemporalTab] = useState('now');
-    const [recurringModalVisible, setRecurringModalVisible] = useState(false);
+    
+    const navigate = useNavigate();
     const [recipientAddress, setRecipientAddress] = useState<RecipientAddress>({
         accountName: '',
         acc: -1,
@@ -44,21 +33,8 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
         crn: -1
     });
 
-    const handleTemporalTabChange = (value: React.SetStateAction<string>) => {
-        if (value == 'recurring') {
-            setRecurringModalVisible(true);
-        }
-
-        setTemporalTab(value);
-    };
-
     const handleFromAccChange = (value: string | string[]) => {
         setFromAcc(parseInt(value as string));
-    };
-
-    const handleLaterDateTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-        if (value) setLaterDateTime(value);
     };
 
     const toDigits = (value: string): number => {
@@ -67,7 +43,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     }
 
     const updateRecipientAddress = (key: keyof RecipientAddress, value: string | number) => {
-        setRecipientAddress(prevState => ({
+        setRecipientAddress((prevState: any) => ({
             ...prevState,
             [key]: value,
         }));
@@ -84,6 +60,10 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
     const handleAccountNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         updateRecipientAddress('accountName', event.target.value);
+    };
+
+    const goHome = () => {
+        navigate('/app/home')
     };
 
     const handleAccChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,7 +101,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
 
                 Object.entries(parsedAddress).forEach(([key, value]) => {
                     if (key in recipientAddress) {
-                        updateRecipientAddress(key as keyof RecipientAddress, value);
+                        updateRecipientAddress(key as keyof RecipientAddress, value as any);
                     }
                 });
             }
@@ -135,42 +115,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
     return (
         <Card shadow width="100%" style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
             <Form method="post">
-                <ResizableText h4>Schedule</ResizableText>
-                <Tabs style={{ fontWeight: '600' }} value={temporalTab} onChange={handleTemporalTabChange} hideDivider>
-                    <Tabs.Item label="Now" value="now" >
-                        <ResizableText>Transfer will be settled instantly.</ResizableText>
-                        <Spacer />
-                    </Tabs.Item>
-                    <Tabs.Item label="Later" value="later">
-                        <ResizableText h4>Date and time</ResizableText>
-                        <Input
-                            name="laterDateTime"
-                            htmlType="datetime-local"
-                            value={laterDateTime}
-                            onChange={handleLaterDateTimeChange}
-                            placeholder="Enter Date" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
-                        <Spacer />
-                    </Tabs.Item>
-                    <input type="hidden" name="frequencyObject" value={frequency ? JSON.stringify(frequency) : ''} />
-                    <input type="hidden" name="startDate" value={startDate} />
-                    <input type="hidden" name="endDate" value={endDate} />
-                    <Tabs.Item label="Recurring" value="recurring">
-                        <ResizableText h4>Frequency</ResizableText>
-                        {frequency ?
-                            <ResizableText>{frequencyObjectToString(frequency)}</ResizableText>
-                            : <Spacer h={0.5} />}
-                        <FutureTransactionModal visible={recurringModalVisible} onFrequencyChange={function (frequency: FrequencyObject): void {
-                            setFrequency(frequency);
-                        } } onStartDateChange={function (date: string): void {
-                            setStartDate(date);
-                        } } onEndDateChange={function (date: string): void {
-                            setEndDate(date);
-                        } } onNotVisible={function (): void {
-                            setRecurringModalVisible(false);
-                        } } />
-                        <Spacer />
-                    </Tabs.Item>
-                </Tabs>
+                <TransactionTemporalTabs onTemporalTabsChange={(value: string) => setTemporalTab(value)}/>
                 <ResizableText h4>From Account</ResizableText>
                 <div style={{ width: '100%' }}>
                     <Select placeholder="Select account" width="100%" onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
@@ -226,11 +171,13 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, userPrevConta
                 </div>
                 <input type="hidden" name="temporalTab" value={temporalTab} />
             </Form>
+            <Modal visible={actionData && actionData.success} onClose={goHome}>
+                <Modal.Title>Transfer Successful!</Modal.Title>
+                <Modal.Action onClick={goHome} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} placeholder={undefined}>Go Home</Modal.Action>
+            </Modal>
             {actionData && (
                 <div style={{ marginTop: '20px' }}>
-                    {actionData.success ? (
-                        <ResizableText type="success">Transfer successful!</ResizableText>
-                    ) : (
+                    {!actionData.success && (
                         <ResizableText type="error">Transfer failed: {actionData.error}</ResizableText>
                     )}
                 </div>
