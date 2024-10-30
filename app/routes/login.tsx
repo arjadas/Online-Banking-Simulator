@@ -1,10 +1,10 @@
-import { Button, Card, Image, Input, Text } from '@geist-ui/react';
+import { Button, Card, Image, Input } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { login } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
-import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 
 type ActionData = {
@@ -17,7 +17,7 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
   const email = formData.get("email") as string;
 
   try {
-    return await createUserSession(context, uid, email, "/app/accounts");
+    return await createUserSession(context, uid, email, "/app/home");
   } catch (error: any) {
     return json<ActionData>({ error: error.toString() });
   }

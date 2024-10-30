@@ -1,5 +1,5 @@
-import { Badge, Button, Card, Collapse, Grid, Input, Select, Spacer } from '@geist-ui/core';
-import { ArrowDownCircle, Search, Shuffle, User } from '@geist-ui/icons';
+import { Badge, Button, Card, Grid, Input, Select, Spacer } from '@geist-ui/core';
+import { ArrowDownCircle, Search } from '@geist-ui/icons';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { Account, Transaction } from '@prisma/client';
 import { json, LoaderFunction } from "@remix-run/cloudflare";
@@ -8,8 +8,8 @@ import { useState } from 'react';
 import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/service/db.server';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
+import { formatDate, formatSearchDate, getBadgeColor, getTransactionIcon, toFixedWithCommas } from '~/util/util';
 import { getUserSession } from "../auth.server";
-import { getBadgeColor, toFixedWithCommas, formatSearchDate, formatDate } from '~/util';
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await getUserSession(context, request);
@@ -71,7 +71,7 @@ export default function Transactions() {
         const isExternalRecipient = !userAccountIds.includes(tx.recipient_acc);
         const senderDisplayName = tx.sender.acc_name;
         const recipientDisplayName = tx.recipient.acc_name;
-  
+
         return {
           ...tx,
           sender: isExternalSender ? senderDisplayName : tx.sender.short_description,
@@ -96,13 +96,6 @@ export default function Transactions() {
       }
       return newSet;
     });
-  };
-
-  // Determine the correct icon based on whether the transaction is internal or external
-  const getTransactionIcon = (accountId: number) => {
-    return userAccountIds.includes(accountId)
-      ? <Shuffle size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
-      : <User size={18} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />;
   };
 
   const totalSent = filteredTransactions.reduce((acc, tx) => acc + (userAccountIds.includes(tx.sender_acc) ? tx.amount / 100 : 0), 0);
@@ -192,9 +185,12 @@ export default function Transactions() {
               <Card key={transaction.transaction_id} width="100%">
                 <Grid.Container gap={2}>
                   <Grid xs={1} alignItems="center" justify="flex-end">
-                    {getTransactionIcon(transaction.sender_acc)}
+                    {getTransactionIcon(userAccountIds, transaction.sender_acc)}
                   </Grid>
-                  <Grid xs={17} alignItems="center">
+                  <Grid xs={2} alignItems="center" justify='center' alignContent='center'>
+                    <ResizableText h3 style={{ margin: "0px 0px 0px 20px" }}>${toFixedWithCommas(transaction.amount / 100, 2)}</ResizableText>
+                  </Grid>
+                  <Grid xs={15} alignItems="center">
                     <ResizableText small style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                       {/* Icon and "From" */}
                       &nbsp;&nbsp;From:&nbsp;
@@ -205,8 +201,7 @@ export default function Transactions() {
                       <Badge type="secondary" style={{ backgroundColor: getBadgeColor(transaction.recipient.short_description, isExternalRecipient) }}>
                         {isExternalRecipient ? recipientDisplayName : transaction.recipient.short_description}
                       </Badge>
-                      &nbsp;&nbsp;Amount: ${toFixedWithCommas(transaction.amount / 100, 2)}
-                      &nbsp;&nbsp;Date: {formatDate(new Date(transaction.timestamp))}
+                      &nbsp;&nbsp;&nbsp;&nbsp;On {formatDate(new Date(transaction.timestamp))}
                     </ResizableText>
                   </Grid>
                   <Grid xs={6} alignItems="center" justify="flex-end">
@@ -217,8 +212,9 @@ export default function Transactions() {
                 </Grid.Container>
 
                 {expandedTransactions.has(transaction.transaction_id) && (
-                  <Collapse title="Transaction Details" initialVisible>
-                    <Grid.Container gap={1} alignItems="flex-start">
+                  <>
+                    <Spacer />
+                    <Grid.Container gap={1} margin={1} alignItems="flex-start">
                       <Grid xs={24} md={6}>
                         <ResizableText small><strong>Sender Account:</strong>&nbsp;</ResizableText>
                         <ResizableText small>{transaction.sender_acc}</ResizableText>
@@ -236,7 +232,7 @@ export default function Transactions() {
                         <ResizableText small>{transaction.description || "No Description Provided"}</ResizableText>
                       </Grid>
                     </Grid.Container>
-                  </Collapse>
+                  </>
                 )}
               </Card>
 

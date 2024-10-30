@@ -1,6 +1,4 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { toFixedWithCommas } from '~/util';
+import { toFixedWithCommas } from '~/util/util';
 
 interface TransactionData {
   sender: string;

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { signup } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
-import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import AuthenticatedLink from '~/components/AuthenticatedLink';
 import { createUser } from "~/service/userService";
 import { RootState } from '~/store';
 
