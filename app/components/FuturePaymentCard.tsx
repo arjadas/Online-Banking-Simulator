@@ -19,15 +19,15 @@ function isGeneratedTransaction(value: any): value is GeneratedTransaction {
 
 export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> = ({ transaction, userAccountIds }) => {
     const generatedTransaction = isGeneratedTransaction(transaction)
-    const mTransaction = generatedTransaction ? (transaction as GeneratedTransaction).transaction as RecurringTransactionWithRecipient: transaction;
+    const mTransaction = generatedTransaction ? (transaction as GeneratedTransaction).transaction as RecurringTransactionWithRecipient : transaction;
     const oneOffPayment = mTransaction.starts_on == mTransaction.ends_on;
     const isExternalSender = !userAccountIds.includes(mTransaction.sender_acc);
     const isExternalRecipient = !userAccountIds.includes(mTransaction.recipient_acc);
-    const senderDisplayName = isExternalSender ? 'External Account' : mTransaction.sender.short_description;
-    const recipientDisplayName = isExternalRecipient ? 'External Account' : mTransaction.recipient.short_description;
+    const senderDisplayName = mTransaction.sender.acc_name;
+    const recipientDisplayName = mTransaction.recipient.acc_name;
 
     return (
-        <Card margin={1} key={mTransaction.recc_transaction_id} shadow style={{ marginBottom: '1rem' }}>
+        <Card margin={1} key={mTransaction.recc_transaction_id} style={{ borderWidth: 1, borderColor: '#GGG', borderStyle: 'solid', marginBottom: '1rem' }}>
             <Grid.Container gap={2}>
                 <Grid xs={3} alignItems="center" justify="center">
                     {getTransactionIcon(userAccountIds, mTransaction.recipient_acc)}
@@ -47,7 +47,7 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                                 </Badge>
                             </ResizableText>
                         </Grid>
-                        {(!oneOffPayment && !generatedTransaction) &&<Grid xs={24}>
+                        {(!oneOffPayment && !generatedTransaction) && <Grid xs={24}>
                             <ResizableText small>Frequency: {frequencyObjectToString(JSON.parse(mTransaction.frequency))}</ResizableText>
                         </Grid>}
                         {(oneOffPayment) ? (<Grid xs={24}>
@@ -55,7 +55,7 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                         </Grid>) : (
                             <>
                                 {(generatedTransaction && !oneOffPayment) && <Grid xs={24}>
-                                <ResizableText small>Date: {formatDate(new Date(transaction.generatedDate))}</ResizableText>
+                                    <ResizableText small>Date: {formatDate(new Date(transaction.generatedDate))}</ResizableText>
                                 </Grid>}
                                 {(!generatedTransaction && !oneOffPayment) && <Grid xs={24}>
                                     <ResizableText small>
@@ -66,7 +66,7 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                                     <ResizableText small>
                                         {mTransaction.ends_on
                                             ? `Ends on: ${formatDate(new Date(mTransaction.ends_on))}`
-                                            : "Continues indefinitely"}
+                                            : "Continues indefinitely."}
                                     </ResizableText>
                                 </Grid>}
                             </>

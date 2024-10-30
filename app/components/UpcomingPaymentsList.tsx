@@ -1,26 +1,24 @@
-import { Text } from '@geist-ui/core';
-import { addMonths, startOfDay } from 'date-fns';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
+import { Text } from '@geist-ui/core';
 import { GeneratedTransaction, getTransactionsForPeriodBulk } from '~/util/futureTransactionUtil';
+import { addMonths, startOfDay } from 'date-fns';
+import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 
 interface UpcomingPaymentsListProps {
     recurringTransactions: RecurringTransactionWithRecipient[];
     userAccountIds: number[];
-    renderGeneratedCard?: (props: {
+    renderUpcomingPaymentCard: (props: {
         generatedTransaction: GeneratedTransaction;
         style: React.CSSProperties;
     }) => JSX.Element;
-    renderCard?: (transaction: RecurringTransactionWithRecipient) => JSX.Element
 }
 
 export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
     recurringTransactions,
     userAccountIds,
-    renderGeneratedCard,
-    renderCard,
+    renderUpcomingPaymentCard
 }) => {
-    const [displayedTransactions, setDisplayedTransactions] = useState<(GeneratedTransaction | RecurringTransactionWithRecipient)[]>([]);
+    const [displayedTransactions, setDisplayedTransactions] = useState<GeneratedTransaction[]>([]);
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(0);
@@ -34,7 +32,7 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
             const endDate = addMonths(startDate, 1);
             const newItems = getTransactionsForPeriodBulk(recurringTransactions, startOfDay(startDate), startOfDay(endDate));
             const gotSome = newItems.length > 0;
-
+            
             if (gotSome) {
                 setDisplayedTransactions(prev => [...prev, ...newItems]);
                 setPage(prevPage => prevPage + 1);
@@ -73,7 +71,7 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
         };
 
         currentContainer.addEventListener('scroll', handleScroll);
-
+        
         return () => {
             currentContainer.removeEventListener('scroll', handleScroll);
         };
@@ -106,14 +104,14 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
                 scrollBehavior: 'smooth'
             }}
         >
-            {displayedTransactions.map((transaction: RecurringTransactionWithRecipient | GeneratedTransaction) => (
+            {displayedTransactions.map((transaction) => (
                 <div
-                    key={('generatedDate' in transaction) ? `${transaction.transaction.recc_transaction_id}-${new Date(transaction.generatedDate).getTime()}` : (transaction as RecurringTransactionWithRecipient).recc_transaction_id}
+                    key={`${transaction.transaction.recc_transaction_id}-${new Date(transaction.generatedDate).getTime()}`}
                 >
-                    {renderGeneratedCard ? renderGeneratedCard({
-                        generatedTransaction: transaction as GeneratedTransaction,
+                    {renderUpcomingPaymentCard({
+                        generatedTransaction: transaction,
                         style: { marginBottom: '0.5rem' }
-                    }) : renderCard!(transaction as RecurringTransactionWithRecipient)}
+                    })}
                 </div>
             ))}
             {(isLoading || hasMore) && (

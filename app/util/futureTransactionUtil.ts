@@ -58,6 +58,59 @@ export interface YearFrequency {
 
 export type FrequencyObject = DayFrequency | WeekFrequency | MonthFrequency | YearFrequency;
 
+export const generateRandomFrequencyObject = (): FrequencyObject => {
+    const units: FrequencyUnit[] = ['days', 'weeks', 'months'];
+    const randomUnit = units[Math.floor(Math.random() * units.length)];
+    const count = Math.floor(Math.random() * 10) + 1;
+
+    switch (randomUnit) {
+        case 'days':
+            return {
+                unit: 'days',
+                count: count
+            };
+
+        case 'weeks':
+            return {
+                unit: 'weeks',
+                count: count,
+                ...generateRandomWeekDays()
+            };
+
+        case 'months':
+            return {
+                unit: 'months',
+                count: count,
+                ...generateRandomWeekDays(),
+                ...generateRandomMonthlyOccurrences()
+            };
+
+        default:
+            throw new Error('Invalid frequency unit');
+    }
+}
+
+function generateRandomWeekDays(): WeekDays {
+    return {
+        mon: Math.random() < 0.5,
+        tue: Math.random() < 0.5,
+        wed: Math.random() < 0.5,
+        thu: Math.random() < 0.5,
+        fri: Math.random() < 0.5,
+        sat: Math.random() < 0.5,
+        sun: Math.random() < 0.5
+    };
+}
+
+function generateRandomMonthlyOccurrences(): MonthlyOccurrences {
+    return {
+        occurrence1: Math.random() < 0.5,
+        occurrence2: Math.random() < 0.5,
+        occurrence3: Math.random() < 0.5,
+        occurrence4: Math.random() < 0.5
+    };
+}
+
 export const frequencyObjectToString = (frequency: FrequencyObject) => {
     const countStr = frequency.count > 1 ? `${frequency.count} ` : '';
     const includesDay = (keyVal: [string, string]) => {
@@ -314,7 +367,7 @@ function getNextPaymentDate(
     startDate: Date = new Date()
 ): Date | null {
     if (!transactions) return null;
-    
+
     const generators = transactions.map(transaction =>
         generateTransactions(transaction, startDate)
     );
