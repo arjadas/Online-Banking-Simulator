@@ -2,9 +2,9 @@ name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: [main]
+    branches: [chore/fix-deploy]
   pull_request:
-    branches: [main]
+    branches: [chore/fix-deploy]
 
 jobs:
   deploy:
