@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { RecurringTransaction, Transaction } from "@prisma/client";
 import { getTransactionsForPeriodBulk } from "./util/futureTransactionUtil";
+import { toFixedWithCommas } from "./util/util";
 
 export interface Env {
 	// @ts-ignore
@@ -60,11 +61,28 @@ const SQL_QUERIES = {
 		settled,
 		type
 	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`
+`,
+	INSERT_NOTIFICATION: `
+	INSERT INTO main.Notification (
+			notification_id,
+			uid,
+			timestamp,
+			type,
+			content,
+			read
+	) VALUES (?, ?, ?, ?, ?, ?)
+	`,
+	GET_ACCOUNT_DETAILS: `
+	SELECT 
+			a.acc_name,
+			a.uid
+	FROM main.Account a
+	WHERE a.acc = ?
+	`
 } as const;
 
 // @ts-ignore
-async function createTransaction(db: D1Database, transaction: RecurringTransaction, generatedDate: Date): Promise<void> {
+async function createTransaction(db: D1Database, transaction: RecurringTransaction, generatedDate: Date): Promise<RecurringTransaction> {
 	try {
 		// Create a new transaction based on the recurring transaction template
 		const stmt = db.prepare(SQL_QUERIES.INSERT_TRANSACTION)
@@ -91,6 +109,7 @@ async function createTransaction(db: D1Database, transaction: RecurringTransacti
 
 		console.log(`Created transaction for recurring payment ID ${transaction.recc_transaction_id} for date ${generatedDate.toISOString()}`);
 
+		return result;
 	} catch (error) {
 		console.error('Error creating transaction:', error);
 		throw error;
@@ -116,7 +135,6 @@ async function fetchTransactionByDateAndRecId(db: D1Database, recurringTransacti
 	}
 }
 
-// Helper functions for database operations
 // @ts-ignore
 async function fetchRecurringTransactions(db: D1Database): Promise<RecurringTransaction[]> {
 	try {
@@ -130,6 +148,103 @@ async function fetchRecurringTransactions(db: D1Database): Promise<RecurringTran
 		return result.results;
 	} catch (error) {
 		console.error('Error fetching:', error);
+		throw error;
+	}
+}
+
+// @ts-ignore
+async function getAccountDetails(db: D1Database, accountId: number): Promise<{ acc_name: string; uid: string; } | null> {
+	try {
+		const stmt = db.prepare(SQL_QUERIES.GET_ACCOUNT_DETAILS)
+			.bind(accountId);
+
+		const result = await stmt.first<{ acc_name: string; uid: string; }>();
+
+		if (!result) {
+			return null;
+		}
+
+		return result;
+	} catch (error) {
+		console.error('Error fetching account details:', error);
+		throw error;
+	}
+}
+
+// @ts-ignore
+async function createNotificationRaw(db: D1Database, notificationData: {
+	notification_id: string;
+	uid: string;
+	timestamp: Date;
+	type: string;
+	content: string;
+	read: boolean;
+}): Promise<void> {
+	try {
+		const stmt = db.prepare(SQL_QUERIES.INSERT_NOTIFICATION)
+			.bind(
+				notificationData.notification_id,
+				notificationData.uid,
+				notificationData.timestamp.toISOString(),
+				notificationData.type,
+				notificationData.content,
+				notificationData.read ? 1 : 0
+			);
+
+		const result = await stmt.run();
+
+		if (!result.success) {
+			throw new Error(`Failed to create notification: ${result.error}`);
+		}
+
+		console.log(`Created notification for user ${notificationData.uid}`);
+
+	} catch (error) {
+		console.error('Error creating notification:', error);
+		throw error;
+	}
+}
+
+// @ts-ignore
+export async function createTransactionNotifications(db: D1Database, toAccountId: number, fromAccountId: number, amount: number): Promise<void> {
+	const now = new Date();
+
+	try {
+		const toAccount = await getAccountDetails(db, toAccountId);
+		const fromAccount = await getAccountDetails(db, fromAccountId);
+
+		if (!toAccount || !fromAccount) {
+			throw new Error('Could not find account details');
+		}
+
+		const amountFormatted = toFixedWithCommas(amount / 100);
+
+		// Create notification for recipient
+		try {
+			await createNotificationRaw(db, {
+				notification_id: `${now.toUTCString()}_${toAccount.uid}`,
+				uid: toAccount.uid,
+				timestamp: now,
+				type: 'new-receipt',
+				content: `Received $${amountFormatted} from ${fromAccount.acc_name}`,
+				read: false
+			});
+		} catch (e) {
+			// mock user
+		}
+
+		// Create notification for sender
+		await createNotificationRaw(db, {
+			notification_id: `${now.toUTCString()}_${fromAccount.uid}_1`,
+			uid: fromAccount.uid,
+			timestamp: now,
+			type: 'transfer-success',
+			content: `Successfully transferred $${amountFormatted} to ${toAccount.acc_name}`,
+			read: false
+		});
+
+	} catch (error) {
+		console.error('Error creating transaction notifications:', error);
 		throw error;
 	}
 }
@@ -173,11 +288,18 @@ export default {
 
 				for (const generatedTransaction of getTransactionsForPeriodBulk(recurringTransactions)) {
 					if (generatedTransaction.generatedDate.getTime() < new Date().getTime()) {
-						const transaction = await fetchTransactionByDateAndRecId(env.DB, generatedTransaction.transaction.recc_transaction_id, generatedTransaction.generatedDate);
+						const transaction = generatedTransaction.transaction;
+						const existingTransaction = await fetchTransactionByDateAndRecId(env.DB, generatedTransaction.transaction.recc_transaction_id, generatedTransaction.generatedDate);
 
 						// Write a generated transaction if it doesn't exist
-						if (!transaction) {
+						if (!existingTransaction) {
 							await createTransaction(env.DB, generatedTransaction.transaction, generatedTransaction.generatedDate);
+							await createTransactionNotifications(
+								env.DB,
+								transaction.recipient_acc,
+								transaction.sender_acc,
+								transaction.amount
+							);
 						}
 					}
 				}
