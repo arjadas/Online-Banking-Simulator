@@ -65,7 +65,11 @@ export default function Signup() {
             formData.append("uid", user.uid);
             submit(formData, { method: "post", action: "/signup" });
         } catch (error: any) {
-            setClientError("An Account With This Email Already Exist.");
+            if (error.message === "Firebase: Error (auth/email-already-in-use).") {
+                setClientError("An Account With This Email Already Exist.");
+            } else {
+                setClientError("An error has occured");
+            }
             console.error(error.message);
         } finally {
             setLoading(false);

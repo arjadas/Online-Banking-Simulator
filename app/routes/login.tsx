@@ -53,7 +53,11 @@ export default function Login() {
       uid = user.uid;
       submit(formData, { method: "post", action: "/login" });
     } catch (error: any) {
-      setClientError("Invalid email or password");
+      if (error.message === "Firebase: Error (auth/invalid-credential).") {
+        setClientError("Invalid email or password");
+      } else {
+        setClientError("An error has occured");
+      }
       console.error(error.message);
     } finally {
       if (uid) {
