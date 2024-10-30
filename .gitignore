@@ -16,3 +16,11 @@ learn-to-bank-admin-console/.wrangler
 learn-to-bank-admin-console/.history
 learn-to-bank-admin-console/wrangler.toml
 learn-to-bank-admin-console/package-lock.json
+learn-to-bank-cron/.cache
+learn-to-bank-cron/build
+learn-to-bank-cron/.env
+learn-to-bank-cron/.vscode
+learn-to-bank-cron/.wrangler
+learn-to-bank-cron/.history
+learn-to-bank-cron/wrangler.toml
+learn-to-bank-cron/package-lock.json
