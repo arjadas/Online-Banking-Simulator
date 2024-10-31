@@ -1,8 +1,9 @@
 
-import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
-import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User, CreditCard } from '@geist-ui/react-icons';
-import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
-import React from 'react';
+import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Loading, Page, Spacer, Themes } from '@geist-ui/core';
+import { ChevronRightCircle } from '@geist-ui/icons';
+import { CreditCard, DollarSign, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
+import { MetaFunction, Outlet, useMatches, useNavigate, useNavigation } from "@remix-run/react";
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
@@ -16,20 +17,23 @@ export const meta: MetaFunction = () => {
 };
 
 const navItems = [
-  { icon: <Home />, label: "Home", to: "/app/accounts" },
-  { icon: <List />, label: "History", to: "/app/transactions" },
+  { icon: <Home />, label: "Home", to: "/app/home" },
+  { icon: <List />, label: "History", to: "/app/history" },
+  { icon: <ChevronRightCircle />, label: "Upcoming", to: "/app/upcoming" },
   { icon: <CreditCard />, label: "Cards", to: "/app/cards" },
   { icon: <Settings />, label: "Settings", to: "/app/settings" },
   { icon: <LogOut />, label: "Logout", to: "/logout" },
 ];
 
 export default function AppLayout() {
-  const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
+  const { isDarkTheme, textScale, transactionFlow } = useSelector((state: RootState) => state.app);
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
   const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const matches = useMatches();
   const navigate = useNavigate();
+  const dispatch = useNavigate();
+  const navigation = useNavigation();
 
   // Determine the current path from matches
   const currentPath = matches[matches.length - 1]?.pathname || '/';
@@ -40,6 +44,9 @@ export default function AppLayout() {
     fontSize: textScale,
     gap: 16,
   };
+
+  useEffect(() => {
+  }, [transactionFlow, dispatch]);
 
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
@@ -56,7 +63,7 @@ export default function AppLayout() {
           <Drawer.Title>
             <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
-          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Instantiate a transfer</Drawer.Subtitle>
+          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Initiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
           <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
@@ -65,7 +72,7 @@ export default function AppLayout() {
               auto
               scale={2}
               onClick={() => setDrawerOpen(false)}
-              icon={<Shuffle size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<Shuffle size={textScale} />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Transfer between accounts
             </Button>
           </AuthenticatedLink>
@@ -76,7 +83,7 @@ export default function AppLayout() {
               auto
               scale={2}
               onClick={() => setDrawerOpen(false)}
-              icon={<User size={textScale}/>} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
+              icon={<User size={textScale} />} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               Pay someone
             </Button>
           </AuthenticatedLink>
@@ -90,7 +97,7 @@ export default function AppLayout() {
                 <Image height="200px" style={{ margin: -20 }} src="/logo.png" />
               </Grid>
               <Grid>
-                <Card padding={0.5} style={{ transformOrigin: 'top right' }}>
+                <Card shadow padding={0.5} style={{ transformOrigin: 'top right' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
                     <ButtonGroup scale={6 / 5}>
                       {navItems.map((item, index) => {
@@ -99,10 +106,10 @@ export default function AppLayout() {
                         return (<Button
                           key={index}
                           icon={
-                            <span style={{display:'flex',alignItems:'center', scale: `${textScale/13}`}}>
+                            <span style={{ display: 'flex', alignItems: 'center', scale: `${textScale / 13}` }}>
                               {React.cloneElement(item.icon)}
                             </span>
-                            }
+                          }
                           onClick={() => navigate(item.to)}
                           style={{
                             fontSize: textScale,
@@ -116,18 +123,19 @@ export default function AppLayout() {
                       })}
                     </ButtonGroup>
                     <Spacer w={1} />
-                    <Button 
+                    <Button
                       icon={
-                        <span style={{display:'flex',alignItems:'center', scale: `${textScale/13}`}}>
-                          {<DollarSign/>}
+                        <span style={{ display: 'flex', alignItems: 'center', scale: `${textScale / 13}` }}>
+                          {<DollarSign />}
                         </span>
-                      } 
-                      onClick={() => setDrawerOpen(true)} 
-                      auto scale={6 / 5} 
-                      type="success" 
-                      style={{fontSize: textScale}}
-                      placeholder={undefined} 
-                      onPointerEnterCapture={undefined} 
+                      }
+                      onClick={() => setDrawerOpen(true)}
+                      auto scale={6 / 5}
+                      type="success"
+                      style={{ fontSize: textScale }}
+                      loading={transactionFlow.enabled && !transactionFlow.successful}
+                      placeholder={undefined}
+                      onPointerEnterCapture={undefined}
                       onPointerLeaveCapture={undefined}
                     >
                       Pay
@@ -138,7 +146,20 @@ export default function AppLayout() {
             </Grid.Container>
           </Page.Header>
           <Page.Content>
-            <Outlet />
+            {(navigation.state === "loading" && !transactionFlow.enabled) ? <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '50vh'
+            }}>
+              <Card width="200px" height="200px" style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <Loading scale={2} spaceRatio={1.5} />
+              </Card>
+            </div> : <Outlet />}
             <Spacer h={4} />
           </Page.Content>
         </Page>

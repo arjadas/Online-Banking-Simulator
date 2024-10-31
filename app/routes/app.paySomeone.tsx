@@ -1,12 +1,15 @@
 import { Account, UserPrevContact } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setTransactionFlow } from '~/appSlice';
 import { getUserSession } from '~/auth.server';
 import PaySomeoneForm from '~/components/PaySomeoneForm';
 import UserPrevContactForm from '~/components/UserPrevContactForm';
-import { makeSendReceiveNotifications } from '~/service/notificationService';
-import { createUserPrevContact } from '~/service/userPrevContactService';
+import { TransactionService } from '~/service/transactionsService';
+import { RootState } from '~/store';
+import { isEqual } from 'lodash';
 import { getPrismaClient } from "../service/db.server";
 
 export type UserPrevContactResult = {
@@ -104,192 +107,40 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     userPrevContactsWithInfo,
   });
 };
-
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
-  const formData = await request.formData();
-  const fromAcc = parseInt(formData.get('fromAcc') as string);
-  const recipientAddress = formData.get('recipientAddress') as string;
-  // Deleting the decimal point converts to cents: $99.99 -> 9999 cents
-  const amount = parseInt((formData.get('amount') as string).replace('.', ''));
-  const reference = formData.get('reference') as string;
-  const description = formData.get('description') as string;
-  const laterDateTime = formData.get('laterDateTime') as string;
-  const frequency = formData.get('frequencyObject') as string;
-  const temporalTab = formData.get('temporalTab') as string;
-  const startDate = formData.get('startDate') as string;
-  const endDate = formData.get('endDate') as string;
-
-  let recipient;
   try {
-    recipient = JSON.parse(recipientAddress);
-  } catch (error) {
-    return json({ success: false, error: 'Json parsing error!' }, { status: 400 });
-  }
+    const formData = await request.formData();
+    const user = await getUserSession(context, request);
 
-  const user = await getUserSession(context, request);
-  const db = getPrismaClient(context);
-  const nowDate = new Date().getMilliseconds();
-
-  if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
-
-  try {
-    if (temporalTab == 'later' && !laterDateTime) {
-      throw new Error('Must specify a date and time when transferring setting a future payment.');
+    if (!user) {
+      return json({ error: 'Unauthenticated' }, { status: 401 });
     }
 
-    if (temporalTab == 'recurring') {
-      if (!frequency) {
-        throw new Error('Must specify a frequency when setting a recurring payment.');
-      }
+    const transactionService = new TransactionService(getPrismaClient(context));
 
-      if (!startDate) {
-        throw new Error('Must specify a start date when setting a recurring payment.');
-      }
-
-      if (Date.parse(startDate) < nowDate) {
-        throw new Error('The date this payment will start occurring must not be in the past.');
-      }
-
-      if (endDate && Date.parse(endDate) <= nowDate) {
-        throw new Error('The date this payment will stop occurring must be in the future.');
-      }
-    }
-
-    if (!fromAcc) {
-      throw new Error('Must indicate the account to transfer from.');
-    }
-
-    const fromAccount = await db.account.findFirst({
-      where: { acc: fromAcc },
-    });
-
-    if (!fromAccount) {
-      throw new Error('Sender account not found.');
-    }
-
-    const toAccount = await db.account.findFirst({
-      where: {
-        OR: [
-          { acc_name: recipient.accountName, acc: recipient.acc, bsb: recipient.bsb },
-          { biller_code: recipient.billerCode, crn: recipient.crn, },
-          { pay_id: recipient.payId, }
-        ],
-      },
-    });
-
-    if (!toAccount) {
-      throw new Error('Recipient account not found.');
-    }
-
-    if (fromAcc == toAccount.acc) {
-      throw new Error('Cannot transfer to the same account.');
-    }
-
-    if (!amount) {
-      throw new Error('Amount must be specified.');
-    }
-
-    if (fromAccount.balance < amount) {
-      throw new Error('Insufficient funds.');
-    }
-
-    // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
-    // so it doesn't support transactions now, but when it does, this code will support it.
-    let result;
-
-    if (temporalTab == 'now') {
-      result = await db.$transaction([
-        db.account.update({
-          where: { acc: fromAccount.acc },
-          data: { balance: { decrement: amount } },
-        }),
-        db.account.update({
-          where: { acc: toAccount.acc },
-          data: { balance: { increment: amount } },
-        }),
-        db.transaction.create({
-          data: {
-            amount,
-            sender_uid: user!.uid,
-            recipient_uid: toAccount.uid,
-            reference: reference,
-            description,
-            timestamp: new Date(),
-            settled: true,
-            type: 'pay-someone',
-            recipient_address: recipientAddress,
-            sender: { connect: { acc: fromAccount.acc } },
-            recipient: { connect: { acc: toAccount.acc } },
-          },
-        }),
-      ]);
-    } else if (temporalTab == 'later') {
-      const laterDateTimeISO = (new Date(laterDateTime)).toISOString();
-
-      // instead of setting up another table we'll use the RecurringTransaction table for all 'future' payments
-      result = await db.recurringTransaction.create({
-        data: {
-          amount: amount,
-          sender_acc: fromAccount.acc,
-          recipient_acc: toAccount.acc,
-          sender_uid: user!.uid,
-          recipient_uid: toAccount.uid,
-          recipient_address: recipientAddress,
-          reference: reference,
-          description: description,
-          frequency: '{}',
-          starts_on: laterDateTimeISO,
-          ends_on: laterDateTimeISO,
-        }
-      });
-    } else if (temporalTab == 'recurring') {
-      result = await db.recurringTransaction.create({
-        data: {
-          amount: amount,
-          sender_acc: fromAccount.acc,
-          recipient_acc: toAccount.acc,
-          sender_uid: user!.uid,
-          recipient_uid: toAccount.uid,
-          recipient_address: recipientAddress,
-          reference: reference,
-          description: description,
-          frequency: frequency,
-          starts_on: startDate,
-          ends_on: endDate ? endDate : null,
-        }
-      });
-    }
-
-    const existingContact = await db.userPrevContact.findFirst({
-      where: {
-        uid: fromAccount.uid,
-        contact_acc: toAccount.acc
-      }
-    });
-
-    // Only create a new contact if one doesn't already exist
-    if (!existingContact) {
-      await createUserPrevContact(context, {
-        uid: fromAccount.uid,
-        contact_acc: toAccount.acc,
-        contact_acc_name: toAccount.acc_name,
-        contact_description: reference,  // Use reference as description for now
-        contact_recipient_address: recipientAddress,
-      });
-    }
-
-    if (temporalTab == 'now') {
-      makeSendReceiveNotifications(context, toAccount, fromAccount, amount);
-    }
+    const result = await transactionService.createTransaction({
+      type: 'external',
+      fromAcc: parseInt(formData.get('fromAcc') as string),
+      recipientAddress: formData.get('recipientAddress') as string,
+      amount: parseInt((formData.get('amount') as string).replace('.', '')),
+      reference: formData.get('reference') as string,
+      description: formData.get('description') as string,
+      temporalTab: formData.get('temporalTab') as 'now' | 'later' | 'recurring',
+      laterDate: formData.get('laterDate') as string,
+      frequency: formData.get('frequencyObject') as string,
+      startDate: formData.get('startDate') as string,
+      endDate: formData.get('endDate') as string,
+      userId: user.uid
+    }, context);
 
     return json({ success: true, ...result });
   } catch (error) {
     return json({ success: false, error: (error as Error).message }, { status: 400 });
   }
 };
-
 export default function PaySomeone() {
   const actionData: any = useActionData();
+  const dispatch = useDispatch();
   const { userAccounts, userPrevContacts, userPrevContactsWithInfo, error } = useLoaderData<{
     userAccounts: Account[];
     userPrevContacts: UserPrevContact[];
@@ -297,15 +148,29 @@ export default function PaySomeone() {
     error?: string
   }>();
 
+  const { transactionFlow } = useSelector((state: RootState) => state.app);
   const [prevContact, setPrevContact] = useState<UserPrevContactResult | undefined | null>(undefined);
 
   const handleSubmit = (selectedContact: any) => {
     setPrevContact(selectedContact)
   };
 
-  if (typeof prevContact === 'undefined' && userPrevContacts) {
+  useEffect(() => {
+    const tf = { ...transactionFlow, successful: actionData && actionData.success, enabled: true };
+
+    if (prevContact !== undefined) {
+      tf.userPrevContact = prevContact;
+    }
+
+    if (JSON.stringify(tf) !== JSON.stringify(transactionFlow)) {
+      setTimeout(() => dispatch(setTransactionFlow(tf)), 10);
+    }
+
+  }, [actionData, dispatch, prevContact, transactionFlow]);
+
+  if (typeof prevContact === 'undefined' && userPrevContacts && (!actionData || !actionData.success)) {
     return <UserPrevContactForm contacts={userPrevContactsWithInfo} onSubmit={handleSubmit} />
   }
 
-  return <PaySomeoneForm accounts={userAccounts as any} userPrevContact={prevContact} onBack={() => setPrevContact(undefined)} actionData={actionData} />
+  return <PaySomeoneForm accounts={userAccounts as any} onBack={() => setPrevContact(undefined)} actionData={actionData} transactionFlow={transactionFlow} />
 }

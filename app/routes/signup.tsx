@@ -20,7 +20,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         await createUser(context, uid, email, first_name, last_name);
 
         // Store session data in KV
-        return await createUserSession(context, uid, email, "/app/accounts");
+        return await createUserSession(context, uid, email, "/app/home");
     } catch (error: any) {
         return json({ error: error.message, context: context.cloudflare.env.firebase_storage });
     }
@@ -65,7 +65,11 @@ export default function Signup() {
             formData.append("uid", user.uid);
             submit(formData, { method: "post", action: "/signup" });
         } catch (error: any) {
-            setClientError("An Account With This Email Already Exist.");
+            if (error.message === "Firebase: Error (auth/email-already-in-use).") {
+                setClientError("An Account With This Email Already Exist.");
+            } else {
+                setClientError("An error has occured");
+            }
             console.error(error.message);
         } finally {
             setLoading(false);

@@ -1,16 +1,19 @@
-import { Button, Card, Grid, Modal, Spacer, Text } from '@geist-ui/core';
+import { Button, Card, Grid, Modal, Spacer } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, useFetcher } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from 'react';
-import { getUserSession } from '~/auth.server';
-import { createUser } from '~/service/userService';
-import AccountCard from '../components/AccountCard';
-import { getPrismaClient } from "../service/db.server";
-import { formatDate, toFixedWithCommas } from '~/util';
-import ResizableText from '~/components/ResizableText';
-import { setTextScale } from '~/appSlice';
 import { useDispatch } from 'react-redux';
+import { blankTransactionFlow, setTextScale, setTransactionFlow } from '~/appSlice';
+import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
+import { getUserSession } from '~/auth.server';
+import ResizableText from '~/components/ResizableText';
+import { createUser } from '~/service/userService';
+import { getPrismaClient } from "../service/db.server";
+import { getNextPaymentDate } from '~/util/futureTransactionUtil';
+import { getRelativeDateInfo, toFixedWithCommas, formatDate } from '~/util/util';
+import { getRecurringTransactions } from '~/service/recurringTransactionService';
+import { AccountCard } from '~/components/AccountCard';
 
 type MeUser = {
   uid: string;
@@ -61,6 +64,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     }
 
     userData = userData!
+    const recurringTransactions = await getRecurringTransactions(context, user!.uid);
 
     return json({
       me: {
@@ -71,6 +75,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
         notifications: userData.notifications,
         font_preference: userData.font_preference,
       },
+      recurringTransactions,
       userAccounts,
     });
   } catch (error) {
@@ -85,9 +90,10 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
 };
 
 export default function Dashboard() {
-  const { me: user, userAccounts: accounts, error } = useLoaderData<{
+  const { me: user, userAccounts: accounts, recurringTransactions, error } = useLoaderData<{
     me: MeUser;
     userAccounts: Account[];
+    recurringTransactions: RecurringTransactionWithRecipient[];
     error?: string
   }>();
 
@@ -95,6 +101,7 @@ export default function Dashboard() {
   const [localNotifications, setLocalNotifications] = React.useState(user.notifications);
   const fetcher = useFetcher();
   const dispatch = useDispatch();
+  const nextPaymentDate = getNextPaymentDate(recurringTransactions as any as RecurringTransactionWithRecipient[]);
 
   const handleModalClose = () => {
     setViewingNotifications(false);
@@ -103,7 +110,7 @@ export default function Dashboard() {
         { action: "markAsRead" },
         { method: "post", action: "/api/notifications" }
       );
-      setLocalNotifications([]);
+      setTimeout(() => setLocalNotifications([]), 500);
     }
   };
 
@@ -116,29 +123,13 @@ export default function Dashboard() {
   console.error(error)
   const totalBalance = accounts.reduce((sum: any, account: { balance: any; }) => sum + account.balance, 0);
 
-  function renderForm() {
-    return (
-      <>
-        {user.notifications.map((notification, index) => (
-          <React.Fragment key={notification.notification_id}>
-            <Card shadow>
-              <ResizableText b>{notification.content}<br /></ResizableText>
-              <ResizableText small>{formatDate(new Date(notification.timestamp))}</ResizableText>
-            </Card>
-            {index < user.notifications.length - 1 && <Spacer h={1} />}
-          </React.Fragment>
-        ))}
-      </>
-    );
-  }
-
   return (
     <>
       <Spacer h={2} />
       <Card padding={1} >
         <ResizableText small>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</ResizableText>
         <ResizableText h1>Hi {user.first_name}</ResizableText>
-        <ResizableText small>Next scheduled payment is in <ResizableText b>3 days<br /></ResizableText></ResizableText>
+        {nextPaymentDate && <ResizableText small>Next scheduled payment is <ResizableText b>{getRelativeDateInfo(nextPaymentDate).toLowerCase()}</ResizableText></ResizableText>}.
         <Spacer h={0.5} />
         <ResizableText small  >You have <ResizableText b>{localNotifications.length} unread notification
           {localNotifications.length == 1 ? "" : "s"}.<br /></ResizableText></ResizableText>
@@ -151,8 +142,8 @@ export default function Dashboard() {
         <React.Fragment key={account.acc}>
           <AccountCard
             accountType={account.short_description}
-            bsb={account.bsb.toString()}
-            accountNumber={account.acc.toString()}
+            bsb={account.bsb}
+            accountNumber={account.acc}
             balance={`$${toFixedWithCommas(account.balance / 100, 2)}`}
             payID={account.pay_id}
           />

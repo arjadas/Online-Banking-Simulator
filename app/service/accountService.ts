@@ -11,7 +11,6 @@ function generateRandomAcc() {
 
 export async function openAccount(context: any, data: Prisma.AccountCreateInput) {
     let acc: number = 0;
-    const adapter = new PrismaD1(context.cloudflare.env.DB);
     const db = getPrismaClient(context);
     let isUnique = false;
 

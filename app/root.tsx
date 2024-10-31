@@ -118,7 +118,7 @@ export const loader: LoaderFunction = async ({ request, context }: { request: Re
     // Handle initial request
     if (url.pathname === "/") {
       if (user) {
-        return redirect("/app/accounts");
+        return redirect("/app/home");
       } else {
         return redirect("/login");
       }
