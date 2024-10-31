@@ -1,14 +1,18 @@
-import { Badge, Card, Grid, Spacer } from '@geist-ui/core';
+import { Badge, Button, Card, Grid, Spacer, Tooltip } from '@geist-ui/core';
 import { DollarSign, Emoji } from '@geist-ui/icons';
-import { CreditCard } from '@geist-ui/react-icons';
-import React from 'react';
+import { ArrowDownLeft, ArrowUpRight, CreditCard, User } from '@geist-ui/react-icons';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { blankTransactionFlow, setTransactionFlow } from '~/appSlice';
+import { RootState } from '~/store';
 import { getBadgeColor } from '~/util/util';
 import ResizableText from './ResizableText';
+import { useNavigate } from '@remix-run/react';
 
 interface AccountCardProps {
   accountType: string;
-  bsb: string;
-  accountNumber: string;
+  bsb: number;
+  accountNumber: number;
   payID?: string;
   balance: string;
 }
@@ -21,10 +25,70 @@ const getIcon = (accountName: string, isExternalUser = false) => {
   return "gray";
 };
 
-const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumber, payID, balance }) => {
+export const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumber, payID, balance }) => {
+  const [localTransActionFlow, setLocalTransActionFlow] = useState(blankTransactionFlow);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    dispatch(setTransactionFlow(localTransActionFlow));
+  }, [dispatch, localTransActionFlow]);
+
+  const handleTransActionFlow = (string: string) => () => {
+    const tf = { ...localTransActionFlow };
+
+    switch (string) {
+      case 'fromAcc':
+        tf.fromAcc = accountNumber;
+        break;
+      case 'toAcc':
+        tf.toAcc = accountNumber;
+        break;
+      case 'fromAccPaySomeone':
+        tf.fromAccPaySomeone = accountNumber;
+        break;
+    }
+
+    setLocalTransActionFlow(tf);
+    setTimeout(() => string === 'fromAccPaySomeone' ? navigate('/app/paySomeone') : navigate('/app/transfer'), 100);
+  }
+
   return (
     <Card width="100%" shadow padding={1}>
-      <Card.Content>
+      <Card.Content style={{ position: 'relative' }}>
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          position: 'absolute',
+          right: '8px',
+          top: '8px',
+          zIndex: 1
+        }}>
+          <Tooltip text="Transfer into" type="dark">
+            <Button auto scale={0.5} style={{
+              border: 'none',
+              padding: 5,
+            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('fromAcc')}>
+              <ArrowDownLeft size={20} />
+            </Button>
+          </Tooltip>
+          <Tooltip text="Transfer from" type="dark">
+            <Button auto scale={0.5} style={{
+              border: 'none',
+              padding: 5,
+            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('toAcc')}>
+              <ArrowUpRight size={20} />
+            </Button>
+          </Tooltip>
+          <Tooltip text="Pay someone" type="dark">
+            <Button auto scale={0.5} style={{
+              border: 'none',
+              padding: 5,
+            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('fromAccPaySomeone')}>
+              <User size={20} />
+            </Button>
+          </Tooltip>
+        </div>
         <Grid.Container gap={1}>
           <Grid xs={24}>
             <Badge.Anchor placement="topRight">
@@ -37,7 +101,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumb
           <Grid xs={12} direction="column">
             <ResizableText small>BSB: {bsb}</ResizableText>
             <ResizableText small>Account Number: {accountNumber}</ResizableText>
-            {payID && <ResizableText small>PayID: {payID}</ResizableText>} {/* Conditionally render PayID */}
+            {payID && <ResizableText small>PayID: {payID}</ResizableText>}
           </Grid>
           <Grid xs={12} justify="flex-end" alignItems="center">
             <ResizableText h3>{balance}</ResizableText>
@@ -47,5 +111,3 @@ const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumb
     </Card>
   );
 };
-
-export default AccountCard;

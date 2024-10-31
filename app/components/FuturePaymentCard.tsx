@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Grid, Badge } from '@geist-ui/react';
 import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 import { GeneratedTransaction } from '~/util/futureTransactionUtil';
@@ -7,6 +7,11 @@ import { formatDate, getBadgeColor, toFixedWithCommas } from '~/util/util';
 import { frequencyObjectToString } from './ReccuringTransactionModal';
 import { getTransactionIcon } from '~/util/util.tsx';
 import { RecurringTransaction } from '@prisma/client';
+import { Button } from '@geist-ui/core';
+import { Edit } from '@geist-ui/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '~/store';
+import { blankTransactionFlow, setTransactionFlow } from '~/appSlice';
 
 interface RecurringTransactionCardProps {
     transaction: RecurringTransactionWithRecipient | GeneratedTransaction;
@@ -71,6 +76,7 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                                 </Grid>}
                             </>
                         )}
+                        {(!oneOffPayment && !generatedTransaction) && <Button icon={<Edit />} auto scale={0.75} type="secondary" style={{ marginLeft: '10px', marginTop: '10px' }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >Edit</Button>}
                     </Grid.Container>
                 </Grid>
             </Grid.Container>

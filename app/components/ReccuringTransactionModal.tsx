@@ -1,6 +1,6 @@
 import { Button, Grid, Input, Modal, Select, Spacer, Text, useModal } from '@geist-ui/react';
 import React, { useEffect, useState } from 'react';
-import { getFullDay, joinWithAmpersand } from '~/util/util';
+import { getFullDay, globalBlur, joinWithAmpersand } from '~/util/util';
 import ResizableText from './ResizableText';
 
 export type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
@@ -213,9 +213,6 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
                 return { unit: 'years', count, date: yearlyDate };
         }
     };
-
-    // remove focus from the clicked button
-    const globalBlur = () => (window?.document?.activeElement as HTMLElement)?.blur();
 
     const handleDayToggle = (day: keyof WeekDays): void => {
         setSelectedDays(prev => ({

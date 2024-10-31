@@ -7,6 +7,9 @@ export const getBadgeColor = (accountName: string, isExternalUser = false) => {
   return "red";
 };
 
+// remove focus from the clicked button
+export const globalBlur = () => (window?.document?.activeElement as HTMLElement)?.blur();
+
 // Display a number like 300000 as 3,000.00
 export function toFixedWithCommas(number: number, decimalPlaces = 2) {
   const fixed = number.toFixed(decimalPlaces);
@@ -41,8 +44,8 @@ export const joinWithAmpersand = (arr: string[]) => {
 
 export function splitLists<T>(items: T[], predicate: (item: T) => boolean): [T[], T[]] {
   return [
-      items.filter(predicate),
-      items.filter(item => !predicate(item))
+    items.filter(predicate),
+    items.filter(item => !predicate(item))
   ];
 }
 
