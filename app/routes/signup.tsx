@@ -4,7 +4,7 @@ import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { signup } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
-import AuthenticatedLink from '~/components/AuthenticatedLink';
+import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from "~/service/userService";
 
@@ -20,7 +20,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
         await createUser(context, uid, email, first_name, last_name);
 
         // Store session data in KV
-        return await createUserSession(context, uid, email, "/app/home");
+        return await createUserSession(context, uid, email, "/app/accounts");
     } catch (error: any) {
         return json({ error: error.message, context: context.cloudflare.env.firebase_storage });
     }
@@ -120,7 +120,7 @@ export default function Signup() {
                     </Button>
                 </Form>
                 {clientError && <ResizableText type="error" style={{ marginTop: 10 }}>{clientError}</ResizableText>}
-                <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back to Login</ResizableText></AuthenticatedLink>
+                <AuthenticatedLink to="/login" prefetch='render'><ResizableText p>Go back</ResizableText></AuthenticatedLink>
             </Card>
             <style>{`
                 .shake {

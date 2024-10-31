@@ -1,4 +1,4 @@
-import { Checkbox } from '@geist-ui/core';
+import { Checkbox, GeistProvider, Page, Themes } from '@geist-ui/core';
 import { CheckboxEvent } from '@geist-ui/core/esm/checkbox';
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { login } from "~/auth.client";
 import { createUserSession } from "~/auth.server";
+import { AuthenticatedLink } from '~/components/AuthenticatedLink';
 import { RootState } from '~/store';
 
 type ActionData = {

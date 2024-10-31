@@ -1,16 +1,16 @@
-import { Button, Card, Divider, Grid, Spacer } from '@geist-ui/react';
+import React, { useState } from 'react';
+import { Card, Text, Button, Grid, Spacer, Divider } from '@geist-ui/react';
 import { CreditCard as CreditCardIcon, Eye, EyeOff } from '@geist-ui/react-icons';
-import { CreditCard, DebitCard } from "@prisma/client";
-import { LoaderFunction, json } from '@remix-run/cloudflare';
 import { useLoaderData } from "@remix-run/react";
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import ResizableText from '~/components/ResizableText';
-import { openCard } from "~/service/cardService";
-import { RootState } from '~/store';
-import { toFixedWithCommas } from '~/util/util';
-import { getUserSession } from '../auth.server';
+import { LoaderFunction, json } from '@remix-run/cloudflare';
 import { getPrismaClient } from "../service/db.server";
+import { getUserSession } from '../auth.server';
+import { openCard } from "~/service/cardService";
+import { CreditCard, DebitCard } from "@prisma/client";
+import ResizableText from '~/components/ResizableText';
+import { useSelector } from 'react-redux';
+import { RootState } from '~/store';
+import { toFixedWithCommas } from '~/util';
 
 interface balance {
   credit: number;
@@ -79,8 +79,11 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   ]);
 
   if (!creditCardData) {
-    // create a new card, we didn't find one
+
+    console.error("Credit Card not found! Creating a new card..");
     creditCardData = await openCard(context, userCreditAcc[0].acc, userData.first_name, userData.last_name, CARDDURATION, "credit");
+  } else {
+    console.log("Credit Card found");
   }
 
   while (!isNumeric(creditCardData!.card_number)) {
@@ -93,13 +96,15 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     creditCardData = await openCard(context, userCreditAcc[0].acc, userData.first_name, userData.last_name, CARDDURATION, "credit");
   }
 
-  if (!debitCardData ) {
-    // create a new card, we didn't find one
+  if (!debitCardData) {
+    console.error("Debit Card not found! Creating a new card..");
     debitCardData = await openCard(context, userDebitAcc[0].acc, userData.first_name, userData.last_name, CARDDURATION, "debit");
+  } else {
+    console.log("Debit Card found");
   }
 
   while (!isNumeric(debitCardData.card_number)) {
-    console.warn("Debit Card number issue! Re-creating a new card..");
+    console.error("Debit Card number issue! Re-creating a new card..");
 
     await db.debitCard.delete({
       where: { accountId: userCreditAcc[0].acc },
@@ -168,7 +173,7 @@ export default function MyCards() {
 
   const cardWidth = () => {
     const maxWidth = 800
-    const width = (textScale/15) * 500;
+    const width = (textScale / 15) * 500;
     if (width <= maxWidth) {
       return width;
     }
@@ -224,7 +229,7 @@ export default function MyCards() {
                   }}
                 >
                   {cards.map((cardInfo, index) => (
-                    <Card key={index} shadow style={{
+                    <Card shadow key={index} style={{
                       minWidth: `${cardWidth()}px`,
                       display: "flex",
                       justifyContent: "center",
