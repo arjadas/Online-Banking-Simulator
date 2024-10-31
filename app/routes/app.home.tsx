@@ -4,16 +4,16 @@ import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setTextScale } from '~/appSlice';
+import { blankTransactionFlow, setTextScale, setTransactionFlow } from '~/appSlice';
 import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 import { getUserSession } from '~/auth.server';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from '~/service/userService';
-import AccountCard from '../components/AccountCard';
 import { getPrismaClient } from "../service/db.server";
 import { getNextPaymentDate } from '~/util/futureTransactionUtil';
 import { getRelativeDateInfo, toFixedWithCommas, formatDate } from '~/util/util';
 import { getRecurringTransactions } from '~/service/recurringTransactionService';
+import { AccountCard } from '~/components/AccountCard';
 
 type MeUser = {
   uid: string;
@@ -142,8 +142,8 @@ export default function Dashboard() {
         <React.Fragment key={account.acc}>
           <AccountCard
             accountType={account.short_description}
-            bsb={account.bsb.toString()}
-            accountNumber={account.acc.toString()}
+            bsb={account.bsb}
+            accountNumber={account.acc}
             balance={`$${toFixedWithCommas(account.balance / 100, 2)}`}
             payID={account.pay_id}
           />

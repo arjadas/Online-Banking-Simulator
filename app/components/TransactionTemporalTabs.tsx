@@ -34,7 +34,8 @@ export const TransactionTemporalTabs: React.FC<TransactionTemporalTabsProps> = (
             <ResizableText h4>Schedule</ResizableText>
             <Tabs style={{ fontWeight: '600' }} value={temporalTab} onChange={handleTemporalTabsChange} hideDivider>
                 <Tabs.Item label="Now" value="now" >
-                    <ResizableText>Transfer will be settled instantly.</ResizableText>
+                    <Spacer />
+                    <ResizableText small>Transfer will be settled instantly.</ResizableText>
                     <Spacer />
                 </Tabs.Item>
                 <Tabs.Item label="Later" value="later" >
@@ -56,7 +57,7 @@ export const TransactionTemporalTabs: React.FC<TransactionTemporalTabsProps> = (
                 <input type="hidden" name="endDate" value={endDate} />
                 <Tabs.Item label="Recurring" value="recurring">
                     <Spacer />
-                    <div style={{ display: 'flex', flexDirection: 'row', gap: 20}}>
+                    <div style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
                         <ResizableText h4>Frequency</ResizableText>
                         <FutureTransactionModal visible={recurringModalVisible} onFrequencyChange={function (frequency: FrequencyObject): void {
                             setFrequency(frequency);

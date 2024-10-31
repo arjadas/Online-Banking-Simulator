@@ -3,11 +3,12 @@ import { Account } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from '@remix-run/react';
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { setInTransactionFlow } from '~/appSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { setTransactionFlow } from '~/appSlice';
 import TransferBetweenAccountsForm from '~/components/TransferBetweenAccountsForm';
 import { getPrismaClient } from '~/service/db.server';
 import { TransactionService } from '~/service/transactionsService';
+import { RootState } from '~/store';
 import { getUserSession } from "../auth.server";
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   try {
@@ -19,13 +20,17 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     }
 
     const transactionService = new TransactionService(getPrismaClient(context));
-
     const result = await transactionService.createTransaction({
       type: 'internal',
       fromAcc: parseInt(formData.get('fromAcc') as string),
       toAcc: parseInt(formData.get('toAcc') as string),
       amount: parseInt((formData.get('amount') as string).replace('.', '')),
       description: formData.get('description') as string,
+      temporalTab: formData.get('temporalTab') as 'now' | 'later' | 'recurring',
+      laterDate: formData.get('laterDate') as string,
+      frequency: formData.get('frequencyObject') as string,
+      startDate: formData.get('startDate') as string,
+      endDate: formData.get('endDate') as string,
       userId: user.uid
     });
 
@@ -53,15 +58,21 @@ export default function TransferBetweenAccounts() {
   const actionData: any = useActionData();
   const dispatch = useDispatch()
   const { userAccounts } = useLoaderData<{ userAccounts: Account[] }>();
+  const { transactionFlow } = useSelector((state: RootState) => state.app);
 
   useEffect(() => {
-    setTimeout(() => dispatch(setInTransactionFlow(!actionData || !actionData.success)), 1000);
-  }, [actionData, dispatch]);
+    const tf = { ...transactionFlow, successful: actionData && actionData.success, enabled: true };
+
+    if (JSON.stringify(tf) !== JSON.stringify(transactionFlow)) {
+      setTimeout(() => dispatch(setTransactionFlow(tf)), 10);
+    }
+
+  }, [actionData, dispatch, transactionFlow]);
 
   return (
     <Page>
       <Page.Content>
-        <TransferBetweenAccountsForm accounts={userAccounts as any as Account[]} actionData={actionData} />
+        <TransferBetweenAccountsForm accounts={userAccounts as any as Account[]} actionData={actionData} transactionFlow={transactionFlow} />
       </Page.Content>
     </Page>
   );

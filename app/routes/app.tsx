@@ -1,13 +1,13 @@
 
-import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Loading, Page, Spacer, Tabs, Themes } from '@geist-ui/core';
-import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, User, CreditCard } from '@geist-ui/react-icons';
-import { MetaFunction, Outlet, useMatches, useNavigate, Link, useNavigation } from "@remix-run/react";
-import React from 'react';
+import { Button, ButtonGroup, Card, Drawer, GeistProvider, Grid, Image, Loading, Page, Spacer, Themes } from '@geist-ui/core';
+import { ChevronRightCircle } from '@geist-ui/icons';
+import { CreditCard, DollarSign, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
+import { MetaFunction, Outlet, useMatches, useNavigate, useNavigation } from "@remix-run/react";
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { RootState } from '../store';
-import { ChevronRightCircle } from '@geist-ui/icons';
 
 export const meta: MetaFunction = () => {
   return [
@@ -26,12 +26,13 @@ const navItems = [
 ];
 
 export default function AppLayout() {
-  const { isDarkTheme, textScale, inTransactionFlow } = useSelector((state: RootState) => state.app);
+  const { isDarkTheme, textScale, transactionFlow } = useSelector((state: RootState) => state.app);
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const lightTheme = Themes.createFromLight({ type: 'light1', palette: { success: "#009dff", } });
   const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const matches = useMatches();
   const navigate = useNavigate();
+  const dispatch = useNavigate();
   const navigation = useNavigation();
 
   // Determine the current path from matches
@@ -43,6 +44,9 @@ export default function AppLayout() {
     fontSize: textScale,
     gap: 16,
   };
+
+  useEffect(() => {
+  }, [transactionFlow, dispatch]);
 
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
@@ -93,7 +97,7 @@ export default function AppLayout() {
                 <Image height="200px" style={{ margin: -20 }} src="/logo.png" />
               </Grid>
               <Grid>
-                <Card padding={0.5} style={{ transformOrigin: 'top right' }}>
+                <Card shadow padding={0.5} style={{ transformOrigin: 'top right' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
                     <ButtonGroup scale={6 / 5}>
                       {navItems.map((item, index) => {
@@ -129,6 +133,7 @@ export default function AppLayout() {
                       auto scale={6 / 5}
                       type="success"
                       style={{ fontSize: textScale }}
+                      loading={transactionFlow.enabled && !transactionFlow.successful}
                       placeholder={undefined}
                       onPointerEnterCapture={undefined}
                       onPointerLeaveCapture={undefined}
@@ -141,7 +146,7 @@ export default function AppLayout() {
             </Grid.Container>
           </Page.Header>
           <Page.Content>
-            {(navigation.state === "loading" && !inTransactionFlow) ? <div style={{
+            {(navigation.state === "loading" && !transactionFlow) ? <div style={{
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',

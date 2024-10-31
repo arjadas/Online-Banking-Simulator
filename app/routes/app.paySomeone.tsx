@@ -2,15 +2,15 @@ import { Account, UserPrevContact } from '@prisma/client';
 import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setTransactionFlow } from '~/appSlice';
 import { getUserSession } from '~/auth.server';
 import PaySomeoneForm from '~/components/PaySomeoneForm';
 import UserPrevContactForm from '~/components/UserPrevContactForm';
-import { makeSendReceiveNotifications } from '~/service/notificationService';
-import { createUserPrevContact } from '~/service/userPrevContactService';
-import { getPrismaClient } from "../service/db.server";
 import { TransactionService } from '~/service/transactionsService';
-import { setInTransactionFlow } from '~/appSlice';
-import { useDispatch } from 'react-redux';
+import { RootState } from '~/store';
+import { isEqual } from 'lodash';
+import { getPrismaClient } from "../service/db.server";
 
 export type UserPrevContactResult = {
   user_prev_contact_id: number;
@@ -148,6 +148,7 @@ export default function PaySomeone() {
     error?: string
   }>();
 
+  const { transactionFlow } = useSelector((state: RootState) => state.app);
   const [prevContact, setPrevContact] = useState<UserPrevContactResult | undefined | null>(undefined);
 
   const handleSubmit = (selectedContact: any) => {
@@ -155,12 +156,21 @@ export default function PaySomeone() {
   };
 
   useEffect(() => {
-    setTimeout(() => dispatch(setInTransactionFlow(!actionData || !actionData.success)), 1000);
-  }, [actionData, dispatch]);
+    const tf = { ...transactionFlow, successful: actionData && actionData.success, enabled: true };
+
+    if (prevContact !== undefined) {
+      tf.userPrevContact = prevContact;
+    }
+
+    if (JSON.stringify(tf) !== JSON.stringify(transactionFlow)) {
+      setTimeout(() => dispatch(setTransactionFlow(tf)), 10);
+    }
+
+  }, [actionData, dispatch, prevContact, transactionFlow]);
 
   if (typeof prevContact === 'undefined' && userPrevContacts && (!actionData || !actionData.success)) {
     return <UserPrevContactForm contacts={userPrevContactsWithInfo} onSubmit={handleSubmit} />
   }
 
-  return <PaySomeoneForm accounts={userAccounts as any} userPrevContact={prevContact} onBack={() => setPrevContact(undefined)} actionData={actionData} />
+  return <PaySomeoneForm accounts={userAccounts as any} onBack={() => setPrevContact(undefined)} actionData={actionData} transactionFlow={transactionFlow} />
 }
