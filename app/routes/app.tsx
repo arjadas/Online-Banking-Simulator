@@ -146,7 +146,7 @@ export default function AppLayout() {
             </Grid.Container>
           </Page.Header>
           <Page.Content>
-            {(navigation.state === "loading" && !transactionFlow) ? <div style={{
+            {(navigation.state === "loading" && !transactionFlow.enabled) ? <div style={{
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
