@@ -130,8 +130,6 @@ describe('Home Page', () => {
         cy.get('[href="/app/paySomeone"]').should('not.be.visible');
       });
     });
-
   });
-  
 });
   
