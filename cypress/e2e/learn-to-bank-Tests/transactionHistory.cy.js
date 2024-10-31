@@ -46,15 +46,64 @@ describe('Transactions Page', () => {
   });
 
   it('should filter transactions by selected account', () => {
-
+    /////////
   });
 
   it('should filter transactions based on search query', () => {
-
+    /////////
   });
 
-  it('should expand and collapse transaction details', () => {
+  it('should expand and collapse transaction details with buttons', () => {
+    cy.get(':nth-child(1) > .jsx-355899491 > .jsx-3633143255 > .jsx-3058801100 > .jsx-4039973780')
+      .should('have.text', 'View Details')
+      .should('be.visible')
+      .click();
 
+    cy.contains(/transaction details/i).should('be.visible');
+    cy.contains(/sender account:/i).should('be.visible');
+    cy.contains(/recipient account:/i).should('be.visible');
+    cy.contains(/reference:/i).should('be.visible');
+    cy.contains(/description:/i).should('be.visible');
+
+    cy.get(':nth-child(1) > .jsx-355899491 > .jsx-3633143255 > .jsx-3058801100 > .jsx-4039973780')
+      .should('have.text', 'Hide Details')
+      .should('be.visible')
+      .click();
+
+    cy.contains(/transaction details/i).should('not.exist');
+    cy.contains(/sender account:/i).should('not.exist');
+    cy.contains(/recipient account:/i).should('not.exist');
+    cy.contains(/reference:/i).should('not.exist');
+    cy.contains(/description:/i).should('not.exist');
+  });
+
+  it('should expand and collapse transaction details with buttons', () => {
+    cy.get(':nth-child(1) > .jsx-355899491 > .jsx-3633143255 > .jsx-3058801100 > .jsx-4039973780')
+      .should('have.text', 'View Details')
+      .should('be.visible')
+      .click();
+
+    cy.contains(/transaction details/i).should('be.visible');
+    cy.contains(/sender account:/i).should('be.visible');
+    cy.contains(/recipient account:/i).should('be.visible');
+    cy.contains(/reference:/i).should('be.visible');
+    cy.contains(/description:/i).should('be.visible');
+
+    cy.get(':nth-child(1) > .jsx-355899491 > .collapse > .view > .title').click();
+
+    cy.contains(/transaction details/i).should('be.visible');
+    cy.contains(/sender account:/i).should('not.be.visible');
+    cy.contains(/recipient account:/i).should('not.be.visible');
+    cy.contains(/reference:/i).should('not.be.visible');
+    cy.contains(/description:/i).should('not.be.visible');
+
+    cy.get(':nth-child(1) > .jsx-355899491 > .collapse > .view > .title').click();
+
+    cy.contains(/transaction details/i).should('be.visible');
+    cy.contains(/sender account:/i).should('be.visible');
+    cy.contains(/recipient account:/i).should('be.visible');
+    cy.contains(/reference:/i).should('be.visible');
+    cy.contains(/description:/i).should('be.visible');
   });
 
   it('should download the PDF statement', () => {
@@ -63,9 +112,9 @@ describe('Transactions Page', () => {
   });
 
   //----Navigations Bar Tests----//
-  it('navigates to trasaction history', () => {
-    cy.contains('button', 'History').should('be.visible').click();
-    cy.url().should('include', '/transactions');
+  it('navigates to home', () => {
+    cy.contains('button', 'Home').should('be.visible').click();
+    cy.url().should('include', '/accounts');
   });
 
   it('navigates to cards', () => {
@@ -147,8 +196,6 @@ describe('Transactions Page', () => {
         cy.get('[href="/app/paySomeone"]').should('not.be.visible');
       });
     });
-
   });
-
 });
   
