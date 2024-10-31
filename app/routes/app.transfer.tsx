@@ -19,6 +19,10 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const db = getPrismaClient(context);
 
   try {
+    if (!fromAcc || !toAcc) {
+      return json({ success: false, error: 'Please specify accounts.' }, { status: 400 });
+    }
+
     const fromAccount = await db.account.findUnique({
       where: { acc: fromAcc },
     });

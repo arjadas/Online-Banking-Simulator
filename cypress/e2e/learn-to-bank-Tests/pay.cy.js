@@ -1,0 +1,7 @@
+describe('PaySomeone Page', () => {
+    beforeEach(() => {
+
+    });
+  
+  });
+  
