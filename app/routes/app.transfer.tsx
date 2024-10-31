@@ -28,19 +28,15 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     });
 
     if (!fromAccount || !toAccount) {
-      throw new Error('One or both accounts not found.');
+      throw new Error('One or both accounts not found');
     }
 
     if (fromAcc == toAcc) {
       throw new Error('Cannot transfer into the same account.');
     }
-    
-    if (!amount) {
-      throw new Error('Amount must be specified.');
-    }
 
     if (fromAccount.balance < amount) {
-      throw new Error('Insufficient funds.');
+      throw new Error('Insufficient funds');
     }
 
     // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
@@ -95,7 +91,8 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     userAccounts,
   });
 };
-export default function TransferBetweenAccounts() {
+
+const TransferBetweenAccounts = () => {
   const actionData: any = useActionData();
   const { userAccounts: accounts } = useLoaderData<{ userAccounts: Account[] }>();
   const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
@@ -202,4 +199,6 @@ export default function TransferBetweenAccounts() {
       </Page.Content>
     </Page>
   );
-}
+};
+
+export default TransferBetweenAccounts;

@@ -1,9 +1,9 @@
-import { Badge, Card, Grid, Spacer } from '@geist-ui/core';
-import { DollarSign, Emoji } from '@geist-ui/icons';
-import { CreditCard } from '@geist-ui/react-icons';
 import React from 'react';
-import { getBadgeColor } from '~/util/util';
+import { Card, Text, Spacer, Grid, Badge } from '@geist-ui/core';
+import { CreditCard } from '@geist-ui/react-icons';
 import ResizableText from './ResizableText';
+import { getBadgeColor } from '~/util';
+import { ArrowDownCircle, ArrowUpCircle, DollarSign, Emoji } from '@geist-ui/icons';
 
 interface AccountCardProps {
   accountType: string;
