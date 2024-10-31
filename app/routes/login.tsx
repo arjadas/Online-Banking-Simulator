@@ -10,6 +10,7 @@ import ResizableText from '~/components/ResizableText';
 type ActionData = {
   error?: string;
 };
+
 export const action: ActionFunction = async ({ request, context }: { request: Request, context: any }) => {
 
   const formData = await request.formData();

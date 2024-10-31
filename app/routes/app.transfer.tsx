@@ -10,7 +10,9 @@ import { getPrismaClient } from '~/service/db.server';
 import { TransactionService } from '~/service/transactionsService';
 import { RootState } from '~/store';
 import { getUserSession } from "../auth.server";
+
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
+  
   try {
     const formData = await request.formData();
     const user = await getUserSession(context, request);
@@ -39,6 +41,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     return json({ success: false, error: (error as Error).message }, { status: 400 });
   }
 };
+
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
@@ -54,6 +57,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     userAccounts,
   });
 };
+
 export default function TransferBetweenAccounts() {
   const actionData: any = useActionData();
   const dispatch = useDispatch()
