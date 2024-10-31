@@ -2,10 +2,12 @@ import { PrismaD1 } from '@prisma/adapter-d1';
 import { getPrismaClient } from '~/service/db.server';
 import { openAccount } from "./accountService";
 import { createMockUserPrevContacts } from './userPrevContactService';
+import { frequencyObjectToString, generateRandomFrequencyObject } from '~/util/futureTransactionUtil';
+import { addDays } from 'date-fns';
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
-    
-    await createMockUserPrevContacts(context, uid);
+
+    const mockPrevContacts = await createMockUserPrevContacts(context, uid);
 
     try {
         const date = new Date();
@@ -24,7 +26,7 @@ export async function createUser(context: any, uid: string, email: string, first
         });
 
         // Open "Simple Saver" account
-        await openAccount(context, {
+        const simpleSaver = await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             pay_id: email,
@@ -35,7 +37,7 @@ export async function createUser(context: any, uid: string, email: string, first
         });
 
         // Open "Delightful Debit" account
-        await openAccount(context, {
+        const delightfulDebit = await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             short_description: "Delightful Debit",
@@ -45,13 +47,51 @@ export async function createUser(context: any, uid: string, email: string, first
         });
 
         // Open "Clever Credit" account
-        await openAccount(context, {
+        const cleverCredit = await openAccount(context, {
             acc_name: `${first_name} ${last_name}`,
             uid: uid,
             short_description: "Clever Credit",
             long_description: "Associated with your emulated credit card.",
             balance: -95620,
             opened_timestamp: date,
+        });
+
+        const accounts = [simpleSaver, delightfulDebit, cleverCredit];
+
+        mockPrevContacts.forEach(async (mockPrevContact, index) =>  {
+            await db.recurringTransaction.create({
+                data: {
+                    amount: Math.floor(Math.random() * 10000),
+                    sender_acc: accounts[index % accounts.length].acc,
+                    recipient_acc: mockPrevContact.contact_acc,
+                    sender_uid: uid,
+                    recipient_uid: mockPrevContact.uid,
+                    recipient_address: mockPrevContact.contact_recipient_address,
+                    reference: mockPrevContact.contact_description,
+                    description: mockPrevContact.contact_description,
+                    frequency: JSON.stringify(generateRandomFrequencyObject()),
+                    starts_on: new Date().toISOString(),
+                    ends_on: null,
+                }
+            });
+
+            const futureDate = addDays(new Date(), Math.floor(Math.random() * 100)).toISOString();
+
+            await db.recurringTransaction.create({
+                data: {
+                    amount: Math.floor(Math.random() * 10000),
+                    sender_acc: accounts[(index + 1) % accounts.length].acc,
+                    recipient_acc: mockPrevContact.contact_acc,
+                    sender_uid: uid,
+                    recipient_uid: mockPrevContact.uid,
+                    recipient_address: mockPrevContact.contact_recipient_address,
+                    reference: mockPrevContact.contact_description,
+                    description: mockPrevContact.contact_description,
+                    frequency: '{}',
+                    starts_on: futureDate,
+                    ends_on: futureDate,
+                }
+            });
         });
 
         return user;

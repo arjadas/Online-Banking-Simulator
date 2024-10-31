@@ -62,7 +62,6 @@ export class TransactionService {
   }
 
   private async findToAccount(params: TransactionParams) {
-    console.log(params)
     if (params.type === 'internal') {
       const toAccount = await this.db.account.findUnique({
         where: { acc: params.toAcc },

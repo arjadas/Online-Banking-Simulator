@@ -12,6 +12,7 @@ export async function createUserPrevContact(context: any, data: Prisma.UserPrevC
 export async function createMockUserPrevContacts(context: any, uid: string) {
     const db = getPrismaClient(context);
     const mockUsers = await db.mockUser.findMany();
+    const mockUserPrevContacts = []
 
     for (const mockUser of mockUsers) {
         const mockUserAccount = await db.account.findFirst({ where: { uid: mockUser.uid } });
@@ -27,7 +28,7 @@ export async function createMockUserPrevContacts(context: any, uid: string) {
             recipientAddress = `{"accountName":"${mockUserAccount.acc_name}", "acc":${mockUserAccount.acc}, "bsb": ${mockUserAccount.bsb}}`
         }
 
-        await db.userPrevContact.create({
+        mockUserPrevContacts.push(await db.userPrevContact.create({
             data: {
                 uid: uid,
                 contact_acc_name: mockUserAccount.acc_name,
@@ -35,7 +36,9 @@ export async function createMockUserPrevContacts(context: any, uid: string) {
                 contact_acc: mockUserAccount.acc,
                 contact_recipient_address: recipientAddress,
             },
-        });
+        }));
     }
+
+    return mockUserPrevContacts;
 }
 
