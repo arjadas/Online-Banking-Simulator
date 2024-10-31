@@ -62,33 +62,35 @@ model RecurringTransaction {
   reference           String
   description         String?
   frequency           String
+  starts_on           DateTime
+  ends_on             DateTime?
   sender              Account       @relation("reccTransactionSender", fields: [sender_acc], references: [acc])
   recipient           Account       @relation("reccTransactionRecipient", fields: [recipient_acc], references: [acc])
   transaction         Transaction[]
 }
 
 model CreditCard {
-  id               Int      @id @default(autoincrement())
-  accountId        Int      @unique
-  card_number      String   @unique
-  expiry_date      String
-  csc              String
-  cardholder_name  String
-  created_at       DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  accountId       Int      @unique
+  card_number     String   @unique
+  expiry_date     String
+  csc             String
+  cardholder_name String
+  created_at      DateTime @default(now())
 
-  account          Account  @relation(fields: [accountId], references: [acc], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [acc], onDelete: Cascade)
 }
 
 model DebitCard {
-  id               Int      @id @default(autoincrement())
-  accountId        Int      @unique
-  card_number      String   @unique
-  expiry_date      String
-  csc              String
-  cardholder_name  String
-  created_at       DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  accountId       Int      @unique
+  card_number     String   @unique
+  expiry_date     String
+  csc             String
+  cardholder_name String
+  created_at      DateTime @default(now())
 
-  account          Account  @relation(fields: [accountId], references: [acc], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [acc], onDelete: Cascade)
 }
 
 model MockUser {

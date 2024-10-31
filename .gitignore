@@ -5,11 +5,13 @@ node_modules
 .env
 .wrangler
 .history
+.vscode
 wrangler.toml
 package-lock.json
 learn-to-bank-admin-console/.cache
 learn-to-bank-admin-console/build
 learn-to-bank-admin-console/.env
+learn-to-bank-admin-console/.vscode
 learn-to-bank-admin-console/.wrangler
 learn-to-bank-admin-console/.history
 learn-to-bank-admin-console/wrangler.toml

@@ -4,9 +4,10 @@ import { DollarSign, Grid as GridIcon, Home, List, LogOut, Settings, Shuffle, Us
 import { MetaFunction, Outlet, useMatches, useNavigate, Link } from "@remix-run/react";
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { AuthenticatedLink } from '~/components/AuthenticatedLink';
+import AuthenticatedLink from '~/components/AuthenticatedLink';
 import ResizableText from '~/components/ResizableText';
 import { RootState } from '../store';
+import { ChevronRightCircle } from '@geist-ui/icons';
 
 export const meta: MetaFunction = () => {
   return [
@@ -16,14 +17,14 @@ export const meta: MetaFunction = () => {
 };
 
 const navItems = [
-  { icon: <Home />, label: "Home", to: "/app/accounts" },
-  { icon: <List />, label: "History", to: "/app/transactions" },
-  { icon: <CreditCard />, label: "My Cards", to: "/app/cards" },
+  { icon: <Home />, label: "Home", to: "/app/home" },
+  { icon: <List />, label: "History", to: "/app/history" },
+  { icon: <ChevronRightCircle />, label: "Upcoming", to: "/app/upcoming" },
+  { icon: <CreditCard />, label: "Cards", to: "/app/cards" },
   { icon: <Settings />, label: "Settings", to: "/app/settings" },
   { icon: <LogOut />, label: "Logout", to: "/logout" },
 ];
 
-//TODO set up second auth
 export default function AppLayout() {
   const { isDarkTheme, textScale } = useSelector((state: RootState) => state.app);
   const [drawerOpen, setDrawerOpen] = React.useState(false)
@@ -35,20 +36,12 @@ export default function AppLayout() {
   // Determine the current path from matches
   const currentPath = matches[matches.length - 1]?.pathname || '/';
 
-  // Handle tab change
-  const handleTabChange = (route: string) => {
-    navigate(route);
-  };
-
   const buttonStyle = {
     width: textScale * 20,
     height: 75,
     fontSize: textScale,
-
     gap: 16,
   };
-
-
 
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
@@ -65,7 +58,7 @@ export default function AppLayout() {
           <Drawer.Title>
             <ResizableText h2 style={{ margin: -10 }}>Pay</ResizableText>
           </Drawer.Title>
-          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Instantiate a transfer</Drawer.Subtitle>
+          <Drawer.Subtitle style={{ fontSize: `${textScale}px` }}>Initiate a transfer</Drawer.Subtitle>
           <Spacer h={2} />
           <AuthenticatedLink to="/app/transfer" prefetch="intent" style={{ textDecoration: 'none' }}>
             <Button
