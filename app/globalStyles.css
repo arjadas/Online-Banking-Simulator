@@ -1,17 +1,25 @@
-/*TODO make a nice scrollbar
+/*TODO make a nice scrollbar*/
 ::-webkit-scrollbar {
     display: none;
-}*/
+}
 
 html,
 body {
-    height: auto;
+    height: 100%;
     margin: 0;
-    overflow-x: hidden;
+}
+
+html {
+    background: repeating-linear-gradient(rgb(198, 237, 255), rgb(0, 157, 255)) !important;
 }
 
 body {
-    background: repeating-linear-gradient(rgb(0, 157, 255), rgb(198, 237, 255)) !important;
+    background: repeating-linear-gradient(#009dff, rgb(198, 237, 255)) !important;
     position: relative !important;
     z-index: 1 !important;
+}
+
+/* workaround to tabs issue? */
+.scroll-container {
+    padding-right: 10px;
 }

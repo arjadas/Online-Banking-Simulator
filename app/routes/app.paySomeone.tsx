@@ -5,8 +5,9 @@ import { useState } from 'react';
 import { getUserSession } from '~/auth.server';
 import PaySomeoneForm from '~/components/PaySomeoneForm';
 import UserPrevContactForm from '~/components/UserPrevContactForm';
-import { makeSendReceiveNotifications } from '~/service/notificationService';
+import { createNotification } from '~/service/notificationService';
 import { createUserPrevContact } from '~/service/userPrevContactService';
+import { toFixedWithCommas } from '~/util';
 import { getPrismaClient } from "../service/db.server";
 
 export type UserPrevContactResult = {
@@ -50,12 +51,12 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   const userPrevContactsWithInfo: UserPrevContactResult[] = [];
 
   for (const contact of userPrevContacts) {
-
+    
     // Skip if we've already processed this contact_acc
     if (uniqueContactsMap.has(contact.contact_acc)) {
       continue;
     }
-
+    
     if (!contact.contact_acc) {
       throw new Error("Contact acc not supplied.");
     }
@@ -113,11 +114,6 @@ export const action: ActionFunction = async ({ context, request }: { context: an
   const amount = parseInt((formData.get('amount') as string).replace('.', ''));
   const reference = formData.get('reference') as string;
   const description = formData.get('description') as string;
-  const laterDateTime = formData.get('laterDateTime') as string;
-  const frequency = formData.get('frequencyObject') as string;
-  const temporalTab = formData.get('temporalTab') as string;
-  const startDate = formData.get('startDate') as string;
-  const endDate = formData.get('endDate') as string;
 
   let recipient;
   try {
@@ -128,35 +124,12 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
   const user = await getUserSession(context, request);
   const db = getPrismaClient(context);
-  const nowDate = new Date().getMilliseconds();
 
   if (!user) return json({ error: 'Unauthenticated' }, { status: 401 });
 
   try {
-    if (temporalTab == 'later' && !laterDateTime) {
-      throw new Error('Must specify a date and time when transferring setting a future payment.');
-    }
-
-    if (temporalTab == 'recurring') {
-      if (!frequency) {
-        throw new Error('Must specify a frequency when setting a recurring payment.');
-      }
-
-      if (!startDate) {
-        throw new Error('Must specify a start date when setting a recurring payment.');
-      }
-
-      if (Date.parse(startDate) < nowDate) {
-        throw new Error('The date this payment will start occurring must not be in the past.');
-      }
-
-      if (endDate && Date.parse(endDate) <= nowDate) {
-        throw new Error('The date this payment will stop occurring must be in the future.');
-      }
-    }
-
     if (!fromAcc) {
-      throw new Error('Must indicate the account to transfer from.');
+      throw new Error('Must indicate the account to transfer from!');
     }
 
     const fromAccount = await db.account.findFirst({
@@ -164,7 +137,7 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     });
 
     if (!fromAccount) {
-      throw new Error('Sender account not found.');
+      throw new Error('Sender account not found');
     }
 
     const toAccount = await db.account.findFirst({
@@ -178,87 +151,44 @@ export const action: ActionFunction = async ({ context, request }: { context: an
     });
 
     if (!toAccount) {
-      throw new Error('Recipient account not found.');
+      throw new Error('Recipient account not found');
     }
 
     if (fromAcc == toAccount.acc) {
-      throw new Error('Cannot transfer to the same account.');
-    }
-
-    if (!amount) {
-      throw new Error('Amount must be specified.');
+      throw new Error('Cannot transfer to the same account');
     }
 
     if (fromAccount.balance < amount) {
-      throw new Error('Insufficient funds.');
+      throw new Error('Insufficient funds');
     }
 
     // Right now, Cloudflare D1 aims for speed and eventual consistency rather than ACID-compliance, 
     // so it doesn't support transactions now, but when it does, this code will support it.
-    let result;
-
-    if (temporalTab == 'now') {
-      result = await db.$transaction([
-        db.account.update({
-          where: { acc: fromAccount.acc },
-          data: { balance: { decrement: amount } },
-        }),
-        db.account.update({
-          where: { acc: toAccount.acc },
-          data: { balance: { increment: amount } },
-        }),
-        db.transaction.create({
-          data: {
-            amount,
-            sender_uid: user!.uid,
-            recipient_uid: toAccount.uid,
-            reference: reference,
-            description,
-            timestamp: new Date(),
-            settled: true,
-            type: 'pay-someone',
-            recipient_address: recipientAddress,
-            sender: { connect: { acc: fromAccount.acc } },
-            recipient: { connect: { acc: toAccount.acc } },
-          },
-        }),
-      ]);
-    } else if (temporalTab == 'later') {
-      const laterDateTimeISO = (new Date(laterDateTime)).toISOString();
-
-      // instead of setting up another table we'll use the RecurringTransaction table for all 'future' payments
-      result = await db.recurringTransaction.create({
+    const result = await db.$transaction([
+      db.account.update({
+        where: { acc: fromAccount.acc },
+        data: { balance: { decrement: amount } },
+      }),
+      db.account.update({
+        where: { acc: toAccount.acc },
+        data: { balance: { increment: amount } },
+      }),
+      db.transaction.create({
         data: {
-          amount: amount,
-          sender_acc: fromAccount.acc,
-          recipient_acc: toAccount.acc,
+          amount,
           sender_uid: user!.uid,
           recipient_uid: toAccount.uid,
-          recipient_address: recipientAddress,
           reference: reference,
-          description: description,
-          frequency: '{}',
-          starts_on: laterDateTimeISO,
-          ends_on: laterDateTimeISO,
-        }
-      });
-    } else if (temporalTab == 'recurring') {
-      result = await db.recurringTransaction.create({
-        data: {
-          amount: amount,
-          sender_acc: fromAccount.acc,
-          recipient_acc: toAccount.acc,
-          sender_uid: user!.uid,
-          recipient_uid: toAccount.uid,
+          description,
+          timestamp: new Date(),
+          settled: true,
+          type: 'pay-someone',
           recipient_address: recipientAddress,
-          reference: reference,
-          description: description,
-          frequency: frequency,
-          starts_on: startDate,
-          ends_on: endDate ? endDate : null,
-        }
-      });
-    }
+          sender: { connect: { acc: fromAccount.acc } },
+          recipient: { connect: { acc: toAccount.acc } },
+        },
+      }),
+    ]);
 
     const existingContact = await db.userPrevContact.findFirst({
       where: {
@@ -278,9 +208,39 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       });
     }
 
-    if (temporalTab == 'now') {
-      makeSendReceiveNotifications(context, toAccount, fromAccount, amount);
+    const now = new Date();
+
+    try {
+      // Create a notification for the recipient
+      await createNotification(context, {
+        notification_id: now.toUTCString() + toAccount.uid,
+        timestamp: now,
+        type: 'new-receipt',
+        content: `Received $${toFixedWithCommas(amount / 100, 2)} from ${fromAccount.acc_name}`,
+        read: false,
+        user: {
+          connect: {
+            uid: toAccount.uid,
+          }
+        },
+      })
+    } catch (e) {
+      // mock user
     }
+
+    // Create a notification for the logged-in user
+    await createNotification(context, {
+      notification_id: now.toUTCString() + fromAccount.uid + "1", // just in case they are the same account
+      timestamp: now,
+      type: 'transfer-success',
+      content: `Successfully transferred $${toFixedWithCommas(amount / 100, 2)} to ${toAccount.acc_name}`,
+      read: false,
+      user: {
+        connect: {
+          uid: fromAccount.uid,
+        }
+      },
+    })
 
     return json({ success: true, ...result });
   } catch (error) {
@@ -306,6 +266,7 @@ export default function PaySomeone() {
   if (typeof prevContact === 'undefined' && userPrevContacts) {
     return <UserPrevContactForm contacts={userPrevContactsWithInfo} onSubmit={handleSubmit} />
   }
+  console.log(actionData)
 
   return <PaySomeoneForm accounts={userAccounts as any} userPrevContact={prevContact} onBack={() => setPrevContact(undefined)} actionData={actionData} />
 }

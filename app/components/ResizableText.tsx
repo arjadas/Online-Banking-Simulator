@@ -14,7 +14,6 @@ const getInitialSize = (props: TextProps, textScale: number): number => {
   if (props.h4) return textScale + 6;
   if (props.h5) return textScale + 4;
   if (props.h6) return textScale + 2;
-  if (props.small) return textScale - 1;
   return textScale; // default size
 };
 
