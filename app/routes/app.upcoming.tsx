@@ -52,8 +52,7 @@ export default function UpcomingPayments() {
     return !transaction.ends_on || new Date(transaction.starts_on).getTime() !== new Date(transaction.ends_on).getTime()
   });
 
-  oneOffPayments = oneOffPayments as any;
-  //oneOffPayments = oneOffPayments.filter((transaction) => new Date(transaction.starts_on) > new Date())
+  oneOffPayments = oneOffPayments.filter((transaction) => new Date(transaction.starts_on) > new Date())
   recurringPayments = recurringPayments.filter((transaction) => new Date(transaction.starts_on) <= new Date())
 
   const userAccountIds = userAccounts.map((account) => account.acc);
