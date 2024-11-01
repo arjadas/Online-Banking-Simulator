@@ -3,14 +3,26 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [main]
+    paths:
+      - 'learn-to-bank-admin-console/**'
+      - 'learn-to-bank-cron/**'
+      - 'learn-to-bank/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'learn-to-bank-admin-console/**'
+      - 'learn-to-bank-cron/**'
+      - 'learn-to-bank/**'
 
 jobs:
-  deploy:
+  deploy-bank:
+    if: github.event.changes && contains(github.event.changes, 'learn-to-bank/')
     runs-on: ubuntu-latest
-    name: Deploy
+    name: Deploy Bank App
     environment: production
+    defaults:
+      run:
+        working-directory: ./learn-to-bank
 
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +32,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: ./learn-to-bank/package-lock.json
 
       # Remove existing node_modules and package-lock.json
       - name: Clean npm cache
@@ -34,7 +47,7 @@ jobs:
       - name: Restore wrangler.toml (write-file)
         uses: DamianReeves/write-file-action@master
         with:
-          path: wrangler.toml
+          path: ./learn-to-bank/wrangler.toml
           contents: ${{ secrets.WRANGLER_TOML }}
           write-mode: overwrite
 
@@ -51,5 +64,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./build/client --project-name=learn-to-bank
+          workingDirectory: ./learn-to-bank
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+  
