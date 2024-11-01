@@ -1,0 +1,41 @@
+/*TODO make a nice scrollbar
+::-webkit-scrollbar {
+    display: none;
+}*/
+
+html,
+body {
+    height: auto;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+body {
+    background: repeating-linear-gradient(rgb(0, 157, 255), rgb(198, 237, 255)) !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes success {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
