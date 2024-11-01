@@ -4,25 +4,27 @@ import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
 import { GeneratedTransaction } from '~/util/futureTransactionUtil';
 import ResizableText from './ResizableText';
 import { formatDate, getBadgeColor, toFixedWithCommas } from '~/util/util';
-import { frequencyObjectToString } from './ReccuringTransactionModal';
+import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
 import { getTransactionIcon } from '~/util/util.tsx';
 import { RecurringTransaction } from '@prisma/client';
 import { Button } from '@geist-ui/core';
-import { Edit } from '@geist-ui/icons';
+import { Edit, Trash2 } from '@geist-ui/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '~/store';
 import { blankTransactionFlow, setTransactionFlow } from '~/appSlice';
+import { Form, useSubmit } from '@remix-run/react';
 
 interface RecurringTransactionCardProps {
     transaction: RecurringTransactionWithRecipient | GeneratedTransaction;
     userAccountIds: number[];
+    transactionID: number;
 }
 
 function isGeneratedTransaction(value: any): value is GeneratedTransaction {
     return value && 'generatedDate' in value && 'transaction' in value;
 }
 
-export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> = ({ transaction, userAccountIds }) => {
+export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> = ({ transaction, userAccountIds, transactionID }) => {
     const generatedTransaction = isGeneratedTransaction(transaction)
     const mTransaction = generatedTransaction ? (transaction as GeneratedTransaction).transaction as RecurringTransactionWithRecipient : transaction;
     const oneOffPayment = mTransaction.starts_on == mTransaction.ends_on;
@@ -30,7 +32,35 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
     const isExternalRecipient = !userAccountIds.includes(mTransaction.recipient_acc);
     const senderDisplayName = mTransaction.sender.acc_name;
     const recipientDisplayName = mTransaction.recipient.acc_name;
+    const [recurringModalVisible, setRecurringModalVisible] = useState(false);
+    const [frequency, setFrequency] = useState<FrequencyObject | null>(null);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const submit = useSubmit();
 
+    const handleEditClick = () => {
+        setRecurringModalVisible(true);
+    };
+
+    const handleSubmit = () => {
+        const formData = new FormData();
+
+        formData.append("formID", "form 1");
+        formData.append("transactionID", transactionID.toString());
+        formData.append("frequencyObject", frequency ? JSON.stringify(frequency) : '');
+        formData.append("startDate", startDate);
+        formData.append("endDate", endDate);
+                
+        submit(formData, { method: "post" });
+    }
+
+    useEffect(() => {
+        if (frequency || startDate || endDate) {
+            console.log("Frequency has been updated:", frequency);
+            handleSubmit();
+        }
+    }, [frequency, startDate, endDate]);
+    
     return (
         <Card margin={1} key={mTransaction.recc_transaction_id} style={{ borderWidth: 1, borderColor: '#GGG', borderStyle: 'solid', marginBottom: '1rem' }}>
             <Grid.Container gap={2}>
@@ -76,7 +106,48 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                                 </Grid>}
                             </>
                         )}
-                        {(!oneOffPayment && !generatedTransaction) && <Button icon={<Edit />} auto scale={0.75} type="secondary" style={{ marginLeft: '10px', marginTop: '10px' }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >Edit</Button>}
+                        {(!oneOffPayment && !generatedTransaction) && (
+                            <Button 
+                                icon={<Edit />} 
+                                onClick={handleEditClick} 
+                                auto scale={0.75} 
+                                type="secondary" 
+                                style={{ marginLeft: '10px', marginTop: '10px' }} 
+                                placeholder={undefined} 
+                                onPointerEnterCapture={undefined} 
+                                onPointerLeaveCapture={undefined} 
+                                >
+                                Edit
+                            </Button>
+                        )}
+
+                        {(!oneOffPayment && !generatedTransaction) && (
+                            <Form method="post">
+                                <input type="hidden" name="formID" value="form 2" />
+                                <input type="hidden" name="transactionID" value={transactionID} />
+                                <Button 
+                                    icon={<Trash2 />} 
+                                    htmlType="submit" 
+                                    auto 
+                                    scale={0.75} 
+                                    type="error" 
+                                    style={{ marginLeft: '10px', marginTop: '10px' }} 
+                                    placeholder={undefined} 
+                                    onPointerEnterCapture={undefined} 
+                                    onPointerLeaveCapture={undefined} 
+                                    >
+                                    Delete
+                                </Button>
+                            </Form>
+                        )}
+                        <FutureTransactionModal 
+                            visible={recurringModalVisible} 
+                            onFrequencyChange={function (frequency: FrequencyObject): void { setFrequency(frequency);}}
+                            onStartDateChange={function (date: string): void { setStartDate(date); }}
+                            onEndDateChange={function (date: string): void { setEndDate(date); }} 
+                            onNotVisible={function (): void { setRecurringModalVisible(false); }}
+                            setFrequencyButton={false} 
+                        />
                     </Grid.Container>
                 </Grid>
             </Grid.Container>
