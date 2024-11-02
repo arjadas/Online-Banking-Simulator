@@ -3,16 +3,8 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [hotfix/fix-deploy-v2]
-    paths:
-      - 'learn-to-bank-admin-console/**'
-      - 'learn-to-bank-cron/**'
-      - 'learn-to-bank/**'
   pull_request:
     branches: [hotfix/fix-deploy-v2]
-    paths:
-      - 'learn-to-bank-admin-console/**'
-      - 'learn-to-bank-cron/**'
-      - 'learn-to-bank/**'
 
 jobs:
 
