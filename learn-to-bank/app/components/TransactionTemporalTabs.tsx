@@ -59,15 +59,13 @@ export const TransactionTemporalTabs: React.FC<TransactionTemporalTabsProps> = (
                     <Spacer />
                     <div style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
                         <ResizableText h4>Frequency</ResizableText>
-                        <FutureTransactionModal visible={recurringModalVisible} onFrequencyChange={function (frequency: FrequencyObject): void {
-                            setFrequency(frequency);
-                        }} onStartDateChange={function (date: string): void {
-                            setStartDate(date);
-                        }} onEndDateChange={function (date: string): void {
-                            setEndDate(date);
-                        }} onNotVisible={function (): void {
-                            setRecurringModalVisible(false);
-                        }} />
+                        <FutureTransactionModal 
+                            visible={recurringModalVisible} 
+                            onFrequencyChange={function (frequency: FrequencyObject): void { setFrequency(frequency);}}
+                            onStartDateChange={function (date: string): void { setStartDate(date); }}
+                            onEndDateChange={function (date: string): void { setEndDate(date); }} 
+                            onNotVisible={function (): void { setRecurringModalVisible(false); }} 
+                        />
                     </div>
                     {frequency ?
                         <ResizableText>{frequencyObjectToString(frequency)}</ResizableText>
