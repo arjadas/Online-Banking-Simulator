@@ -256,4 +256,37 @@ export class TransactionService {
 
         return result;
     }
+
+    async editRecurringTransactionDateTime(transactionID: number, frequency: string, startDate: string, endDate: string) {
+
+        try {
+            const beforeUpdate = await this.db.recurringTransaction.findUnique({
+                where: {recc_transaction_id: transactionID},
+            });
+
+            let afterUpdate;
+
+            if (endDate) {
+                afterUpdate = await this.db.recurringTransaction.update({
+                    where: {recc_transaction_id: transactionID},
+                    data: {frequency: frequency, starts_on: startDate, ends_on: endDate},
+                });
+            } else {
+                afterUpdate = await this.db.recurringTransaction.update({
+                    where: {recc_transaction_id: transactionID},
+                    data: {frequency: frequency, starts_on: startDate, ends_on: null},
+                });               
+            }
+
+            console.log(beforeUpdate, afterUpdate, "update successful");
+        } catch (error) {
+            console.error("Updating error", error);
+        }
+    }
+
+    async deleteTransaction(transactionID: number) {
+        return await this.db.recurringTransaction.delete({
+            where: {recc_transaction_id: transactionID},
+        });
+    }
 }
