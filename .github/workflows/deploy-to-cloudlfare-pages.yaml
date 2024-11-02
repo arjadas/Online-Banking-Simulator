@@ -145,6 +145,9 @@ jobs:
           contents: ${{ secrets.WRANGLER_TOML_CRON }}
           write-mode: overwrite
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
       - name: Publish to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:

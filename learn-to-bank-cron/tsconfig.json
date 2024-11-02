@@ -13,7 +13,7 @@
 		"baseUrl": "./",
 		"paths": {
 			"@parent/*": [
-				"../*"
+				"../learn-to-bank/*"
 			] // This creates an alias for parent directory
 		},
 		// Make sure rootDir is set appropriately if you're using it
