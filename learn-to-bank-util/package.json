@@ -1,0 +1,15 @@
+{
+  "name": "learn-to-bank-util",
+  "version": "1.0.0",
+  "description": "Utilities for learn-to-bank",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@geist-ui/icons": "^1.0.2",
+    "date-fns": "^4.1.0"
+  }
+}
