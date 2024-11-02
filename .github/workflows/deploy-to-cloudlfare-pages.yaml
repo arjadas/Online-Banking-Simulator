@@ -1,0 +1,175 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  deploy-bank:
+    #if: contains(github.event.head_commit.modified, 'learn-to-bank/') || contains(github.event.head_commit.added, 'learn-to-bank/')
+    runs-on: ubuntu-latest
+    name: Deploy Bank App
+    environment: production
+    defaults:
+      run:
+        working-directory: ./learn-to-bank
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./learn-to-bank/package-lock.json
+
+      # Remove existing node_modules and package-lock.json
+      - name: Clean npm cache
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install dependencies for learn-to-bank-util
+        working-directory: ./learn-to-bank-util
+        run: npm install
+      
+      - name: Generate Prisma client for learn-to-bank-util
+        working-directory: ./learn-to-bank-util
+        run: npx prisma generate
+
+      # Method : Using write-file action to restore wrangler.toml from secrets
+      - name: Restore wrangler.toml (write-file)
+        uses: DamianReeves/write-file-action@master
+        with:
+          path: ./learn-to-bank/wrangler.toml
+          contents: ${{ secrets.WRANGLER_TOML_BANK }}
+          write-mode: overwrite
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./build/client --project-name=learn-to-bank
+          workingDirectory: ./learn-to-bank
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+  deploy-admin-console:
+    #if: contains(github.event.head_commit.modified, 'learn-to-bank-admin-console/') || contains(github.event.head_commit.added, 'learn-to-bank-admin-console/')
+    runs-on: ubuntu-latest
+    name: Deploy Admin Console
+    environment: production
+    defaults:
+      run:
+        working-directory: ./learn-to-bank-admin-console
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./learn-to-bank-admin-console/package-lock.json
+
+      - name: Clean npm cache
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Restore wrangler.toml (write-file)
+        uses: DamianReeves/write-file-action@master
+        with:
+          path: ./learn-to-bank-admin-console/wrangler.toml
+          contents: ${{ secrets.WRANGLER_TOML_ADMIN_CONSOLE }}
+          write-mode: overwrite
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./build/client --project-name=learn-to-bank-admin-console
+          workingDirectory: ./learn-to-bank-admin-console
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+
+  deploy-cron:
+    #if: contains(github.event.head_commit.modified, 'learn-to-bank-cron/') || contains(github.event.head_commit.added, 'learn-to-bank-cron/')
+    runs-on: ubuntu-latest
+    name: Deploy Cron
+    environment: production
+    defaults:
+      run:
+        working-directory: ./learn-to-bank-cron
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./learn-to-bank-cron/package-lock.json
+
+      - name: Clean npm cache
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install dependencies for learn-to-bank-util
+        working-directory: ./learn-to-bank-util
+        run: npm install
+      
+      - name: Generate Prisma client for learn-to-bank-util
+        working-directory: ./learn-to-bank-util
+        run: npx prisma generate
+
+      - name: Restore wrangler.toml (write-file)
+        uses: DamianReeves/write-file-action@master
+        with:
+          path: ./learn-to-bank-cron/wrangler.toml
+          contents: ${{ secrets.WRANGLER_TOML_CRON }}
+          write-mode: overwrite
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Publish to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: publish
+          workingDirectory: ./learn-to-bank-cron
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
