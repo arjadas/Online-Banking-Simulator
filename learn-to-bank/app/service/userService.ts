@@ -2,7 +2,7 @@ import { PrismaD1 } from '@prisma/adapter-d1';
 import { getPrismaClient } from '~/service/db.server';
 import { openAccount } from "./accountService";
 import { createMockUserPrevContacts } from './userPrevContactService';
-import { frequencyObjectToString, generateRandomFrequencyObject } from '@parent/learn-to-bank-util/futureTransactionUtil';
+import { frequencyObjectToString, generateRandomFrequencyObject } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
 import { addDays } from 'date-fns';
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {

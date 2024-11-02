@@ -1,3 +1,4 @@
+import React from "react";
 import { Shuffle, User } from "@geist-ui/icons";
 
 // Determine the correct icon based on whether the transaction is internal or external

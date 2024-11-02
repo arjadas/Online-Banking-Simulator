@@ -9,8 +9,8 @@ import ResizableText from '~/components/ResizableText';
 import { getPrismaClient } from '~/service/db.server';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
 import { getUserSession } from "../auth.server";
-import { formatSearchDate, toFixedWithCommas, getBadgeColor, formatDate } from '@parent/learn-to-bank-util/util';
-import { getTransactionIcon } from '@parent/learn-to-bank-util/util.tsx';
+import { formatSearchDate, toFixedWithCommas, getBadgeColor, formatDate } from '@parent/learn-to-bank-util/utils/util';
+import { getTransactionIcon } from '@parent/learn-to-bank-util/utils/util.tsx';
 
 export const loader: LoaderFunction = async ({ context, request }: { context: any, request: Request }) => {
   const user = await getUserSession(context, request);

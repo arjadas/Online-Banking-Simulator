@@ -8,8 +8,8 @@ import { getUserSession } from '~/auth.server';
 import { RecurringTransactionCard } from '~/components/FuturePaymentCard';
 import { UpcomingPaymentsList } from '~/components/UpcomingPaymentsList';
 import { getRecurringTransactions } from '~/service/recurringTransactionService';
-import { GeneratedTransaction } from '@parent/learn-to-bank-util/futureTransactionUtil';
-import { splitLists } from '@parent/learn-to-bank-util/util';
+import { GeneratedTransaction } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
+import { splitLists } from '@parent/learn-to-bank-util/utils/util';
 import { getPrismaClient } from "../service/db.server";
 import ResizableText from '~/components/ResizableText';
 

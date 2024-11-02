@@ -10,6 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "@geist-ui/icons": "^1.0.2",
+    "@prisma/client": "^5.21.1",
     "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "prisma": "^5.21.1"
   }
 }

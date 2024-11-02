@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import ResizableText from '~/components/ResizableText';
 import { openCard } from "~/service/cardService";
 import { RootState } from '~/store';
-import { toFixedWithCommas } from '@parent/learn-to-bank-util/util';
+import { toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
 import { getUserSession } from '../auth.server';
 import { getPrismaClient } from "../service/db.server";
 
