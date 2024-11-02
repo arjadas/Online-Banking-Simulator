@@ -7,7 +7,7 @@ import { formatDate, getBadgeColor, toFixedWithCommas } from '~/util/util';
 import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
 import { getTransactionIcon } from '~/util/util.tsx';
 import { RecurringTransaction } from '@prisma/client';
-import { Button } from '@geist-ui/core';
+import { Button, Modal, Divider } from '@geist-ui/core';
 import { Edit, Trash2 } from '@geist-ui/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '~/store';
@@ -36,8 +36,10 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
     const [frequency, setFrequency] = useState<FrequencyObject | null>(null);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [deleteTransactionModal, setdeleteTransactionModal] = useState(false);
+    const { textScale } = useSelector((state: RootState) => state.app);
     const submit = useSubmit();
-
+    
     const handleEditClick = () => {
         setRecurringModalVisible(true);
     };
@@ -60,6 +62,19 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
             handleSubmit();
         }
     }, [frequency, startDate, endDate]);
+
+    const openDeleteTransactionModal = () => setdeleteTransactionModal(true);
+    const closeDeleteTransactionModal = () => setdeleteTransactionModal(false);
+    
+    const handleDeleteTransaction = () => {
+        const formData = new FormData();
+
+        formData.append("formID", "form 2");
+        formData.append("transactionID", transactionID.toString());
+
+        submit(formData, { method: "post" });
+        closeDeleteTransactionModal();
+    }
     
     return (
         <Card margin={1} key={mTransaction.recc_transaction_id} style={{ borderWidth: 1, borderColor: '#GGG', borderStyle: 'solid', marginBottom: '1rem' }}>
@@ -122,23 +137,19 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                         )}
 
                         {(!oneOffPayment && !generatedTransaction) && (
-                            <Form method="post">
-                                <input type="hidden" name="formID" value="form 2" />
-                                <input type="hidden" name="transactionID" value={transactionID} />
-                                <Button 
-                                    icon={<Trash2 />} 
-                                    htmlType="submit" 
-                                    auto 
-                                    scale={0.75} 
-                                    type="error" 
-                                    style={{ marginLeft: '10px', marginTop: '10px' }} 
-                                    placeholder={undefined} 
-                                    onPointerEnterCapture={undefined} 
-                                    onPointerLeaveCapture={undefined} 
-                                    >
-                                    Delete
-                                </Button>
-                            </Form>
+                            <Button 
+                                icon={<Trash2 />} 
+                                onClick={openDeleteTransactionModal}
+                                auto 
+                                scale={0.75} 
+                                type="error" 
+                                style={{ marginLeft: '10px', marginTop: '10px' }} 
+                                placeholder={undefined} 
+                                onPointerEnterCapture={undefined} 
+                                onPointerLeaveCapture={undefined} 
+                                >
+                                Delete
+                            </Button>
                         )}
                         <FutureTransactionModal 
                             visible={recurringModalVisible} 
@@ -148,6 +159,55 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                             onNotVisible={function (): void { setRecurringModalVisible(false); }}
                             setFrequencyButton={false} 
                         />
+                        <Modal visible={deleteTransactionModal} onClose={closeDeleteTransactionModal}>
+                            <Modal.Title>Delete Transaction</Modal.Title>
+                            <Divider h="1px" my={0} />
+                            <Modal.Content>
+                                <Grid.Container gap={1}>
+                                    <Grid xs={24}>
+                                        <ResizableText h4 style={{ margin: 0 }}>${toFixedWithCommas(mTransaction.amount / 100, 2)}</ResizableText>
+                                    </Grid>
+
+                                    <Grid xs={24}>
+                                        <ResizableText small>
+                                            From: <Badge type="secondary" style={{ backgroundColor: getBadgeColor(mTransaction.sender.short_description, isExternalSender) }}>
+                                                {isExternalSender ? senderDisplayName : mTransaction.sender.short_description}
+                                            </Badge>
+                                            &nbsp;To: <Badge type="secondary" style={{ backgroundColor: getBadgeColor(mTransaction.recipient.short_description, isExternalRecipient) }}>
+                                                {isExternalRecipient ? recipientDisplayName : mTransaction.recipient.short_description}
+                                            </Badge>
+                                        </ResizableText>
+                                    </Grid>
+
+                                    {(!oneOffPayment && !generatedTransaction) && <Grid xs={24}>
+                                        <ResizableText small>Frequency: {frequencyObjectToString(JSON.parse(mTransaction.frequency))}</ResizableText>
+                                    </Grid>}
+                                    {(oneOffPayment) ? (<Grid xs={24}>
+                                        <ResizableText small>Date: {formatDate(new Date(mTransaction.starts_on))}</ResizableText>
+                                    </Grid>) : (
+                                        <>
+                                            {(generatedTransaction && !oneOffPayment) && <Grid xs={24}>
+                                                <ResizableText small>Date: {formatDate(new Date(transaction.generatedDate))}</ResizableText>
+                                            </Grid>}
+                                            {(!generatedTransaction && !oneOffPayment) && <Grid xs={24}>
+                                                <ResizableText small>
+                                                    {new Date(mTransaction.starts_on) <= new Date() ? 'Started on:' : 'Starts on:'} {formatDate(new Date(mTransaction.starts_on))}
+                                                </ResizableText>
+                                            </Grid>}
+                                            {(!generatedTransaction && !oneOffPayment) && <Grid xs={24}>
+                                                <ResizableText small>
+                                                    {mTransaction.ends_on
+                                                        ? `Ends on: ${formatDate(new Date(mTransaction.ends_on))}`
+                                                        : "Continues indefinitely."}
+                                                </ResizableText>
+                                            </Grid>}
+                                        </>
+                                    )}
+                                </Grid.Container>
+                            </Modal.Content>
+                            <Modal.Action passive onClick={() => setdeleteTransactionModal(false)} style={{ fontSize:`${textScale}px` }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Cancel</Modal.Action>
+                            <Modal.Action passive onClick={handleDeleteTransaction} style={{ backgroundColor: "red", color: "white", fontSize:`${textScale}px` }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Delete</Modal.Action>
+                        </Modal>
                     </Grid.Container>
                 </Grid>
             </Grid.Container>
