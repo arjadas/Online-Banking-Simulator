@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { getPrismaClient } from '~/service/db.server';
-import { toFixedWithCommas } from '~/util/util';
+import { toFixedWithCommas } from '@parent/learn-to-bank-util/util';
 
 export async function createNotification(context: any, data: Prisma.NotificationCreateInput) {
     const db = getPrismaClient(context);

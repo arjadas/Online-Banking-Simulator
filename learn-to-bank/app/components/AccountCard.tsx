@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { blankTransactionFlow, setTransactionFlow } from '~/appSlice';
 import { RootState } from '~/store';
-import { getBadgeColor } from '~/util/util';
+import { getBadgeColor } from '@parent/learn-to-bank-util/util';
 import ResizableText from './ResizableText';
 import { useNavigate } from '@remix-run/react';
 

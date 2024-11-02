@@ -1,4 +1,4 @@
-import { toFixedWithCommas } from '~/util/util';
+import { toFixedWithCommas } from '@parent/learn-to-bank-util/util';
 
 interface TransactionData {
   sender: string;

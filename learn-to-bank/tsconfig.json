@@ -35,7 +35,10 @@
     "paths": {
       "~/*": [
         "./app/*"
-      ]
+      ],
+      "@parent/*": [
+				"../*"
+			] // This creates an alias for parent directory
     },
     // Vite takes care of building everything, not tsc.
     "noEmit": true

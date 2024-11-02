@@ -10,8 +10,8 @@ import { getUserSession } from '~/auth.server';
 import ResizableText from '~/components/ResizableText';
 import { createUser } from '~/service/userService';
 import { getPrismaClient } from "../service/db.server";
-import { getNextPaymentDate } from '~/util/futureTransactionUtil';
-import { getRelativeDateInfo, toFixedWithCommas, formatDate } from '~/util/util';
+import { getNextPaymentDate } from '@parent/learn-to-bank-util/futureTransactionUtil';
+import { getRelativeDateInfo, toFixedWithCommas, formatDate } from '@parent/learn-to-bank-util/util';
 import { getRecurringTransactions } from '~/service/recurringTransactionService';
 import { AccountCard } from '~/components/AccountCard';
 

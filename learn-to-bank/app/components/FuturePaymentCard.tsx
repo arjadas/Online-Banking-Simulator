@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Grid, Badge } from '@geist-ui/react';
 import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
-import { GeneratedTransaction } from '~/util/futureTransactionUtil';
+import { GeneratedTransaction } from '@parent/learn-to-bank-util/futureTransactionUtil';
 import ResizableText from './ResizableText';
-import { formatDate, getBadgeColor, toFixedWithCommas } from '~/util/util';
+import { formatDate, getBadgeColor, toFixedWithCommas } from '@parent/learn-to-bank-util/util';
 import { frequencyObjectToString } from './ReccuringTransactionModal';
-import { getTransactionIcon } from '~/util/util.tsx';
+import { getTransactionIcon } from '@parent/learn-to-bank-util/util.tsx';
 import { RecurringTransaction } from '@prisma/client';
 import { Button } from '@geist-ui/core';
 import { Edit } from '@geist-ui/icons';

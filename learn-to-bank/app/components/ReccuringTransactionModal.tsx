@@ -1,6 +1,6 @@
 import { Button, Grid, Input, Modal, Select, Spacer, Text, useModal } from '@geist-ui/react';
 import React, { useEffect, useState } from 'react';
-import { getFullDay, globalBlur, joinWithAmpersand } from '~/util/util';
+import { getFullDay, globalBlur, joinWithAmpersand } from '@parent/learn-to-bank-util/util';
 import ResizableText from './ResizableText';
 
 export type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
