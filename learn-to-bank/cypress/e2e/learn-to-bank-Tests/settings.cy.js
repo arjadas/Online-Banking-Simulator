@@ -250,7 +250,6 @@ describe('settings page', () => {
     })
   })
   
-
   //----Navigations Bar Tests----//
   it('navigates to home', () => {
     cy.contains('button', 'Home').should('be.visible').click();
