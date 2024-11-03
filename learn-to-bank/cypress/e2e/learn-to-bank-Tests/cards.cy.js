@@ -178,65 +178,97 @@ describe('Cards Page', () => {
   //----Pay Drawer Tests----//
   describe('Pay Drawer', () => {
     beforeEach(() => {
-      cy.contains('button', 'Pay').should('be.visible').click();
+      cy.contains('button', 'Pay')
+        .should('be.visible')
+        .click();
     });
 
     it('displays pay drawer correctly', () => {
-      cy.get('.jsx-981132863 > .jsx-1181318970').should('have.text', 'Pay').should('be.visible');
-      cy.get('.jsx-2148573681').should('contain.text', 'Initiate a transfer').should('be.visible');
-      cy.get('[href="/app/transfer"]').should('be.visible');
-      cy.get('[href="/app/paySomeone"]').should('be.visible');
+      cy.get('.jsx-981132863 > .jsx-1181318970')
+        .should('have.text', 'Pay')
+        .should('be.visible');
+      cy.get('.jsx-2148573681')
+        .should('contain.text', 'Initiate a transfer')
+        .should('be.visible');
+      cy.get('[href="/app/transfer"]')
+        .should('be.visible');
+      cy.get('[href="/app/paySomeone"]')
+        .should('be.visible');
     });
 
     it('navigates to transfer between accounts', () => {
-      cy.get('[href="/app/transfer"]').should('be.visible').click();
+      cy.get('[href="/app/transfer"]')
+        .should('be.visible')
+        .click();
 
-      cy.url().should('include', '/transfer');
+      cy.url()
+        .should('include', '/transfer');
     });
 
     it('navigates to pay someone', () => {
-      cy.get('[href="/app/paySomeone"]').should('be.visible').click();
+      cy.get('[href="/app/paySomeone"]')
+        .should('be.visible')
+        .click();
 
-      cy.url().should('include', '/paySomeone');
+      cy.url()
+        .should('include', '/paySomeone');
     });
 
     describe('Close Drawer', () => {
       beforeEach(() => {
-        cy.get('.jsx-981132863 > .jsx-1181318970').should('have.text', 'Pay').should('be.visible');
-        cy.get('.jsx-2148573681').should('contain.text', 'Initiate a transfer').should('be.visible');
-        cy.get('[href="/app/transfer"]').should('be.visible');
-        cy.get('[href="/app/paySomeone"]').should('be.visible');
+        cy.get('.jsx-981132863 > .jsx-1181318970')
+          .should('have.text', 'Pay')
+          .should('be.visible');
+        cy.get('.jsx-2148573681')
+          .should('contain.text', 'Initiate a transfer')
+          .should('be.visible');
+        cy.get('[href="/app/transfer"]')
+          .should('be.visible');
+        cy.get('[href="/app/paySomeone"]')
+          .should('be.visible');
       });
 
       it('close pay drawer with click to the top-left of screen', () => {
-        cy.get('.backdrop').click('topLeft')
+        cy.get('.backdrop')
+          .click('topLeft')
       });
 
       it('close pay drawer with click to the left of screen', () => {
-        cy.get('.backdrop').click('left')
+        cy.get('.backdrop')
+          .click('left')
       });
 
       it('close pay drawer with click to the bottom-left of screen', () => {
-        cy.get('.backdrop').click('bottomLeft')
+        cy.get('.backdrop')
+          .click('bottomLeft')
       });
 
       it('close pay drawer with click to the top of screen', () => {
-        cy.get('.backdrop').click('top')
+        cy.get('.backdrop')
+          .click('top')
       });
 
       it('close pay drawer with click to the center of screen', () => {
-        cy.get('.backdrop').click('center')
+        cy.get('.backdrop')
+          .click('center')
       });
 
       it('close pay drawer with click to the bottom of screen', () => {
-        cy.get('.backdrop').click('bottom')
+        cy.get('.backdrop')
+          .click('bottom')
       });
 
       afterEach(() => {
-        cy.get('.jsx-981132863 > .jsx-1181318970').should('have.text', 'Pay').should('not.be.visible');
-        cy.get('.jsx-2148573681').should('contain.text', 'Initiate a transfer').should('not.be.visible');
-        cy.get('[href="/app/transfer"]').should('not.be.visible');
-        cy.get('[href="/app/paySomeone"]').should('not.be.visible');
+        cy.get('.jsx-981132863 > .jsx-1181318970')
+          .should('have.text', 'Pay')
+          .should('not.be.visible');
+        cy.get('.jsx-2148573681')
+          .should('contain.text', 'Initiate a transfer')
+          .should('not.be.visible');
+        cy.get('[href="/app/transfer"]')
+          .should('not.be.visible');
+        cy.get('[href="/app/paySomeone"]')
+          .should('not.be.visible');
       });
     });
   });
