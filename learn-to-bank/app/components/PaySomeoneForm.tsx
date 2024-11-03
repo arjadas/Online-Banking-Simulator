@@ -2,14 +2,12 @@ import { Button, Card, Input, Modal, Select, Spacer, Tabs, Textarea } from '@gei
 import { Account } from '@prisma/client';
 import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
-import CurrencyInput from '~/components/CurrencyInput';
-import { UserPrevContactResult } from '~/routes/app.paySomeone';
+import { useDispatch } from 'react-redux';
+import { blankTransactionFlow, setTransactionFlow, TransactionFlow } from '../appSlice';
+import CurrencyInput from '../components/CurrencyInput';
+import { RecipientAddress } from '../service/transactionsService';
 import ResizableText from './ResizableText';
 import { TransactionTemporalTabs } from './TransactionTemporalTabs';
-import { RecipientAddress } from '~/service/transactionsService';
-import { blankTransactionFlow, setTransactionFlow, TransactionFlow } from '~/appSlice';
-import { set } from 'date-fns';
-import { useDispatch } from 'react-redux';
 
 interface PaySomeoneFormProps {
     accounts: Account[];

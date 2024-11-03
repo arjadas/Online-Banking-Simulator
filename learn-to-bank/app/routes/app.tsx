@@ -5,8 +5,8 @@ import { CreditCard, DollarSign, Home, List, LogOut, Settings, Shuffle, User } f
 import { MetaFunction, Outlet, useMatches, useNavigate, useNavigation } from "@remix-run/react";
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import AuthenticatedLink from '~/components/AuthenticatedLink';
-import ResizableText from '~/components/ResizableText';
+import AuthenticatedLink from '../components/AuthenticatedLink';
+import ResizableText from '../components/ResizableText';
 import { RootState } from '../store';
 
 export const meta: MetaFunction = () => {

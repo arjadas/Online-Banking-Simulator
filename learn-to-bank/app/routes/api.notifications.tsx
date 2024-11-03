@@ -1,6 +1,6 @@
 import { ActionFunction, json } from "@remix-run/cloudflare";
-import { getUserSession } from "~/auth.server";
-import { getPrismaClient } from "~/service/db.server";
+import { getUserSession } from "../auth.server";
+import { getPrismaClient } from "../service/db.server";
 export const action: ActionFunction = async ({ context, request }) => {
     const user = await getUserSession(context, request);
     const db = getPrismaClient(context);

@@ -1,16 +1,16 @@
 import { Button, Card, Divider, Grid, Spacer } from '@geist-ui/react';
 import { CreditCard as CreditCardIcon, Eye, EyeOff } from '@geist-ui/react-icons';
+import { toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
 import { CreditCard, DebitCard } from "@prisma/client";
 import { LoaderFunction, json } from '@remix-run/cloudflare';
 import { useLoaderData } from "@remix-run/react";
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import ResizableText from '~/components/ResizableText';
-import { openCard } from "~/service/cardService";
-import { RootState } from '~/store';
-import { toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
 import { getUserSession } from '../auth.server';
+import ResizableText from '../components/ResizableText';
+import { openCard } from "../service/cardService";
 import { getPrismaClient } from "../service/db.server";
+import { RootState } from '../store';
 
 interface balance {
   credit: number;

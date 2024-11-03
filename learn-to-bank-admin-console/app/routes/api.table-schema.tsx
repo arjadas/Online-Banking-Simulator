@@ -1,6 +1,6 @@
 import { LoaderFunction, json } from "@remix-run/cloudflare";
-import { adminMiddleware } from "~/middleware/adminMiddleware";
-import { getPrismaClient } from "~/service/db.server";
+import { adminMiddleware } from "../middleware/adminMiddleware";
+import { getPrismaClient } from "../service/db.server";
 
 export const loader: LoaderFunction = async ({ request, context }) => {
   const adminCheck = await adminMiddleware(request, context);

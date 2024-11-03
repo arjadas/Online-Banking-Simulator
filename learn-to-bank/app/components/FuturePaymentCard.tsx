@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Card, Grid, Badge } from '@geist-ui/react';
-import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
-import { GeneratedTransaction } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
-import ResizableText from './ResizableText';
-import { formatDate, getBadgeColor, toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
-import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
-import { getTransactionIcon } from '@parent/learn-to-bank-util/utils/util.tsx';
-import { RecurringTransaction } from '@prisma/client';
-import { Button, Modal, Divider } from '@geist-ui/core';
+/* eslint-disable import/no-unresolved */
+import { Button, Divider, Modal } from '@geist-ui/core';
 import { Edit, Trash2 } from '@geist-ui/icons';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '~/store';
-import { blankTransactionFlow, setTransactionFlow } from '~/appSlice';
-import { Form, useSubmit } from '@remix-run/react';
+import { Badge, Card, Grid } from '@geist-ui/react';
+import { GeneratedTransaction } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
+import { formatDate, getBadgeColor, toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
+import { getTransactionIcon } from '@parent/learn-to-bank-util/utils/util.tsx';
+import { useSubmit } from '@remix-run/react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RecurringTransactionWithRecipient } from '../routes/app.upcoming';
+import { RootState } from '../store';
+import FutureTransactionModal, { FrequencyObject, frequencyObjectToString } from './ReccuringTransactionModal';
+import ResizableText from './ResizableText';
 
 interface RecurringTransactionCardProps {
     transaction: RecurringTransactionWithRecipient | GeneratedTransaction;
@@ -61,6 +60,7 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
             console.log("Frequency has been updated:", frequency);
             handleSubmit();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [frequency, startDate, endDate]);
 
     const openDeleteTransactionModal = () => setdeleteTransactionModal(true);

@@ -1,17 +1,17 @@
-import { Button, Input, Select, Slider, Spacer, Text, Grid, Modal } from "@geist-ui/core";
+import { Button, Grid, Input, Modal, Slider, Spacer, Text } from "@geist-ui/core";
 import { Card, Page } from '@geist-ui/react';
-import ResizableText from '~/components/ResizableText';
-import { setTextScale } from '~/appSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '~/store';
-import { useState } from "react";
-import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react';
-import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
-import { getPrismaClient } from '~/service/db.server';
-import { getUserSession } from '../auth.server';
-import { sendResetPasswordEmail } from "~/auth.client";
-import { deleteUser } from "firebase/auth";
 import { User } from '@prisma/client';
+import { ActionFunction, LoaderFunction, json } from '@remix-run/cloudflare';
+import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react';
+import { deleteUser } from "firebase/auth";
+import { useState } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { setTextScale } from '../appSlice';
+import { sendResetPasswordEmail } from "../auth.client";
+import { getUserSession } from '../auth.server';
+import ResizableText from '../components/ResizableText';
+import { getPrismaClient } from '../service/db.server';
+import { RootState } from '../store';
 
 type ActionData = {
   error?: string;
