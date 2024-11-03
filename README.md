@@ -82,7 +82,7 @@ Learn to Bank is closed-source and is not available under a license. Copyright i
 - **Cloudflare Pages**: Apache License 2.0
 - **Cloudflare Workers**: Apache License 2.0
 
-### Database & ORM
+### Other
 - **Prisma**: Apache License 2.0
 
 The above services/dependencies are also subject to terms and conditions, usage limits and quotas.
