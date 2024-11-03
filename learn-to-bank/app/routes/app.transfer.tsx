@@ -21,6 +21,10 @@ export const action: ActionFunction = async ({ context, request }: { context: an
       return json({ error: 'Unauthenticated' }, { status: 401 });
     }
 
+    if (!formData.get('fromAcc') || !formData.get('toAcc')) {
+      return json({ success: false, error: 'Please specify accounts.'}, {status: 400});
+    }
+
     const transactionService = new TransactionService(getPrismaClient(context));
     const result = await transactionService.createTransaction({
       type: 'internal',
