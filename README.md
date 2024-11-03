@@ -73,6 +73,10 @@ Learn to Bank is closed-source and is not available under a license. Copyright i
 - **React**: MIT License - Copyright (c) Meta Platforms, Inc. and affiliates
 - **Vite**: MIT License - Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors
 
+### Firebase
+- **Firebase Auth**: Apache License 2.0
+- **Firebase SDK**: Apache License 2.0
+
 ### Cloudflare Technologies
 - **Cloudflare D1**: Apache License 2.0
 - **Cloudflare Pages**: Apache License 2.0
@@ -80,6 +84,8 @@ Learn to Bank is closed-source and is not available under a license. Copyright i
 
 ### Database & ORM
 - **Prisma**: Apache License 2.0
+
+The above services/dependencies are also subject to terms and conditions, usage limits and quotas.
 
 ### Note to Client - Important Notice Regarding Dependencies
 This project includes numerous dependencies listed in `package.json`. Before deploying to production, these should be reviewed. This can be done through:
