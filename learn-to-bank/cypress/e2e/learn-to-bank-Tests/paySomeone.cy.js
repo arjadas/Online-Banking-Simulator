@@ -310,7 +310,6 @@ describe('PaySomeone Page', () => {
   describe('Pay Drawer', () => {
     beforeEach(() => {
       cy.contains('button', 'Home')
-
         .click();
       cy.contains('button', 'Pay')
         .should('be.visible')
