@@ -225,7 +225,7 @@ export default function Settings() {
                 Save Settings
               </Button>
               <ResizableText style={{margin: 0}}>You are {user.role === 'administrator' ? '' : 'not'} an admin!</ResizableText>
-              <Button auto type="secondary" ghost height={`${textScale * 2}px`} style={{ width: "100%", fontSize: `${textScale}px` }}
+              <Button auto type="secondary-light" height={`${textScale * 2}px`} style={{ width: "100%", fontSize: `${textScale}px` }}
                 onClick={() => window.open('https://learn-to-bank-admin-console.pages.dev/')} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 Go to Admin Console {user.role === 'administrator' ? '' : 'anyway'}
               </Button>

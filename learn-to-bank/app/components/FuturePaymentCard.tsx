@@ -114,6 +114,11 @@ export const RecurringTransactionCard: React.FC<RecurringTransactionCardProps> =
                                 </Grid>}
                                 {(!generatedTransaction && !oneOffPayment) && <Grid xs={24}>
                                     <ResizableText small>
+                                        Description: {mTransaction.description}
+                                    </ResizableText>
+                                </Grid>}
+                                {(!generatedTransaction && !oneOffPayment) && <Grid xs={24}>
+                                    <ResizableText small>
                                         {mTransaction.ends_on
                                             ? `Ends on: ${formatDate(new Date(mTransaction.ends_on))}`
                                             : "Continues indefinitely."}
