@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { getPrismaClient } from '~/service/db.server';
+import { getPrismaClient } from '../service/db.server';
 
 export async function createUserPrevContact(context: any, data: Prisma.UserPrevContactCreateInput) {
     const db = getPrismaClient(context);

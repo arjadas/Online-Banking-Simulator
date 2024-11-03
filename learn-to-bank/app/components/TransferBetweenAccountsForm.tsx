@@ -1,12 +1,12 @@
 import { Button, Card, Input, Modal, Select, Spacer } from '@geist-ui/core';
 import { Account } from '@prisma/client';
-import { Form, useActionData, useNavigate } from '@remix-run/react';
+import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
-import CurrencyInput from '~/components/CurrencyInput';
+import { useDispatch } from 'react-redux';
+import { blankTransactionFlow, setTransactionFlow, TransactionFlow } from '../appSlice';
+import CurrencyInput from '../components/CurrencyInput';
 import ResizableText from './ResizableText';
 import { TransactionTemporalTabs } from './TransactionTemporalTabs';
-import { blankTransactionFlow, setTransactionFlow, TransactionFlow } from '~/appSlice';
-import { useDispatch } from 'react-redux';
 
 interface TransferBetweenAccountsFormProps {
     accounts: Account[];

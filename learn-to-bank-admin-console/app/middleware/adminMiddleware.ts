@@ -1,4 +1,4 @@
-import { getUserSession } from "~/auth.server";
+import { getUserSession } from "../auth.server";
 
 export async function adminMiddleware(request: Request, context: any): Promise<Response> {
   const userSession = await getUserSession(context, request);

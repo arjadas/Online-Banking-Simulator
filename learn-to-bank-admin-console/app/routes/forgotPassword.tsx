@@ -1,9 +1,8 @@
-import { CssBaseline, GeistProvider, Themes } from "@geist-ui/core";
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { useSelector } from "react-redux";
-import { sendResetPasswordEmail } from "~/auth.client";
-import { RootState } from "~/store";
+import { sendResetPasswordEmail } from "../auth.client";
+import { RootState } from "../store";
 
 type ActionData = {
   error?: string;

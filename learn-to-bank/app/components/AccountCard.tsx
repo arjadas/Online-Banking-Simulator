@@ -1,13 +1,12 @@
 import { Badge, Button, Card, Grid, Spacer, Tooltip } from '@geist-ui/core';
 import { DollarSign, Emoji } from '@geist-ui/icons';
 import { ArrowDownLeft, ArrowUpRight, CreditCard, User } from '@geist-ui/react-icons';
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { blankTransactionFlow, setTransactionFlow } from '~/appSlice';
-import { RootState } from '~/store';
 import { getBadgeColor } from '@parent/learn-to-bank-util/utils/util';
-import ResizableText from './ResizableText';
 import { useNavigate } from '@remix-run/react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { blankTransactionFlow, setTransactionFlow } from '../appSlice';
+import ResizableText from './ResizableText';
 
 interface AccountCardProps {
   accountType: string;

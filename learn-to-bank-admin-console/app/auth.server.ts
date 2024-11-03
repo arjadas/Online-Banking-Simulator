@@ -1,7 +1,5 @@
-import { retry } from "@reduxjs/toolkit/query";
-import { createWorkersKVSessionStorage, createCookieSessionStorage } from "@remix-run/cloudflare";
-import { c } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
-import { getPrismaClient } from "~/service/db.server";
+import { createCookieSessionStorage, createWorkersKVSessionStorage } from "@remix-run/cloudflare";
+import { getPrismaClient } from "../service/db.server";
 import { createUser } from "./service/userService";
 
 declare global {

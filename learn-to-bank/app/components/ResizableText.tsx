@@ -1,7 +1,7 @@
-import React, { useState, useEffect, ReactNode } from 'react';
 import { Text, TextProps } from '@geist-ui/react';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '~/store';
+import { RootState } from '../store';
 
 interface ResizableTextProps extends TextProps {
   children: React.ReactNode;

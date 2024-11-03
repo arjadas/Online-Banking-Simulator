@@ -1,7 +1,7 @@
 import { Button, Card, Image, Input, Text } from '@geist-ui/react';
 import { Form, useNavigate } from "@remix-run/react";
-import { sendResetPasswordEmail } from "~/auth.client";
-import AuthenticatedLink from '~/components/AuthenticatedLink';
+import { sendResetPasswordEmail } from "../auth.client";
+import AuthenticatedLink from '../components/AuthenticatedLink';
 
 
 // firebase auth is handled client-side and not server-side

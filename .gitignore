@@ -1,12 +1,13 @@
 node_modules
 
-/.cache
-/build
-.env
-.wrangler
 .history
-.vscode
-wrangler.toml
+learn-to-bank/.cache
+learn-to-bank/build
+learn-to-bank/.env
+learn-to-bank/.wrangler
+learn-to-bank/.history
+learn-to-bank/.vscode
+learn-to-bank/wrangler.toml
 #package-lock.json
 learn-to-bank-admin-console/.cache
 learn-to-bank-admin-console/build

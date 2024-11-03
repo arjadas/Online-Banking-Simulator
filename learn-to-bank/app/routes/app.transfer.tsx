@@ -4,12 +4,12 @@ import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from '@remix-run/react';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTransactionFlow } from '~/appSlice';
-import TransferBetweenAccountsForm from '~/components/TransferBetweenAccountsForm';
-import { getPrismaClient } from '~/service/db.server';
-import { TransactionService } from '~/service/transactionsService';
-import { RootState } from '~/store';
+import { setTransactionFlow } from '../appSlice';
 import { getUserSession } from "../auth.server";
+import TransferBetweenAccountsForm from '../components/TransferBetweenAccountsForm';
+import { getPrismaClient } from '../service/db.server';
+import { TransactionService } from '../service/transactionsService';
+import { RootState } from '../store';
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   

@@ -1,5 +1,6 @@
 import { Button, Grid, Input, Modal, Select, Spacer, Text, useModal } from '@geist-ui/react';
 import React, { useEffect, useState } from 'react';
+// eslint-disable-next-line import/no-unresolved
 import { getFullDay, globalBlur, joinWithAmpersand } from '@parent/learn-to-bank-util/utils/util';
 import ResizableText from './ResizableText';
 

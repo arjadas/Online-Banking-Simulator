@@ -1,5 +1,4 @@
-import { Prisma } from '@prisma/client';
-import { getPrismaClient } from '~/service/db.server';
+import { getPrismaClient } from '../service/db.server';
 
 export async function getRecurringTransactions(context: any, uid: string) {
     const db = getPrismaClient(context);

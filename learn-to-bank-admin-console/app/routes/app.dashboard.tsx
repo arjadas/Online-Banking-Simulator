@@ -2,11 +2,11 @@ import { Button, Card, Grid, Input, Modal, Page, Select, Spacer, Table, Text, us
 import { ArrowDown, ArrowUp, Edit, Plus, Trash2 } from '@geist-ui/icons';
 import { LoaderFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getPrismaClient } from '~/service/db.server';
-import { RootState } from '~/store';
 import { getUserSession } from "../auth.server";
+import { getPrismaClient } from '../service/db.server';
+import { RootState } from '../store';
 
 interface LoaderData {
 	tables: any;

@@ -1,18 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Card, Grid, Spacer, Text } from '@geist-ui/core';
-import { Account, RecurringTransaction } from '@prisma/client';
-import { json, LoaderFunction, ActionFunction } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
-import React, { useCallback } from 'react';
-import { getUserSession } from '~/auth.server';
-import { RecurringTransactionCard } from '~/components/FuturePaymentCard';
-import { UpcomingPaymentsList } from '~/components/UpcomingPaymentsList';
-import { getRecurringTransactions } from '~/service/recurringTransactionService';
+import { Card, Grid, Spacer } from '@geist-ui/core';
 import { GeneratedTransaction } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
 import { splitLists } from '@parent/learn-to-bank-util/utils/util';
+import { Account, RecurringTransaction } from '@prisma/client';
+import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import React, { useCallback } from 'react';
+import { getUserSession } from '../auth.server';
+import { RecurringTransactionCard } from '../components/FuturePaymentCard';
+import ResizableText from '../components/ResizableText';
+import { UpcomingPaymentsList } from '../components/UpcomingPaymentsList';
 import { getPrismaClient } from "../service/db.server";
-import ResizableText from '~/components/ResizableText';
-import { TransactionService } from '~/service/transactionsService';
+import { getRecurringTransactions } from '../service/recurringTransactionService';
+import { TransactionService } from '../service/transactionsService';
 
 export type RecurringTransactionWithRecipient = RecurringTransaction & {
   recipient: {
