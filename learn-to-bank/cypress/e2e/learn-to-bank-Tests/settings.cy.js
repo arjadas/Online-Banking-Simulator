@@ -112,11 +112,6 @@ describe('settings page', () => {
         .should('contain.text', 'New settings saved');
     });
 
-
-    it('should send a password reset email', () => {
-
-    });
-
     it('should update text size preview when slider is adjusted', () => {
       setSliderValue(16);
       cy.contains(/this is a sample text/i)
