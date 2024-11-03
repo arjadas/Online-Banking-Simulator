@@ -1,18 +1,38 @@
-import React from 'react';
+
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; 
 import { describe, it, expect, vi } from 'vitest'; 
 import AccountCard from '../../app/components/AccountCard';
 import { getBadgeColor } from '~/util';
 
+/** 
+ * random prop values for various tests 
+ */
+
+
 describe('AccountCard Component', () => {
+ 
   const initialProps = {
-    accountType: 'Credit Account',
-    bsb: '123-456',
-    accountNumber: '78901234',
-    payID: 'payid@example.com',
-    balance: '$1,234.56',
+    
+    accountType: 'Saver Account',
+    
+    bsb: '752-913',
+    
+    accountNumber: '86651430',
+    
+    payID: 'ssusan@example.com',
+    
+    balance: '$4,194.86',
+  
   };
+
+
+/**
+ * 
+ * This test ensures that the correct account type is rendered
+ * 
+ */
+
 
   it('to check if the account type is displayed correctly', () => {
     
@@ -28,6 +48,13 @@ describe('AccountCard Component', () => {
     expect(screen.getByText(initialProps.accountType)).toBeInTheDocument();
  
   });
+
+/**
+ * 
+ * This test ensures that the correct BSB is rendered
+ * 
+ */
+
 
   it('to check if  BSB is dispalyed correctly', () => {
     
@@ -46,6 +73,13 @@ describe('AccountCard Component', () => {
   });
 
 
+  /**
+ * 
+ * This test ensures that the correct account Number is rendered
+ * 
+ */
+
+
   it('to check if accountNumber is displayed correctly', () => {
     
     render
@@ -55,10 +89,21 @@ describe('AccountCard Component', () => {
     </AccountCard>
     
     );
+   
     
+     // checking whether the text returned by screen.getBYtext is in the component using toBeInTheDocument
+     
+
     expect(screen.getByText(`Account Number: ${initialProps.accountNumber}`)).toBeInTheDocument();
  
   });
+
+
+  /**
+ * 
+ * This test ensures that the correct PayID is rendered
+ * 
+ */
 
 
   it('to check if PayID is displayed correctly', () => {
@@ -72,10 +117,18 @@ describe('AccountCard Component', () => {
     
     );
     
-    
+    // checking whether the text returned by screen.getBYtext is in the component using toBeInTheDocument
+
     expect(screen.getByText(`PayID: ${initialProps.payID}`)).toBeInTheDocument();
  
   });
+
+/**
+ * 
+ * This test ensures that the correct balance is rendered
+ * 
+ */
+
 
 
   it('to check if balance is displayed correctly', () => {
@@ -88,10 +141,20 @@ describe('AccountCard Component', () => {
     </AccountCard>
     
     );
+
+    // checking whether the text returned by screen.getBYtext is in the component using toBeInTheDocument
     
     expect(screen.getByText(initialProps.balance)).toBeInTheDocument();
  
   });
+
+
+  /**
+ * 
+ * This test ensures that the payid is not rendered if it is not provided
+ * 
+ */
+
 
   
   it('to check the payid is not rendered if the PayID is not provided', () => {
@@ -107,11 +170,21 @@ describe('AccountCard Component', () => {
 
     );
 
+    // to check that the text returned by querytext is not rendered in the component
+  
     expect(screen.queryByText(`PayID: ${payID}`)).toBeNull();
   
   
   
   });
+
+/**
+ * 
+ * This test ensures that correct icon is rendered for debit account
+ * 
+ */
+
+
 
   it('check correct icon is rendered for Debit Account', () => {
     
@@ -122,7 +195,14 @@ describe('AccountCard Component', () => {
   });
 
 
-  it('Check whether the secondary branch is colored with the right color', () => {
+/**
+ * 
+ * This test ensures that correct color is rendered based on account type
+ * 
+ */
+
+
+  it('Check whether the correct color is rendered based on account type', () => {
     
     render(<AccountCard {...initialProps} />);
     
@@ -131,6 +211,13 @@ describe('AccountCard Component', () => {
     expect(badge).toHaveStyle(`background-color: ${getBadgeColor(initialProps.accountType)}`);
 
   });
+
+
+  /**
+ * 
+ * This test ensures that correct icon is rendered for credit account
+ * 
+ */
 
 
   it('check correct icon is rendered for Credit Account', () => {
@@ -145,7 +232,12 @@ describe('AccountCard Component', () => {
   });
   
   
-  
+    /**
+ * 
+ * This test ensures that correct icon is rendered for saver account
+ * 
+ */
+
   it('check correct icon is rendered for Saver Account', () => {
     const { container } = render
     (
@@ -155,6 +247,12 @@ describe('AccountCard Component', () => {
     );
     expect(container.querySelector('svg[data-icon="dollar-sign"]')).toBeInTheDocument();
   });
+
+  /**
+ * 
+ * This test is to check whether the rendering is stable
+ * 
+ */
 
   it('Comparing Snapshots to ensure stable rendering of this component', () => {
     
