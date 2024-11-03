@@ -1,5 +1,5 @@
 import { createCookieSessionStorage, createWorkersKVSessionStorage } from "@remix-run/cloudflare";
-import { getPrismaClient } from "../service/db.server";
+import { getPrismaClient } from "./service/db.server";
 import { createUser } from "./service/userService";
 
 declare global {
