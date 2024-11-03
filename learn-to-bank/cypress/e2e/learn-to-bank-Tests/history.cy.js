@@ -1,89 +1,121 @@
-describe('Home Page', () => {
+describe('Transactions Page', () => {
   beforeEach(() => {
     cy.visit('http://localhost:3002/login');
     cy.wait(1000);
     Cypress.on('uncaught:exception', (err, runnable) => {
-    return false;
+      return false;
     });
 
     cy.get('input[name="email"]')
-    .type('test@email.com');
+      .type('test@email.com');
     cy.get('input[name="password"]')
-    .type('correctpassword');
+      .type('correctpassword');
     cy.get('button[type="submit"]')
-    .click();
+      .click();
+
+    cy.contains('button', 'History')
+      .should('be.visible')
+      .click();
     cy.url()
-    .should('include', '/home');
+      .should('include', '/history');
   });
 
-  //----Accounts Display Tests---//
-  it('displays the user information correctly', () => {
-    cy.contains('Hi Test')
-    .should('be.visible');
-    cy.contains('Next scheduled payment is')
-    .should('be.visible');
+  it('displays transactions history summary correctly', () => {
+    cy.get('.jsx-1181318970')
+      .should('have.text', 'Transaction History')
+      .should('be.visible');
+    cy.contains('Total Transactions: ')
+      .should('be.visible');
+    cy.contains('Total Sent: ')
+      .should('be.visible');
+    cy.contains('Total Received: ')
+      .should('be.visible');
+    cy.contains('.select', 'Filter by account')
+      .should('be.visible');
+    cy.get('.input-wrapper')
+      .should('be.visible');
+    cy.contains('button', 'Download PDF Statement')
+      .should('be.visible');
   });
 
-  it('displays Delightful Debit account correctly', () => {
-    cy.contains('Delightful Debit')
-    .should('be.visible');
-    cy.get(':nth-child(4) > .jsx-355899491 > .jsx-3633143255 > .jsx-1118122724 > :nth-child(1)')
-    .should('contain.text', 'BSB: ')
-    .should('be.visible');
-    cy.get(':nth-child(4) > .jsx-355899491 > .jsx-3633143255 > .jsx-1118122724 > :nth-child(2)')
-    .should('contain.text', 'Account Number: ')
-    .should('be.visible');
-    cy.get(':nth-child(4) > .jsx-355899491 > .jsx-3633143255 > .jsx-2790715020 > .jsx-510830267')
-    .should('contain.text', '$')
-    .should('be.visible');
+  it('contains all the select filters', () => {
+    cy.contains('.select', 'Filter by account')
+      .should('be.visible');
+
+    cy.get('.select')
+      .click();
+    cy.contains('All Accounts')
+      .click();
+    cy.get('.select')
+      .should('have.text', 'All Accounts');
+
+    cy.get('.select')
+      .click();
+    cy.contains('Delightful Debit (BSB: ')
+      .click();
+    cy.get('.select')
+      .should('contain.text', 'Delightful Debit (BSB: ');
+
+    cy.get('.select')
+      .click();
+    cy.contains('Clever Credit (BSB: ')
+      .click();
+    cy.get('.select')
+      .should('contain.text', 'Clever Credit (BSB: ');
+
+    cy.get('.select')
+      .click();
+    cy.contains('Simple Saver (BSB: ')
+      .click();
+    cy.get('.select')
+      .should('contain.text', 'Simple Saver (BSB: ');
+
   });
 
-  it('displays Clever Credit account correctly', () => {
-    cy.contains('Clever Credit')
-    .should('be.visible');
-    cy.get(':nth-child(6) > .jsx-355899491 > .jsx-3633143255 > .jsx-1118122724 > :nth-child(1)')
-    .should('contain.text', 'BSB: ')
-    .should('be.visible');
-    cy.get(':nth-child(6) > .jsx-355899491 > .jsx-3633143255 > .jsx-1118122724 > :nth-child(2)')
-    .should('contain.text', 'Account Number: ')
-    .should('be.visible');
-    cy.get(':nth-child(6) > .jsx-355899491 > .jsx-3633143255 > .jsx-2790715020 > .jsx-510830267')
-    .should('contain.text', '$')
-    .should('be.visible');
+  it('should expand and collapse transaction details with buttons', () => {
+    cy.get(':nth-child(1) > .jsx-355899491 > .jsx-3633143255 > .jsx-3058801100 > .jsx-4039973780')
+      .should('have.text', 'View Details')
+      .should('be.visible')
+      .click();
+
+    cy.contains(/sender account:/i)
+      .should('be.visible');
+    cy.contains(/recipient account:/i)
+      .should('be.visible');
+    cy.contains(/reference:/i)
+      .should('be.visible');
+    cy.contains(/description:/i)
+      .should('be.visible');
+
+    cy.get(':nth-child(1) > .jsx-355899491 > .jsx-3633143255 > .jsx-3058801100 > .jsx-4039973780')
+      .should('have.text', 'Hide Details')
+      .should('be.visible')
+      .click();
+
+    cy.contains(/sender account:/i)
+      .should('not.exist');
+    cy.contains(/recipient account:/i)
+      .should('not.exist');
+    cy.contains(/reference:/i)
+      .should('not.exist');
+    cy.contains(/description:/i)
+      .should('not.exist');
   });
 
-  it('displays Simple Saver account correctly', () => {
-    cy.contains('Simple Saver')
-    .should('be.visible');
-    cy.get(':nth-child(8) > .jsx-355899491 > .jsx-3633143255 > .jsx-1118122724 > :nth-child(1)')
-    .should('contain.text', 'BSB: ')
-    .should('be.visible');
-    cy.get(':nth-child(8) > .jsx-355899491 > .jsx-3633143255 > .jsx-1118122724 > :nth-child(2)')
-    .should('contain.text', 'Account Number: ')
-    .should('be.visible');
-    cy.get('.jsx-1118122724 > :nth-child(3)')
-    .should('contain.text', 'PayID: ')
-    .should('be.visible');
-    cy.get(':nth-child(8) > .jsx-355899491 > .jsx-3633143255 > .jsx-2790715020 > .jsx-510830267')
-    .should('contain.text', '$')
-    .should('be.visible');
-  });
-
-  it('displays total account balance correctly', () => {
-    cy.contains('Total')
-    .should('be.visible');
-    cy.get(':nth-child(2) > .jsx-1181318970')
-    .should('contain.text', '$')
-    .should('be.visible');
+  it('should download the PDF statement', () => {
+    cy.contains('button', 'Download PDF Statement')
+      .click();
+    cy.readFile('cypress/downloads/transactions.pdf')
+      .should('exist');
   });
 
   //----Navigations Bar Tests----//
-  it('navigates to trasaction history', () => {
-    cy.contains('button', 'History')
-    .should('be.visible')
-    .click();
+  it('navigates to home', () => {
+    cy.contains('button', 'Home')
+      .should('be.visible')
+      .click();
     cy.url()
-    .should('include', '/history');
+      .should('include', '/home');
   });
 
   it('navigates to upcoming payments', () => {
@@ -96,26 +128,26 @@ describe('Home Page', () => {
 
   it('navigates to cards', () => {
     cy.contains('button', 'Cards')
-    .should('be.visible')
-    .click();
+      .should('be.visible')
+      .click();
     cy.url()
-    .should('include', '/cards');
+      .should('include', '/cards');
   });
 
   it('navigates to settings', () => {
     cy.contains('button', 'Settings')
-    .should('be.visible')
-    .click();
+      .should('be.visible')
+      .click();
     cy.url()
-    .should('include', '/settings');
+      .should('include', '/settings');
   });
 
   it('logs out', () => {
     cy.contains('button', 'Logout')
-    .should('be.visible')
-    .click();
+      .should('be.visible')
+      .click();
     cy.url()
-    .should('include', '/login');
+      .should('include', '/login');
   });
 
   //----Pay Drawer Tests----//
@@ -216,4 +248,3 @@ describe('Home Page', () => {
     });
   });
 });
-  
