@@ -13,7 +13,9 @@
 
 Highlighted pages regarding the architecture and codebase:
 https://github.com/arjadas/Online-Banking-Simulator/wiki/System-Architecture-V4
+
 https://github.com/arjadas/Online-Banking-Simulator/wiki/Database-Models
+
 https://github.com/arjadas/Online-Banking-Simulator/wiki/Codebase-Structure-and-Significant-Features
 
 ## Development
@@ -62,6 +64,7 @@ npm run deploy
 However, automatic deployment can be made possible through the GitHub actions that have been set up. Deployment is also possible through the Cloudflare dashboard. Please see the Cloudflare docs to set up a Cloudflare account, and how to create all the required Cloudflare products. This can be done through the Cloudflare dashboard or CLI. Assigning yourself as an admin is possible either through the Cloudflare dashboard or the admin console that has been built. A checkbox to bypass the admin RBAC has been constructed, this will need to be removed before deployment to production.
 
 ## Licenses
+Learn to Bank is closed-source and is not available under a license. Copyright is owned by the University of Melbourne.
 
 ### Core Technologies
 - **Remix**: MIT License - Copyright (c) 2021 Remix Software Inc.
