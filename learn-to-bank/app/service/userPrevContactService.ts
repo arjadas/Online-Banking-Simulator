@@ -30,7 +30,7 @@ export async function createMockUserPrevContacts(context: any, uid: string) {
 
         mockUserPrevContacts.push(await db.userPrevContact.create({
             data: {
-                uid: uid,
+                uid: mockUserAccount.uid,
                 contact_acc_name: mockUserAccount.acc_name,
                 contact_description: mockUser.description ?? mockUser.first_name + " " + mockUser.last_name,
                 contact_acc: mockUserAccount.acc,

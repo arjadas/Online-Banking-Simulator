@@ -93,6 +93,43 @@ export async function createUser(context: any, uid: string, email: string, first
             });
         });
 
+        await db.recurringTransaction.create({
+            data: {
+                amount: Math.floor(Math.random() * 10000),
+                sender_acc: delightfulDebit.acc,
+                recipient_acc: cleverCredit.acc,
+                sender_uid: uid,
+                recipient_uid: uid,
+                recipient_address: '{}', // not used, time save
+                reference: 'Settle credit payment',
+                description: 'Settle credit payment',
+                frequency: JSON.stringify(generateRandomFrequencyObject()),
+                starts_on: new Date(),
+                ends_on: null,
+            }
+        });
+
+        // Five previous payments
+        for (let i = 0; i < 5; i++) {
+            const amt = Math.floor(Math.random() * 10000)
+
+            await db.transaction.create({
+                data: {
+                    amount: amt,
+                    sender_acc: accounts[i % accounts.length].acc,
+                    recipient_acc: accounts[(i + 1)% accounts.length].acc,
+                    sender_uid: uid,
+                    recipient_uid: uid,
+                    recipient_address: '{}', // not used, time save
+                    reference: `Settle payment of ${amt}`,
+                    description: `Settle payment of ${amt}`,
+                    timestamp: addDays(new Date(), -i * 2),
+                    settled: true,
+                    type: 'transfer'
+                }
+            });
+        }
+
         return user;
     } catch (error: any) {
         throw new Error(`Failed to create user ${error.message}`);
