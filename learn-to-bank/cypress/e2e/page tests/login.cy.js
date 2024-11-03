@@ -8,7 +8,6 @@ describe('Login Page', () => {
   });
 
   it('renders all elements correctly', () => {
-
     cy.get('input[name="email"]')
       .should('have.attr', 'placeholder', 'Email');
     cy.get('input[name="password"]')
