@@ -1,11 +1,12 @@
 import { Badge, Button, Card, Grid, Spacer, Tooltip } from '@geist-ui/core';
 import { DollarSign, Emoji } from '@geist-ui/icons';
 import { ArrowDownLeft, ArrowUpRight, CreditCard, User } from '@geist-ui/react-icons';
+// eslint-disable-next-line import/no-unresolved
 import { getBadgeColor } from '@parent/learn-to-bank-util/utils/util';
 import { useNavigate } from '@remix-run/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
-import { blankTransactionFlow, setTransactionFlow } from '../appSlice';
+import { setFromAcc, setToAcc } from '../appSlice';
 import ResizableText from './ResizableText';
 
 interface AccountCardProps {
@@ -25,31 +26,21 @@ const getIcon = (accountName: string, isExternalUser = false) => {
 };
 
 export const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, accountNumber, payID, balance }) => {
-  const [localTransActionFlow, setLocalTransActionFlow] = useState(blankTransactionFlow);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    dispatch(setTransactionFlow(localTransActionFlow));
-  }, [dispatch, localTransActionFlow]);
 
-  const handleTransActionFlow = (string: string) => () => {
-    const tf = { ...localTransActionFlow };
-
+  const handleTransActionFlow = (string: string, paySomeone: boolean) => () => {
     switch (string) {
       case 'fromAcc':
-        tf.fromAcc = accountNumber;
+        dispatch(setFromAcc(accountNumber));
         break;
       case 'toAcc':
-        tf.toAcc = accountNumber;
-        break;
-      case 'fromAccPaySomeone':
-        tf.fromAccPaySomeone = accountNumber;
+        dispatch(setToAcc(accountNumber));
         break;
     }
 
-    setLocalTransActionFlow(tf);
-    setTimeout(() => string === 'fromAccPaySomeone' ? navigate('/app/paySomeone') : navigate('/app/transfer'), 100);
+    setTimeout(() => paySomeone ? navigate('/app/paySomeone') : navigate('/app/transfer'), 100);
   }
 
   return (
@@ -67,7 +58,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, acco
             <Button auto scale={0.5} style={{
               border: 'none',
               padding: 5,
-            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('fromAcc')}>
+            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('toAcc', false)}>
               <ArrowDownLeft size={20} />
             </Button>
           </Tooltip>
@@ -75,7 +66,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, acco
             <Button auto scale={0.5} style={{
               border: 'none',
               padding: 5,
-            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('toAcc')}>
+            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('fromAcc', false)}>
               <ArrowUpRight size={20} />
             </Button>
           </Tooltip>
@@ -83,7 +74,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({ accountType, bsb, acco
             <Button auto scale={0.5} style={{
               border: 'none',
               padding: 5,
-            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('fromAccPaySomeone')}>
+            }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} onClick={handleTransActionFlow('fromAcc', true)}>
               <User size={20} />
             </Button>
           </Tooltip>

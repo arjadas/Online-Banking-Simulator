@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Card, Grid, Spacer } from '@geist-ui/core';
 import { GeneratedTransaction } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';

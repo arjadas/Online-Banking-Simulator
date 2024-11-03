@@ -4,10 +4,11 @@ import { ChevronRightCircle } from '@geist-ui/icons';
 import { CreditCard, DollarSign, Home, List, LogOut, Settings, Shuffle, User } from '@geist-ui/react-icons';
 import { MetaFunction, Outlet, useMatches, useNavigate, useNavigation } from "@remix-run/react";
 import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AuthenticatedLink from '../components/AuthenticatedLink';
 import ResizableText from '../components/ResizableText';
 import { RootState } from '../store';
+import { asyncResetTransactionFlow, resetTransactionFlow, setTransactionFlow } from '../appSlice';
 
 export const meta: MetaFunction = () => {
   return [
@@ -32,7 +33,7 @@ export default function AppLayout() {
   const darkTheme = Themes.createFromDark({ type: 'dark1', palette: { background: "#111111", success: "#009dff", } });
   const matches = useMatches();
   const navigate = useNavigate();
-  const dispatch = useNavigate();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
 
   // Determine the current path from matches
@@ -47,6 +48,11 @@ export default function AppLayout() {
 
   useEffect(() => {
   }, [transactionFlow, dispatch]);
+
+  const handlePageChange = async (path: string) => {
+    setTimeout(() => dispatch(resetTransactionFlow()), 500); // not the most elegant but whatever
+    navigate(path);
+  };
 
   return (
     <GeistProvider themes={[lightTheme, darkTheme]} themeType={isDarkTheme ? 'dark1' : 'light1'}>
@@ -110,7 +116,7 @@ export default function AppLayout() {
                               {React.cloneElement(item.icon)}
                             </span>
                           }
-                          onClick={() => navigate(item.to)}
+                          onClick={() => handlePageChange(item.to)}
                           style={{
                             fontSize: textScale,
                             backgroundColor: isSelected ? '#f5f5f5' : 'transparent',

@@ -1,8 +1,27 @@
+// eslint-disable-next-line import/no-unresolved
 import { generateRandomFrequencyObject } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
 import { addDays } from 'date-fns';
 import { getPrismaClient } from '../service/db.server';
 import { openAccount } from "./accountService";
 import { createMockUserPrevContacts } from './userPrevContactService';
+
+async function getUidByAcc(context: any, acc: number) {
+    try {
+        const db = getPrismaClient(context);
+        const account = await db.account.findUnique({
+            where: {
+                acc: acc,
+            },
+            select: {
+                uid: true,
+            },
+        });
+
+        return account?.uid || null;
+    } catch (error: any) {
+        throw new Error(`Failed to get uid`);
+    }
+}
 
 export async function createUser(context: any, uid: string, email: string, first_name: string, last_name: string) {
 
@@ -64,7 +83,7 @@ export async function createUser(context: any, uid: string, email: string, first
                     sender_acc: accounts[index % accounts.length].acc,
                     recipient_acc: mockPrevContact.contact_acc,
                     sender_uid: uid,
-                    recipient_uid: mockPrevContact.uid,
+                    recipient_uid: (await getUidByAcc(context, mockPrevContact.contact_acc)) ?? 'failed!',
                     recipient_address: mockPrevContact.contact_recipient_address,
                     reference: mockPrevContact.contact_description,
                     description: mockPrevContact.contact_description,
@@ -82,7 +101,7 @@ export async function createUser(context: any, uid: string, email: string, first
                     sender_acc: accounts[(index + 1) % accounts.length].acc,
                     recipient_acc: mockPrevContact.contact_acc,
                     sender_uid: uid,
-                    recipient_uid: mockPrevContact.uid,
+                    recipient_uid: (await getUidByAcc(context, mockPrevContact.contact_acc)) ?? 'failed!',
                     recipient_address: mockPrevContact.contact_recipient_address,
                     reference: mockPrevContact.contact_description,
                     description: mockPrevContact.contact_description,
@@ -121,8 +140,8 @@ export async function createUser(context: any, uid: string, email: string, first
                     sender_uid: uid,
                     recipient_uid: uid,
                     recipient_address: '{}', // not used, time save
-                    reference: `Settle payment of ${amt}`,
-                    description: `Settle payment of ${amt}`,
+                    reference: `Settle payment of ${amt / 100}`,
+                    description: `Settle payment of ${amt / 100}`,
                     timestamp: addDays(new Date(), -i * 2),
                     settled: true,
                     type: 'transfer'

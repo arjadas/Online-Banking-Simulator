@@ -76,7 +76,7 @@ export default function TransferBetweenAccounts() {
   return (
     <Page>
       <Page.Content>
-        <TransferBetweenAccountsForm accounts={userAccounts as any as Account[]} actionData={actionData} transactionFlow={transactionFlow} />
+        <TransferBetweenAccountsForm accounts={userAccounts as any as Account[]} actionData={actionData} />
       </Page.Content>
     </Page>
   );

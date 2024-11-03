@@ -171,5 +171,5 @@ export default function PaySomeone() {
     return <UserPrevContactForm contacts={userPrevContactsWithInfo} onSubmit={handleSubmit} />
   }
 
-  return <PaySomeoneForm accounts={userAccounts as any} onBack={() => setPrevContact(undefined)} actionData={actionData} transactionFlow={transactionFlow} />
+  return <PaySomeoneForm accounts={userAccounts as any} onBack={() => setPrevContact(undefined)} actionData={actionData} />
 }

@@ -2,42 +2,32 @@ import { Button, Card, Input, Modal, Select, Spacer, Tabs, Textarea } from '@gei
 import { Account } from '@prisma/client';
 import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { blankTransactionFlow, setTransactionFlow, TransactionFlow } from '../appSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { blankTransactionFlow, setTransactionFlow, setFromAcc, setRecipientAddress, blankRecipientAddress } from '../appSlice';
 import CurrencyInput from '../components/CurrencyInput';
 import { RecipientAddress } from '../service/transactionsService';
 import ResizableText from './ResizableText';
 import { TransactionTemporalTabs } from './TransactionTemporalTabs';
+import { RootState } from '../store';
 
 interface PaySomeoneFormProps {
     accounts: Account[];
     actionData: any;
-    transactionFlow: TransactionFlow;
     onBack: () => void;
 }
 
-const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actionData, transactionFlow }) => {
-    const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
+const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actionData }) => {
+    const { transactionFlow } = useSelector((state: RootState) => state.app);
     const [amount, setAmount] = useState('-.--');
     const [reference, setReference] = useState('');
     const [description, setDescription] = useState('');
     const [addressTypeTab, setAddressTypeTab] = useState('acc-bsb');
     const [temporalTab, setTemporalTab] = useState('now');
     const dispatch = useDispatch();
-    const blankRecipientAddress: RecipientAddress = {
-        accountName: '',
-        acc: -1,
-        bsb: -1,
-        payId: '',
-        billerCode: -1,
-        crn: -1
-    }
-
     const navigate = useNavigate();
-    const [recipientAddress, setRecipientAddress] = useState(blankRecipientAddress);
 
     const handleFromAccChange = (value: string | string[]) => {
-        setFromAcc(parseInt(value as string));
+        dispatch(setFromAcc(parseInt(value as string)));
     };
 
     const toDigits = (value: string): number => {
@@ -46,36 +36,40 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
     }
 
     useEffect(() => {
-        if (transactionFlow.fromAccPaySomeone && !fromAcc) { setFromAcc(transactionFlow.fromAccPaySomeone) }
-
         if (transactionFlow.userPrevContact) {
             if (transactionFlow.userPrevContact.contact_recipient_address) {
-                const parsedAddress = JSON.parse(transactionFlow.userPrevContact.contact_recipient_address) as Partial<RecipientAddress>;
-                Object.entries(parsedAddress).forEach(([key, value]) => {
-                    if (key in recipientAddress && recipientAddress[key as keyof RecipientAddress] === blankRecipientAddress[key as keyof RecipientAddress]) {
-                        updateRecipientAddress(key as keyof RecipientAddress, value as any);
-                    }
-                });
+                const partialRecipientAddress = JSON.parse(transactionFlow.userPrevContact.contact_recipient_address)
+                const partialRecipientAddressKeys = Object.keys(partialRecipientAddress);
+                const recipientAddress: RecipientAddress = {
+                    ...blankRecipientAddress,
+                    ...partialRecipientAddress,
+                };
+
+                console.log(partialRecipientAddressKeys, 'billerCode')
+                if (partialRecipientAddressKeys.includes('acc') || partialRecipientAddressKeys.includes('bsb') || partialRecipientAddressKeys.includes('accountName')) {
+                    setAddressTypeTab('acc-bsb');
+                } else if (partialRecipientAddressKeys.includes('payId')) {
+                    setAddressTypeTab('pay-id');
+                } else if (partialRecipientAddressKeys.includes('billerCode') || partialRecipientAddressKeys.includes('crn')) {
+                    setAddressTypeTab('b-pay');
+                }
+
+                dispatch(setRecipientAddress(recipientAddress))
             }
+
             setDescription(transactionFlow.userPrevContact.contact_description || '');
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fromAcc, transactionFlow]);
+    }, []);
 
-    const updateRecipientAddress = (key: keyof RecipientAddress, value: string | number) => {
-        setRecipientAddress((prevState: any) => ({
-            ...prevState,
-            [key]: value,
-        }));
+    const updateRecipientAddress = (key: string, value: string | number) => {
+        const recipientAddress: RecipientAddress = {
+            ...transactionFlow.recipientAddress,
+            [key]: value
+        };
 
-        if (key === 'acc' || key === 'bsb' || key === 'accountName') {
-            setAddressTypeTab('acc-bsb');
-        } else if (key === 'payId') {
-            setAddressTypeTab('pay-id');
-        } else if (key === 'billerCode' || key === 'crn') {
-            setAddressTypeTab('b-pay');
-        }
+        dispatch(setRecipientAddress(recipientAddress));
     };
 
     const handleAccountNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,7 +77,6 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
     };
 
     const goHome = () => {
-        dispatch(setTransactionFlow(blankTransactionFlow));
         navigate('/app/home')
     };
 
@@ -122,7 +115,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                     <TransactionTemporalTabs onTemporalTabsChange={(value: string) => setTemporalTab(value)} />
                     <ResizableText h4>From Account</ResizableText>
                     <div style={{ width: '100%' }}>
-                        <Select placeholder="Select account" width="100%" value={fromAcc?.toString()} onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                        <Select placeholder="Select account" width="100%" value={transactionFlow.fromAcc?.toString()} onChange={handleFromAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                             {accounts.map((account: Account) => (
                                 <Select.Option key={account.acc} value={account.acc.toString()}>
                                     {account.short_description}
@@ -141,8 +134,8 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                     <Spacer h={0.5} />
                     <Textarea width="100%" placeholder="Enter reference" aria-label="Reference" name="reference" value={reference} onChange={handleReferenceChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     <input type="hidden" name="temporalTab" value={temporalTab} />
-                    <input type="hidden" name="recipientAddress" value={JSON.stringify(recipientAddress)} />
-                    <input type="hidden" name="fromAcc" value={fromAcc} />
+                    <input type="hidden" name="recipientAddress" value={JSON.stringify(transactionFlow.recipientAddress)} />
+                    <input type="hidden" name="fromAcc" value={transactionFlow.fromAcc ?? ''} />
                 </Card>
 
                 <Card shadow width="50%" style={{ padding: 20 }}>
@@ -152,28 +145,28 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                             <ResizableText small>Traditional payment method</ResizableText>
                             <Spacer h={1} />
                             <ResizableText h4>Account Name</ResizableText>
-                            <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={recipientAddress.accountName} onChange={handleAccountNameChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <Input width="100%" placeholder="Enter account name" aria-label="Account Name" value={transactionFlow.recipientAddress.accountName} onChange={handleAccountNameChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                             <Spacer h={1} />
                             <ResizableText h4>Account Number</ResizableText>
-                            <Input width="100%" placeholder="Enter account number" aria-label="Account Number" value={recipientAddress.acc === -1 ? '' : recipientAddress.acc.toString()} onChange={handleAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <Input width="100%" placeholder="Enter account number" aria-label="Account Number" value={transactionFlow.recipientAddress.acc === -1 ? '' : transactionFlow.recipientAddress.acc.toString()} onChange={handleAccChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                             <Spacer h={1} />
                             <ResizableText h4>BSB</ResizableText>
-                            <Input width="100%" placeholder="Enter bsb" aria-label="BSB" value={recipientAddress.bsb === -1 ? '' : recipientAddress.bsb.toString()} onChange={handleBsbChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <Input width="100%" placeholder="Enter bsb" aria-label="BSB" value={transactionFlow.recipientAddress.bsb === -1 ? '' : transactionFlow.recipientAddress.bsb.toString()} onChange={handleBsbChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                         </Tabs.Item>
                         <Tabs.Item label="PayID" value="pay-id">
                             <ResizableText small>Payments using the recipient&apos;s email or mobile number.</ResizableText>
                             <Spacer h={1} />
                             <ResizableText h4>PayID</ResizableText>
-                            <Input width="100%" placeholder="Enter PayID" aria-label="PayID" value={recipientAddress.payId} onChange={handlePayIdChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <Input width="100%" placeholder="Enter PayID" aria-label="PayID" value={transactionFlow.recipientAddress.payId} onChange={handlePayIdChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                         </Tabs.Item>
                         <Tabs.Item label="BPay" value="b-pay">
                             <ResizableText small >For bills, rent, tax, etc.</ResizableText>
                             <Spacer h={1} />
                             <ResizableText h4>Biller Code</ResizableText>
-                            <Input width="100%" placeholder="Enter biller code" aria-label="Biller Code" value={recipientAddress.billerCode === -1 ? '' : recipientAddress.billerCode.toString()} onChange={handleBillerCodeChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <Input width="100%" placeholder="Enter biller code" aria-label="Biller Code" value={transactionFlow.recipientAddress.billerCode === -1 ? '' : transactionFlow.recipientAddress.billerCode.toString()} onChange={handleBillerCodeChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                             <Spacer h={1} />
                             <ResizableText h4>CRN</ResizableText>
-                            <Input width="100%" placeholder="Enter CRN" aria-label="CRN" value={recipientAddress.crn === -1 ? '' : recipientAddress.crn.toString()} onChange={handleCrnChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
+                            <Input width="100%" placeholder="Enter CRN" aria-label="CRN" value={transactionFlow.recipientAddress.crn === -1 ? '' : transactionFlow.recipientAddress.crn.toString()} onChange={handleCrnChange} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} />
                         </Tabs.Item>
                     </Tabs>
                     <Spacer h={1.2} />
@@ -203,21 +196,21 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                             <div style={{ color: '#0cc92c', fontSize: '64px', marginBottom: '5px' }}>✓</div>
                             <div style={{ margin: '10px 0' }}>
-                                <ResizableText>From: {accounts.find(acc => acc.acc === fromAcc)?.short_description}</ResizableText>
+                                <ResizableText>From: {accounts.find(acc => acc.acc === transactionFlow.fromAcc)?.short_description}</ResizableText>
                                 {addressTypeTab === 'acc-bsb' && (
                                     <>
-                                        <ResizableText>To: {recipientAddress.accountName}</ResizableText>
-                                        <ResizableText>BSB: {recipientAddress.bsb}</ResizableText>
-                                        <ResizableText>Account: {recipientAddress.acc}</ResizableText>
+                                        <ResizableText>To: {transactionFlow.recipientAddress.accountName}</ResizableText>
+                                        <ResizableText>BSB: {transactionFlow.recipientAddress.bsb}</ResizableText>
+                                        <ResizableText>Account: {transactionFlow.recipientAddress.acc}</ResizableText>
                                     </>
                                 )}
                                 {addressTypeTab === 'pay-id' && (
-                                    <ResizableText>To PayID: {recipientAddress.payId}</ResizableText>
+                                    <ResizableText>To PayID: {transactionFlow.recipientAddress.payId}</ResizableText>
                                 )}
                                 {addressTypeTab === 'b-pay' && (
                                     <>
-                                        <ResizableText>Biller Code: {recipientAddress.billerCode}</ResizableText>
-                                        <ResizableText>CRN: {recipientAddress.crn}</ResizableText>
+                                        <ResizableText>Biller Code: {transactionFlow.recipientAddress.billerCode}</ResizableText>
+                                        <ResizableText>CRN: {transactionFlow.recipientAddress.crn}</ResizableText>
                                     </>
                                 )}
                                 <ResizableText>Amount: ${amount}</ResizableText>
