@@ -151,6 +151,14 @@ describe('Cards Page', () => {
       .should('include', '/history');
   });
 
+  it('navigates to upcoming payments', () => {
+    cy.contains('button', 'Upcoming')
+      .should('be.visible')
+      .click();
+    cy.url()
+      .should('include', '/upcoming');
+  });
+
   it('navigates to settings', () => {
     cy.contains('button', 'Settings')
       .should('be.visible')
