@@ -6,13 +6,21 @@ describe('PaySomeone Page', () => {
       return false;
     });
 
-    cy.get('input[name="email"]').type('test@email.com');
-    cy.get('input[name="password"]').type('correctpassword');
-    cy.get('button[type="submit"]').click();
+    cy.get('input[name="email"]')
+      .type('test@email.com');
+    cy.get('input[name="password"]')
+      .type('correctpassword');
+    cy.get('button[type="submit"]')
+      .click();
 
-    cy.contains('button', 'Pay').should('be.visible').click();
-    cy.get('[href="/app/paySomeone"]').should('be.visible').click();
-    cy.url().should('include', '/paySomeone');
+    cy.contains('button', 'Pay')
+      .should('be.visible')
+      .click();
+    cy.get('[href="/app/paySomeone"]')
+      .should('be.visible')
+      .click();
+    cy.url()
+      .should('include', '/paySomeone');
   });
 
   it('renders all elements correctly', () => {

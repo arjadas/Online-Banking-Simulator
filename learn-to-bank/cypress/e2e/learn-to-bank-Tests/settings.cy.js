@@ -297,20 +297,20 @@ describe('settings page', () => {
       .should('include', '/home');
   });
 
-  it('navigates to upcoming payments', () => {
-    cy.contains('button', 'Upcoming')
-      .should('be.visible')
-      .click();
-    cy.url()
-      .should('include', '/upcoming');
-  });
-
   it('navigates to trasaction history', () => {
     cy.contains('button', 'History')
       .should('be.visible')
       .click();
     cy.url()
       .should('include', '/history');
+  });
+
+  it('navigates to upcoming payments', () => {
+    cy.contains('button', 'Upcoming')
+      .should('be.visible')
+      .click();
+    cy.url()
+      .should('include', '/upcoming');
   });
 
   it('navigates to cards', () => {
