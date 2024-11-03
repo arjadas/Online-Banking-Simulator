@@ -57,6 +57,11 @@ npx prisma migrate diff --from-local-d1 --to-schema-datamodel ./prisma/schema.pr
 ```sh
 npx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script > migrations/0004.sql
 ```
+These commands should be run in the module currently being worked on - e.g.
+
+```sh
+cd learn-to-bank
+``` 
 
 ## Deployment
 This is the command to deploy all modules from the CLI.
@@ -92,6 +97,3 @@ This project includes numerous dependencies listed in `package.json`. Before dep
 ```sh
 npx license-checker --summary
 ```
-
-## Known issues
-There is a known issue about upcoming payments being generated twice.
