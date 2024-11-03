@@ -1,9 +1,18 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { UserPrevContactResult } from './routes/app.paySomeone';
+import { RecipientAddress } from './service/transactionsService';
 
 export type TransferState = { fromAcc: number | null, toAcc: number | null, amount: number | null, formattedAmount: string, description: string };
-export type TransactionFlow = { fromAcc: number | null, toAcc: number | null, fromAccPaySomeone: number | null, userPrevContact: UserPrevContactResult | null, enabled: boolean, successful: boolean };
-export const blankTransactionFlow: TransactionFlow = { fromAcc: null, toAcc: null, fromAccPaySomeone: null, userPrevContact: null, enabled: false, successful: false };
+export type TransactionFlow = { fromAcc: number | null, toAcc: number | null, userPrevContact: UserPrevContactResult | null, enabled: boolean, successful: boolean, recipientAddress: RecipientAddress };
+export const blankRecipientAddress: RecipientAddress = {
+    accountName: '',
+    acc: -1,
+    bsb: -1,
+    payId: '',
+    billerCode: -1,
+    crn: -1
+}
+export const blankTransactionFlow: TransactionFlow = { fromAcc: null, toAcc: null, userPrevContact: null, enabled: false, successful: false, recipientAddress: blankRecipientAddress };
 
 interface AppState {
     isDarkTheme: boolean;
@@ -17,6 +26,14 @@ export const initialState: AppState = {
     transactionFlow: blankTransactionFlow,
 };
 
+export const asyncResetTransactionFlow = createAsyncThunk(
+    'app/resetTransactionFlow',
+    async (path: string, { dispatch }) => {
+        dispatch(resetTransactionFlow());
+        return path;
+    }
+);
+
 const appSlice = createSlice({
     name: 'app',
     initialState,
@@ -24,11 +41,23 @@ const appSlice = createSlice({
         setTextScale(state, action: PayloadAction<number>) {
             state.textScale = action.payload;
         },
-        setInTransactionFlow(state, action: PayloadAction<TransactionFlow>) {
+        setTransactionFlow(state, action: PayloadAction<TransactionFlow>) {
             state.transactionFlow = action.payload;
+        },
+        resetTransactionFlow(state) {
+            state.transactionFlow = blankTransactionFlow;
+        },
+        setFromAcc(state, action: PayloadAction<number>) {
+            state.transactionFlow.fromAcc = action.payload;
+        },
+        setToAcc(state, action: PayloadAction<number>) {
+            state.transactionFlow.toAcc = action.payload;
+        },
+        setRecipientAddress(state, action: PayloadAction<RecipientAddress>) {
+            state.transactionFlow.recipientAddress = action.payload;
         },
     },
 });
 
-export const { setTextScale, setInTransactionFlow: setTransactionFlow } = appSlice.actions;
+export const { setTextScale, setTransactionFlow, setFromAcc, setToAcc, setRecipientAddress, resetTransactionFlow } = appSlice.actions;
 export default appSlice.reducer;

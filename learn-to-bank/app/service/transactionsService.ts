@@ -1,6 +1,7 @@
 import { Account, PrismaClient } from '@prisma/client';
 import { makeSendReceiveNotifications } from './notificationService';
 import { createUserPrevContact } from './userPrevContactService';
+import { blankRecipientAddress } from '../appSlice';
 
 interface TransactionBase {
     fromAcc: number;
@@ -217,15 +218,47 @@ export class TransactionService {
         }
     }
 
+    private cleanRecipientAddress(addressStr: string): string {
+        const cleaned: Partial<RecipientAddress> = {};
+        const address = JSON.parse(addressStr);
+
+        if (address.accountName !== blankRecipientAddress.accountName) {
+            cleaned.accountName = address.accountName;
+        }
+
+        if (address.acc !== blankRecipientAddress.acc) {
+            cleaned.acc = address.acc;
+        }
+
+        if (address.bsb !== blankRecipientAddress.bsb) {
+            cleaned.bsb = address.bsb;
+        }
+
+        if (address.payId !== blankRecipientAddress.payId) {
+            cleaned.payId = address.payId;
+        }
+
+        if (address.billerCode !== blankRecipientAddress.billerCode) {
+            cleaned.billerCode = address.billerCode;
+        }
+
+        if (address.crn !== blankRecipientAddress.crn) {
+            cleaned.crn = address.crn;
+        }
+
+        return JSON.stringify(cleaned);
+    }
+
     async createTransaction(params: TransactionParams, context?: any) {
-        console.log(34, params)
         const fromAccount = await this.findFromAccount(params.fromAcc);
         const toAccount = await this.findToAccount(params);
         let result;
 
-        this.validateForm(params, fromAccount, toAccount);
+        if ('recipientAddress' in params) {
+            params.recipientAddress = this.cleanRecipientAddress(params.recipientAddress);
+        }
 
-        console.log(params, fromAccount, toAccount, 5634567)
+        this.validateForm(params, fromAccount, toAccount);
 
         if (params.temporalTab === 'now') {
             result = await this.processImmediateTransaction(
@@ -261,21 +294,21 @@ export class TransactionService {
 
         try {
             const beforeUpdate = await this.db.recurringTransaction.findUnique({
-                where: {recc_transaction_id: transactionID},
+                where: { recc_transaction_id: transactionID },
             });
 
             let afterUpdate;
 
             if (endDate) {
                 afterUpdate = await this.db.recurringTransaction.update({
-                    where: {recc_transaction_id: transactionID},
-                    data: {frequency: frequency, starts_on: startDate, ends_on: endDate},
+                    where: { recc_transaction_id: transactionID },
+                    data: { frequency: frequency, starts_on: startDate, ends_on: endDate },
                 });
             } else {
                 afterUpdate = await this.db.recurringTransaction.update({
-                    where: {recc_transaction_id: transactionID},
-                    data: {frequency: frequency, starts_on: startDate, ends_on: null},
-                });               
+                    where: { recc_transaction_id: transactionID },
+                    data: { frequency: frequency, starts_on: startDate, ends_on: null },
+                });
             }
 
             console.log(beforeUpdate, afterUpdate, "update successful");
@@ -286,7 +319,7 @@ export class TransactionService {
 
     async deleteTransaction(transactionID: number) {
         return await this.db.recurringTransaction.delete({
-            where: {recc_transaction_id: transactionID},
+            where: { recc_transaction_id: transactionID },
         });
     }
 }

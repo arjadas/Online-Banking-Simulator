@@ -7,7 +7,7 @@ import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setTextScale } from '../appSlice';
+import { resetTransactionFlow, setTextScale } from '../appSlice';
 import { getUserSession } from '../auth.server';
 import { AccountCard } from '../components/AccountCard';
 import ResizableText from '../components/ResizableText';
@@ -119,6 +119,7 @@ export default function Dashboard() {
     if (user.font_preference) {
       dispatch(setTextScale(Number(user.font_preference)));
     }
+    dispatch(resetTransactionFlow())
   });
 
   console.error(error)

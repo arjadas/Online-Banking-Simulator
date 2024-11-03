@@ -2,21 +2,20 @@ import { Button, Card, Input, Modal, Select, Spacer } from '@geist-ui/core';
 import { Account } from '@prisma/client';
 import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { blankTransactionFlow, setTransactionFlow, TransactionFlow } from '../appSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { blankTransactionFlow, setFromAcc, setToAcc, setTransactionFlow, TransactionFlow } from '../appSlice';
 import CurrencyInput from '../components/CurrencyInput';
 import ResizableText from './ResizableText';
 import { TransactionTemporalTabs } from './TransactionTemporalTabs';
+import { RootState } from '../store';
 
 interface TransferBetweenAccountsFormProps {
     accounts: Account[];
     actionData: any;
-    transactionFlow: TransactionFlow;
 }
 
-const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = ({ accounts, actionData, transactionFlow }) => {
-    const [fromAcc, setFromAcc] = useState<number | undefined>(undefined);
-    const [toAcc, setToAcc] = useState<number | undefined>(undefined);
+const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = ({ accounts, actionData }) => {
+    const { transactionFlow } = useSelector((state: RootState) => state.app);
     const [amount, setAmount] = useState('-.--');
     const [description, setDescription] = useState('');
     const [temporalTab, setTemporalTab] = useState('now');
@@ -24,11 +23,11 @@ const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = 
     const dispatch = useDispatch();
 
     const handleFromAccChange = (value: string | string[]) => {
-        setFromAcc(parseInt(value as string));
+        dispatch(setFromAcc(parseInt(value as string)));
     };
 
     const handleToAccChange = (value: string | string[]) => {
-        setToAcc(parseInt(value as string));
+        dispatch(setToAcc(parseInt(value as string)));
     };
 
     const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,14 +35,8 @@ const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = 
     };
 
     const goHome = () => {
-        dispatch(setTransactionFlow(blankTransactionFlow));
         navigate('/app/home')
     };
-
-    useEffect(() => {
-        if (transactionFlow.toAcc && !toAcc) { setToAcc(transactionFlow.toAcc) }
-        if (transactionFlow.fromAcc && !fromAcc) { setFromAcc(transactionFlow.fromAcc) }
-    }, [transactionFlow, toAcc, fromAcc]);
 
     return (
         <Card shadow width="100%" style={{ maxWidth: '720px', margin: '0 auto' }} padding={1}>
@@ -57,7 +50,7 @@ const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = 
                         <Select
                             placeholder="Select account"
                             width="100%"
-                            value={fromAcc?.toString()}
+                            value={transactionFlow.fromAcc?.toString()}
                             onChange={handleFromAccChange}
                             onPointerEnterCapture={undefined}
                             onPointerLeaveCapture={undefined}
@@ -69,14 +62,14 @@ const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = 
                                     </Select.Option>
                                 ))}
                         </Select>
-                        <input type="hidden" name="fromAcc" value={fromAcc} />
+                        <input type="hidden" name="fromAcc" value={transactionFlow.fromAcc ?? ''} />
                     </div>
                     <div style={{ width: '48%' }}>
                         <ResizableText small>To</ResizableText>
                         <Select
                             placeholder="Select account"
                             width="100%"
-                            value={toAcc?.toString()}
+                            value={transactionFlow.toAcc?.toString()}
                             onChange={handleToAccChange}
                             onPointerEnterCapture={undefined}
                             onPointerLeaveCapture={undefined}
@@ -88,7 +81,7 @@ const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = 
                                     </Select.Option>
                                 ))}
                         </Select>
-                        <input type="hidden" name="toAcc" value={toAcc} />
+                        <input type="hidden" name="toAcc" value={transactionFlow.toAcc ?? ''} />
                     </div>
                 </div>
                 <Spacer h={1} />
@@ -124,8 +117,8 @@ const TransferBetweenAccountsForm: React.FC<TransferBetweenAccountsFormProps> = 
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                         <div style={{ color: '#0cc92c', fontSize: '64px', marginBottom: '5px' }}>✓</div>
                         <div style={{ margin: '10px 0' }}>
-                            <ResizableText>From: {accounts.find(acc => acc.acc === fromAcc)?.short_description}</ResizableText>
-                            <ResizableText>To: {accounts.find(acc => acc.acc === toAcc)?.short_description}</ResizableText>
+                            <ResizableText>From: {accounts.find(acc => acc.acc === transactionFlow.fromAcc)?.short_description}</ResizableText>
+                            <ResizableText>To: {accounts.find(acc => acc.acc === transactionFlow.toAcc)?.short_description}</ResizableText>
                             <ResizableText>Amount: ${amount}</ResizableText>
                             {description && <ResizableText>Description: {description}</ResizableText>}
                         </div>
