@@ -1,4 +1,6 @@
-# Learn to Bank, developed by Code Red @ The University of Melbourne
+# Learn to Bank
+## Developed by Code Red @ The University of Melbourne
+
 - 📖 [Remix docs](https://remix.run/docs)
 - 📖 [React docs](https://react.dev/reference/react)
 - 📖 [Vite docs](https://vite.dev/guide/)
