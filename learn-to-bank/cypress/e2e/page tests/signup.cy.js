@@ -7,7 +7,7 @@ describe('Sign Up Page', () => {
     });
     cy.contains('a', 'Sign up')
       .click();
-  })
+  });
 
   it('renders all elements correctly', () => {
     cy.contains('h3', 'Sign Up')

@@ -428,7 +428,7 @@ describe('Transfer Between Accounts', () => {
     cy.get(':nth-child(2) > .select')
       .should('have.text', 'Delightful Debit');
 
-    cy.get('input[name="amount"')
+    cy.get('input[name="amount"]')
       .clear()
       .type('1.00');
 
@@ -458,7 +458,7 @@ describe('Transfer Between Accounts', () => {
         .click();
       cy.get(':nth-child(2) > .select').should('have.text', 'Simple Saver');
 
-      cy.get('input[name="amount"')
+      cy.get('input[name="amount"]')
         .clear()
         .type('50.00');
 
