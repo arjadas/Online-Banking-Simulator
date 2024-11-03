@@ -1,7 +1,0 @@
-describe('PaySomeone Page', () => {
-    beforeEach(() => {
-
-    });
-  
-  });
-  

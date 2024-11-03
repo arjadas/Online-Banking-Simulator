@@ -236,10 +236,6 @@ describe('settings page', () => {
       });
     });
 
-    // it('should delete account upon confirmation', () => {
-
-    // });
-
     // Reset settings state
     afterEach(() => {
       cy.get('[name="firstName"]')
@@ -258,12 +254,12 @@ describe('settings page', () => {
   //----Navigations Bar Tests----//
   it('navigates to home', () => {
     cy.contains('button', 'Home').should('be.visible').click();
-    cy.url().should('include', '/accounts');
+    cy.url().should('include', '/home');
   });
 
   it('navigates to trasaction history', () => {
     cy.contains('button', 'History').should('be.visible').click();
-    cy.url().should('include', '/transactions');
+    cy.url().should('include', '/history');
   });
 
   it('navigates to cards', () => {
@@ -284,7 +280,7 @@ describe('settings page', () => {
 
     it('displays pay drawer correctly', () => {
       cy.get('.jsx-981132863 > .jsx-1181318970').should('have.text', 'Pay').should('be.visible');
-      cy.get('.jsx-2148573681').should('have.text', 'Instantiate a transfer').should('be.visible');
+      cy.get('.jsx-2148573681').should('contain.text', 'Initiate a transfer').should('be.visible');
       cy.get('[href="/app/transfer"]').should('be.visible');
       cy.get('[href="/app/paySomeone"]').should('be.visible');
     });
@@ -298,13 +294,13 @@ describe('settings page', () => {
     it('navigates to pay someone', () => {
       cy.get('[href="/app/paySomeone"]').should('be.visible').click();
 
-      //cy.url().should('include', '/paySomeone');
+      cy.url().should('include', '/paySomeone');
     });
 
     describe('Close Drawer', () => {
       beforeEach(() => {
         cy.get('.jsx-981132863 > .jsx-1181318970').should('have.text', 'Pay').should('be.visible');
-        cy.get('.jsx-2148573681').should('have.text', 'Instantiate a transfer').should('be.visible');
+        cy.get('.jsx-2148573681').should('contain.text', 'Initiate a transfer').should('be.visible');
         cy.get('[href="/app/transfer"]').should('be.visible');
         cy.get('[href="/app/paySomeone"]').should('be.visible');
       });
@@ -335,7 +331,7 @@ describe('settings page', () => {
 
       afterEach(() => {
         cy.get('.jsx-981132863 > .jsx-1181318970').should('have.text', 'Pay').should('not.be.visible');
-        cy.get('.jsx-2148573681').should('have.text', 'Instantiate a transfer').should('not.be.visible');
+        cy.get('.jsx-2148573681').should('contain.text', 'Initiate a transfer').should('not.be.visible');
         cy.get('[href="/app/transfer"]').should('not.be.visible');
         cy.get('[href="/app/paySomeone"]').should('not.be.visible');
       });
