@@ -3,11 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 import { describe, it, expect, vi, beforeEach ,Mock} from 'vitest';
 
-import MyCards from '~/routes/app.cards'; 
+import MyCards from '../../app/routes/app.cards'; 
 
 import { useLoaderData } from '@remix-run/react';
 
-import { RootState } from '~/store';
+import { RootState } from '../../app/store';
+import React from 'react';
 
 vi.mock('@remix-run/react', () => ({
   
@@ -20,9 +21,23 @@ vi.mock('react-redux', () => ({
   useSelector: (fn: (state: RootState) => any) => fn({
     
     app: {
-      
       textScale: 15,
-    
+      isDarkTheme: false,
+      transactionFlow: {
+        fromAcc: null,
+        toAcc: null,
+        userPrevContact: null,
+        enabled: false,
+        successful: false,
+        recipientAddress: {
+          accountName: '',
+          acc: 0,
+          bsb: 0,
+          billerCode: 0,
+          crn: 0,
+          payId: ''
+        },
+      }
     },
   
   }),
@@ -34,7 +49,7 @@ const mockLoaderData = {
   
   creditCardData: {
     
-    card_number: '8611 2828 2831 8181',
+    card_number: '8611282828318181',
     
     cardholder_name: 'Rajeev Sukumar',
     
@@ -46,7 +61,7 @@ const mockLoaderData = {
   
   debitCardData: {
     
-    card_number: '9120 8129 8473 8110',
+    card_number: '9120812984738110',
     
     cardholder_name: 'deepa Rajeev',
     
@@ -85,9 +100,9 @@ const mockLoaderData = {
     render(<MyCards />);
 
    
-    expect(screen.getByText('8611 2828 2831 8181')).toBeInTheDocument();
+    expect(screen.getByText('8611282828318181')).toBeInTheDocument();
     
-    expect(screen.getByText('9120 8129 8473 8110')).toBeInTheDocument();
+    expect(screen.getByText('9120812984738110')).toBeInTheDocument();
 
    
     expect(screen.getByText('Rajeev Sukumar')).toBeInTheDocument();
@@ -136,22 +151,22 @@ const mockLoaderData = {
     render(<MyCards />);
 
    
-    expect(screen.getByText('8611 2828 2831 8181')).toBeInTheDocument();
+    expect(screen.getByText('8611282828318181')).toBeInTheDocument();
 
     const nextButton = screen.getByRole('button', { name: /›/i });
     
     fireEvent.click(nextButton);
 
    
-    expect(screen.queryByText('8611 2828 2831 8181')).not.toBeInTheDocument();
+    expect(screen.queryByText('8611282828318181')).not.toBeInTheDocument();
     
-    expect(screen.getByText('9120 8129 8473 8110')).toBeInTheDocument();
+    expect(screen.getByText('9120812984738110')).toBeInTheDocument();
 
     const prevButton = screen.getByRole('button', { name: /‹/i });
     
     fireEvent.click(prevButton);
 
-    expect(screen.getByText('8611 2828 2831 8181')).toBeInTheDocument();
+    expect(screen.getByText('8611282828318181')).toBeInTheDocument();
   
   });
 
@@ -165,9 +180,9 @@ const mockLoaderData = {
     fireEvent.click(dots[1]);
 
  
-    expect(screen.queryByText('8611 2828 2831 8181')).not.toBeInTheDocument();
+    expect(screen.queryByText('8611282828318181')).not.toBeInTheDocument();
   
-    expect(screen.getByText('9120 8129 8473 8110')).toBeInTheDocument();
+    expect(screen.getByText('9120812984738110')).toBeInTheDocument();
 
   });
 

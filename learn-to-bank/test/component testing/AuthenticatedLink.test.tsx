@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useAuth } from '../../app/components/AuthProvider';
 
 import { useFetcher } from '@remix-run/react';
+import React from 'react';
 
 
 

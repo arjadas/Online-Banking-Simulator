@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest'; 
 import { AccountCard } from '../../../learn-to-bank/app/components/AccountCard';
 import { getBadgeColor } from '../../../learn-to-bank-util/utils/util';
+import React from 'react';
 
 /** 
  * random prop values for various tests 
