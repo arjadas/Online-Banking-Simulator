@@ -21,7 +21,7 @@ https://github.com/arjadas/Online-Banking-Simulator/wiki/Database-Models
 https://github.com/arjadas/Online-Banking-Simulator/wiki/Codebase-Structure-and-Significant-Features
 
 Testing:
-https://github.com/arjadas/Online-Banking-Simulator/wiki/Testing/_edit
+https://github.com/arjadas/Online-Banking-Simulator/wiki/Testing/
 
 ## Development
 Install dependencies
