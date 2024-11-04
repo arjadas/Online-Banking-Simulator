@@ -3,7 +3,7 @@ import { Account } from '@prisma/client';
 import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { blankTransactionFlow, setTransactionFlow, setFromAcc, setRecipientAddress, blankRecipientAddress } from '../appSlice';
+import { blankTransactionFlow, setTransactionFlow, setFromAcc, setRecipientAddress, blankRecipientAddress, setUserPrevContact } from '../appSlice';
 import CurrencyInput from '../components/CurrencyInput';
 import { RecipientAddress } from '../service/transactionsService';
 import ResizableText from './ResizableText';
@@ -45,7 +45,6 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                     ...partialRecipientAddress,
                 };
 
-                console.log(partialRecipientAddressKeys, 'billerCode')
                 if (partialRecipientAddressKeys.includes('acc') || partialRecipientAddressKeys.includes('bsb') || partialRecipientAddressKeys.includes('accountName')) {
                     setAddressTypeTab('acc-bsb');
                 } else if (partialRecipientAddressKeys.includes('payId')) {
@@ -54,14 +53,20 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                     setAddressTypeTab('b-pay');
                 }
 
-                dispatch(setRecipientAddress(recipientAddress))
+                if (JSON.stringify(recipientAddress) !== JSON.stringify(transactionFlow.recipientAddress)) {
+                    setTimeout(() => { 
+                        dispatch(setUserPrevContact(null)); 
+                        dispatch(setRecipientAddress(recipientAddress));
+              
+                    }, 10);
+                }
             }
 
             setDescription(transactionFlow.userPrevContact.contact_description || '');
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [transactionFlow.userPrevContact]);
 
     const updateRecipientAddress = (key: string, value: string | number) => {
         const recipientAddress: RecipientAddress = {

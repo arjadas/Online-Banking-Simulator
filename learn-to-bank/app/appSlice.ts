@@ -53,11 +53,14 @@ const appSlice = createSlice({
         setToAcc(state, action: PayloadAction<number>) {
             state.transactionFlow.toAcc = action.payload;
         },
+        setUserPrevContact(state, action: PayloadAction<UserPrevContactResult | null>) {
+            state.transactionFlow.userPrevContact = action.payload;
+        },
         setRecipientAddress(state, action: PayloadAction<RecipientAddress>) {
             state.transactionFlow.recipientAddress = action.payload;
         },
     },
 });
 
-export const { setTextScale, setTransactionFlow, setFromAcc, setToAcc, setRecipientAddress, resetTransactionFlow } = appSlice.actions;
+export const { setTextScale, setTransactionFlow, setFromAcc, setToAcc, setRecipientAddress, resetTransactionFlow, setUserPrevContact } = appSlice.actions;
 export default appSlice.reducer;
