@@ -3,12 +3,12 @@ import { Account } from '@prisma/client';
 import { Form, useNavigate } from '@remix-run/react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { blankTransactionFlow, setTransactionFlow, setFromAcc, setRecipientAddress, blankRecipientAddress, setUserPrevContact } from '../appSlice';
+import { setAddressType, setFromAcc, setModifiedAddress, setRecipientAddress } from '../appSlice';
 import CurrencyInput from '../components/CurrencyInput';
 import { RecipientAddress } from '../service/transactionsService';
+import { RootState } from '../store';
 import ResizableText from './ResizableText';
 import { TransactionTemporalTabs } from './TransactionTemporalTabs';
-import { RootState } from '../store';
 
 interface PaySomeoneFormProps {
     accounts: Account[];
@@ -21,7 +21,6 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
     const [amount, setAmount] = useState('-.--');
     const [reference, setReference] = useState('');
     const [description, setDescription] = useState('');
-    const [addressTypeTab, setAddressTypeTab] = useState('acc-bsb');
     const [temporalTab, setTemporalTab] = useState('now');
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -37,31 +36,6 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
 
     useEffect(() => {
         if (transactionFlow.userPrevContact) {
-            if (transactionFlow.userPrevContact.contact_recipient_address) {
-                const partialRecipientAddress = JSON.parse(transactionFlow.userPrevContact.contact_recipient_address)
-                const partialRecipientAddressKeys = Object.keys(partialRecipientAddress);
-                const recipientAddress: RecipientAddress = {
-                    ...blankRecipientAddress,
-                    ...partialRecipientAddress,
-                };
-
-                if (partialRecipientAddressKeys.includes('acc') || partialRecipientAddressKeys.includes('bsb') || partialRecipientAddressKeys.includes('accountName')) {
-                    setAddressTypeTab('acc-bsb');
-                } else if (partialRecipientAddressKeys.includes('payId')) {
-                    setAddressTypeTab('pay-id');
-                } else if (partialRecipientAddressKeys.includes('billerCode') || partialRecipientAddressKeys.includes('crn')) {
-                    setAddressTypeTab('b-pay');
-                }
-
-                if (JSON.stringify(recipientAddress) !== JSON.stringify(transactionFlow.recipientAddress)) {
-                    setTimeout(() => { 
-                        dispatch(setUserPrevContact(null)); 
-                        dispatch(setRecipientAddress(recipientAddress));
-              
-                    }, 10);
-                }
-            }
-
             setDescription(transactionFlow.userPrevContact.contact_description || '');
         }
 
@@ -74,6 +48,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
             [key]: value
         };
 
+        dispatch(setModifiedAddress(true));
         dispatch(setRecipientAddress(recipientAddress));
     };
 
@@ -145,7 +120,7 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
 
                 <Card shadow width="50%" style={{ padding: 20 }}>
                     <ResizableText h4>Payment Method</ResizableText>
-                    <Tabs style={{ fontWeight: '600' }} value={addressTypeTab} onChange={setAddressTypeTab} hideDivider>
+                    <Tabs style={{ fontWeight: '600' }} value={transactionFlow.addressType} onChange={(s) => dispatch(setAddressType(s))} hideDivider>
                         <Tabs.Item label="ACC / BSB" value="acc-bsb">
                             <ResizableText small>Traditional payment method</ResizableText>
                             <Spacer h={1} />
@@ -202,17 +177,17 @@ const PaySomeoneForm: React.FC<PaySomeoneFormProps> = ({ accounts, onBack, actio
                             <div style={{ color: '#0cc92c', fontSize: '64px', marginBottom: '5px' }}>✓</div>
                             <div style={{ margin: '10px 0' }}>
                                 <ResizableText>From: {accounts.find(acc => acc.acc === transactionFlow.fromAcc)?.short_description}</ResizableText>
-                                {addressTypeTab === 'acc-bsb' && (
+                                {transactionFlow.addressType === 'acc-bsb' && (
                                     <>
                                         <ResizableText>To: {transactionFlow.recipientAddress.accountName}</ResizableText>
                                         <ResizableText>BSB: {transactionFlow.recipientAddress.bsb}</ResizableText>
                                         <ResizableText>Account: {transactionFlow.recipientAddress.acc}</ResizableText>
                                     </>
                                 )}
-                                {addressTypeTab === 'pay-id' && (
+                                {transactionFlow.addressType === 'pay-id' && (
                                     <ResizableText>To PayID: {transactionFlow.recipientAddress.payId}</ResizableText>
                                 )}
-                                {addressTypeTab === 'b-pay' && (
+                                {transactionFlow.addressType === 'b-pay' && (
                                     <>
                                         <ResizableText>Biller Code: {transactionFlow.recipientAddress.billerCode}</ResizableText>
                                         <ResizableText>CRN: {transactionFlow.recipientAddress.crn}</ResizableText>

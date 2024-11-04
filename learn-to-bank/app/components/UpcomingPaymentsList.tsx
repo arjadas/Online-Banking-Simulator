@@ -37,8 +37,6 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
             if (gotSome) {
                 setDisplayedTransactions(prev => [...prev, ...newItems]);
                 setPage(prevPage => prevPage + 1);
-            } else {
-                console.warn(8989, startDate.toISOString(), endDate.toISOString())
             }
 
             setHasMore(gotSome);
