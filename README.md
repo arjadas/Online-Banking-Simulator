@@ -62,9 +62,8 @@ These commands should be run in the module currently being worked on - e.g.
 ```sh
 cd learn-to-bank
 ``` 
-
 ## Deployment
-This is the command to deploy all modules from the CLI.
+This is the command to deploy any module from the CLI.
 ```sh
 npm run deploy
 ```
