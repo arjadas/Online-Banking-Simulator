@@ -3,11 +3,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { describe, it, expect, vi, Mock, beforeEach, afterEach } from 'vitest';
 
-import Dashboard from '~/routes/app.accounts'; 
+import Dashboard from '../../app/routes/app.home'; 
 
 import { useLoaderData, useFetcher } from '@remix-run/react';
 
-import { formatDate } from '~/util';
+import { formatDate } from '../../../learn-to-bank-util/utils/util';
 
 vi.mock('@remix-run/react', () => ({
  

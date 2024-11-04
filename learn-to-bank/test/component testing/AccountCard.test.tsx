@@ -4,9 +4,6 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest'; 
 import { AccountCard } from '../../../learn-to-bank/app/components/AccountCard';
 import { getBadgeColor } from '../../../learn-to-bank-util/utils/util';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import { BrowserRouter } from 'react-router-dom';
 
 /** 
  * random prop values for various tests 

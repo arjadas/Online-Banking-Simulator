@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
-import { AuthenticatedLink } from '../../app/components/AuthenticatedLink';
+import AuthenticatedLink from '../../app/components/AuthenticatedLink';
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'; 
 

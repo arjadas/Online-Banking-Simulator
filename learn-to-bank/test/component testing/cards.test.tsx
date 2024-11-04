@@ -22,8 +22,6 @@ vi.mock('react-redux', () => ({
     app: {
       
       textScale: 15,
-      
-      isDarkTheme: false, 
     
     },
   

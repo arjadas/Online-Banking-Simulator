@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import Transactions from '~/routes/app.transactions'; 
+import Transactions from '~/routes/app.history'; 
 import { useLoaderData } from '@remix-run/react';
 import { generateTransactionsPDF } from '~/service/generateTransactionsPDF';
 
