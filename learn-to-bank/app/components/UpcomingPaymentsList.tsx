@@ -1,4 +1,5 @@
 import { Text } from '@geist-ui/core';
+// eslint-disable-next-line import/no-unresolved
 import { GeneratedTransaction, getTransactionsForPeriodBulk } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
 import { addMonths, startOfDay } from 'date-fns';
 import React, { useCallback, useEffect, useRef, useState } from 'react';

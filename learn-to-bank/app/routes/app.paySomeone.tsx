@@ -3,7 +3,7 @@ import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTransactionFlow } from '../appSlice';
+import { blankRecipientAddress, setRecipientAddress, setTransactionFlow } from '../appSlice';
 import { getUserSession } from '../auth.server';
 import PaySomeoneForm from '../components/PaySomeoneForm';
 import UserPrevContactForm from '../components/UserPrevContactForm';
@@ -159,10 +159,12 @@ export default function PaySomeone() {
 
     if (prevContact !== undefined) {
       tf.userPrevContact = prevContact;
+    } else {
+      tf.recipientAddress = blankRecipientAddress;
     }
 
     if (JSON.stringify(tf) !== JSON.stringify(transactionFlow)) {
-      setTimeout(() => dispatch(setTransactionFlow(tf)), 10);
+      dispatch(setTransactionFlow(tf));
     }
 
   }, [actionData, dispatch, prevContact, transactionFlow]);
