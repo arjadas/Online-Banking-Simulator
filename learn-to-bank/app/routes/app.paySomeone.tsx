@@ -3,12 +3,12 @@ import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { blankRecipientAddress, setRecipientAddress, setTransactionFlow } from '../appSlice';
+import { blankRecipientAddress, setModifiedAddress, setRecipientAddress, setTransactionFlow } from '../appSlice';
 import { getUserSession } from '../auth.server';
 import PaySomeoneForm from '../components/PaySomeoneForm';
 import UserPrevContactForm from '../components/UserPrevContactForm';
 import { getPrismaClient } from "../service/db.server";
-import { TransactionService } from '../service/transactionsService';
+import { RecipientAddress, TransactionService } from '../service/transactionsService';
 import { RootState } from '../store';
 
 export type UserPrevContactResult = {
@@ -151,16 +151,36 @@ export default function PaySomeone() {
   const [prevContact, setPrevContact] = useState<UserPrevContactResult | undefined | null>(undefined);
 
   const handleSubmit = (selectedContact: any) => {
-    setPrevContact(selectedContact)
+    setPrevContact(selectedContact);
+    dispatch(setModifiedAddress(false));
   };
 
   useEffect(() => {
     const tf = { ...transactionFlow, successful: actionData && actionData.success, enabled: true };
 
-    if (prevContact !== undefined) {
-      tf.userPrevContact = prevContact;
-    } else {
-      tf.recipientAddress = blankRecipientAddress;
+    if (!transactionFlow.modifiedAddress) {
+      if (prevContact) {
+        tf.userPrevContact = prevContact;
+        const partialRecipientAddress = JSON.parse(prevContact!.contact_recipient_address)
+        const partialRecipientAddressKeys = Object.keys(partialRecipientAddress);
+        const recipientAddress: RecipientAddress = {
+          ...blankRecipientAddress,
+          ...partialRecipientAddress,
+        };
+
+        if (partialRecipientAddressKeys.includes('acc') || partialRecipientAddressKeys.includes('bsb') || partialRecipientAddressKeys.includes('accountName')) {
+          tf.addressType = 'acc-bsb';
+        } else if (partialRecipientAddressKeys.includes('payId')) {
+          tf.addressType = 'pay-id';
+        } else if (partialRecipientAddressKeys.includes('billerCode') || partialRecipientAddressKeys.includes('crn')) {
+          tf.addressType = 'b-pay';
+        }
+
+        tf.recipientAddress = recipientAddress;
+      }
+      else {
+        tf.recipientAddress = blankRecipientAddress;
+      }
     }
 
     if (JSON.stringify(tf) !== JSON.stringify(transactionFlow)) {
