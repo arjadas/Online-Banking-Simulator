@@ -1,7 +1,7 @@
-import { Button, Card, Grid, Spacer, Text } from '@geist-ui/react';
+import { Button, Card, Grid, Spacer } from '@geist-ui/react';
 import { Plus, User } from '@geist-ui/react-icons';
 import React from 'react';
-import { UserPrevContactResult } from '~/routes/app.paySomeone';
+import { UserPrevContactResult } from '../routes/app.paySomeone';
 import ResizableText from './ResizableText';
 
 interface ContactFormProps {

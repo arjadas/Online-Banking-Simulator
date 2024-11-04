@@ -1,19 +1,20 @@
+/* eslint-disable import/no-unresolved */
 import { Button, Card, Grid, Modal, Spacer } from '@geist-ui/core';
+import { getNextPaymentDate } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
+import { formatDate, getRelativeDateInfo, toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
 import { Account } from '@prisma/client';
 import { json, LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { blankTransactionFlow, setTextScale, setTransactionFlow } from '~/appSlice';
-import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
-import { getUserSession } from '~/auth.server';
-import ResizableText from '~/components/ResizableText';
-import { createUser } from '~/service/userService';
+import { resetTransactionFlow, setTextScale } from '../appSlice';
+import { getUserSession } from '../auth.server';
+import { AccountCard } from '../components/AccountCard';
+import ResizableText from '../components/ResizableText';
+import { RecurringTransactionWithRecipient } from '../routes/app.upcoming';
 import { getPrismaClient } from "../service/db.server";
-import { getNextPaymentDate } from '~/util/futureTransactionUtil';
-import { getRelativeDateInfo, toFixedWithCommas, formatDate } from '~/util/util';
-import { getRecurringTransactions } from '~/service/recurringTransactionService';
-import { AccountCard } from '~/components/AccountCard';
+import { getRecurringTransactions } from '../service/recurringTransactionService';
+import { createUser } from '../service/userService';
 
 type MeUser = {
   uid: string;
@@ -118,6 +119,7 @@ export default function Dashboard() {
     if (user.font_preference) {
       dispatch(setTextScale(Number(user.font_preference)));
     }
+    dispatch(resetTransactionFlow())
   });
 
   console.error(error)

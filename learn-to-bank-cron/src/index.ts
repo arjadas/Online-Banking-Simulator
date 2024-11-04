@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { RecurringTransaction, Transaction } from "@prisma/client";
-import { getTransactionsForPeriodBulk } from "@parent/app/util/futureTransactionUtil";
-import { toFixedWithCommas } from "@parent/app/util/util.ts";
+import { getTransactionsForPeriodBulk } from "@parent/learn-to-bank-util/utils/futureTransactionUtil";
+import { toFixedWithCommas } from "@parent/learn-to-bank-util/utils/util.ts";
 
 export interface Env {
 	// @ts-ignore

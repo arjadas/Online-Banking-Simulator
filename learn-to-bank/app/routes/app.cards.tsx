@@ -1,16 +1,18 @@
 import { Button, Card, Divider, Grid, Spacer } from '@geist-ui/react';
 import { CreditCard as CreditCardIcon, Eye, EyeOff } from '@geist-ui/react-icons';
+// eslint-disable-next-line import/no-unresolved
+import { toFixedWithCommas } from '@parent/learn-to-bank-util/utils/util';
 import { CreditCard, DebitCard } from "@prisma/client";
 import { LoaderFunction, json } from '@remix-run/cloudflare';
 import { useLoaderData } from "@remix-run/react";
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import ResizableText from '~/components/ResizableText';
-import { openCard } from "~/service/cardService";
-import { RootState } from '~/store';
-import { toFixedWithCommas } from '~/util/util';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { getUserSession } from '../auth.server';
+import ResizableText from '../components/ResizableText';
+import { openCard } from "../service/cardService";
 import { getPrismaClient } from "../service/db.server";
+import { RootState } from '../store';
+import { resetTransactionFlow } from '../appSlice';
 
 interface balance {
   credit: number;
@@ -42,18 +44,18 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
       where: { uid: user.uid }
     }),
     db.account.findMany({
-        where: { uid: user.uid, short_description: "Clever Credit"},
-        select: { acc: true, balance: true },
+      where: { uid: user.uid, short_description: "Clever Credit" },
+      select: { acc: true, balance: true },
     }),
     db.account.findMany({
-      where: { uid: user.uid, short_description: "Delightful Debit"},
+      where: { uid: user.uid, short_description: "Delightful Debit" },
       select: { acc: true, balance: true },
     })
   ]);
 
   if (!userData) {
-      console.error("User not found.");
-      throw new Response("No user found!", { status: 404 });
+    console.error("User not found.");
+    throw new Response("No user found!", { status: 404 });
   }
   if (!userCreditAcc) {
     console.error("Credit Account not found.");
@@ -93,7 +95,7 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     creditCardData = await openCard(context, userCreditAcc[0].acc, userData.first_name, userData.last_name, CARDDURATION, "credit");
   }
 
-  if (!debitCardData ) {
+  if (!debitCardData) {
     // create a new card, we didn't find one
     debitCardData = await openCard(context, userDebitAcc[0].acc, userData.first_name, userData.last_name, CARDDURATION, "debit");
   }
@@ -109,35 +111,35 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
   }
 
   return json({
-      creditCardData,
-      debitCardData,
-      accBalance,
+    creditCardData,
+    debitCardData,
+    accBalance,
   });
 };
 
 export default function MyCards() {
-  const { creditCardData: creditCard, debitCardData: debitCard, accBalance: accBalance } = useLoaderData<{ 
-    creditCardData: CreditCard; 
-    debitCardData: DebitCard; 
+  const { creditCardData: creditCard, debitCardData: debitCard, accBalance: accBalance } = useLoaderData<{
+    creditCardData: CreditCard;
+    debitCardData: DebitCard;
     accBalance: balance;
   }>();
   const { textScale } = useSelector((state: RootState) => state.app);
 
-  const cards : CardInfo[] = [{
-      cardNumber: creditCard.card_number,
-      name: creditCard.cardholder_name,
-      expiry: creditCard.expiry_date,
-      CSC: creditCard.csc,
-      balance: accBalance.credit,
-      cardType: "Credit Card"
-    }, {
-      cardNumber: debitCard.card_number,
-      name: debitCard.cardholder_name,
-      expiry: debitCard.expiry_date,
-      CSC: debitCard.csc,
-      balance: accBalance.debit,
-      cardType: "Debit Card"
-    }
+  const cards: CardInfo[] = [{
+    cardNumber: creditCard.card_number,
+    name: creditCard.cardholder_name,
+    expiry: creditCard.expiry_date,
+    CSC: creditCard.csc,
+    balance: accBalance.credit,
+    cardType: "Credit Card"
+  }, {
+    cardNumber: debitCard.card_number,
+    name: debitCard.cardholder_name,
+    expiry: debitCard.expiry_date,
+    CSC: debitCard.csc,
+    balance: accBalance.debit,
+    cardType: "Debit Card"
+  }
   ];
 
   const [showDetails, setShowDetails] = useState<boolean[]>(Array(cards.length).fill(false));
@@ -168,7 +170,7 @@ export default function MyCards() {
 
   const cardWidth = () => {
     const maxWidth = 800
-    const width = (textScale/15) * 500;
+    const width = (textScale / 15) * 500;
     if (width <= maxWidth) {
       return width;
     }
@@ -176,7 +178,7 @@ export default function MyCards() {
   }
 
   return (
-    <Grid.Container style={{ display:"flex", flexDirection: "column"}}>
+    <Grid.Container style={{ display: "flex", flexDirection: "column" }}>
       <Grid>
         <Grid.Container style={{
           display: "flex",
@@ -190,14 +192,14 @@ export default function MyCards() {
         }}>
           <Grid>
             {/* Previous button */}
-            <Button auto onClick={goToPrev} style={{ ...styles.arrowButton, left: "10px" }} 
+            <Button auto onClick={goToPrev} style={{ ...styles.arrowButton, left: "10px" }}
               placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-                &#10094;
+              &#10094;
             </Button>
           </Grid>
 
           <Grid style={{
-            display:"flex",
+            display: "flex",
             justifyContent: "center",
             alignItems: "center",
             width: "85%",
@@ -209,18 +211,18 @@ export default function MyCards() {
 
             {/* Carousel Content */}
             <Grid.Container style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                alignItems: "center",
-                height: "100%",
-                width: `${cardWidth()}px`,
-              }}>
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              height: "100%",
+              width: `${cardWidth()}px`,
+            }}>
               <Grid>
                 <div
                   style={{
                     display: "flex",
                     transition: "transform 0.5s ease",
-                    transform: `translateX(-${currentIndex * (100/cards.length)}%)`,
+                    transform: `translateX(-${currentIndex * (100 / cards.length)}%)`,
                   }}
                 >
                   {cards.map((cardInfo, index) => (
@@ -230,7 +232,7 @@ export default function MyCards() {
                       justifyContent: "center",
                       alignItems: "center",
                       flexDirection: "column",
-                      aspectRatio: 16/9,
+                      aspectRatio: 16 / 9,
                       padding: "10px",
                       transition: "transform 0.5s ease, opacity 0.5s ease",
                       ...(currentIndex === index ? styles.current : styles.preview),
@@ -242,29 +244,29 @@ export default function MyCards() {
                         </div>
                       </Card.Content>
 
-                      <Divider h="2px"/>
-                      
-                      <Card.Content style={{ position: "relative"}}>
+                      <Divider h="2px" />
+
+                      <Card.Content style={{ position: "relative" }}>
                         <ResizableText b>{cardInfo.cardType}</ResizableText>
                         <ResizableText>${toFixedWithCommas(cardInfo.balance / 100, 2)} <span style={{ color: "gray" }}>available</span></ResizableText>
                         <ResizableText>{cardInfo.name}</ResizableText>
-                        <ResizableText>EXPIRY {showDetails[index]? cardInfo.expiry : "**/**"}</ResizableText>
-                        <ResizableText>CSC {showDetails[index]? cardInfo.CSC : "***"}</ResizableText>
+                        <ResizableText>EXPIRY {showDetails[index] ? cardInfo.expiry : "**/**"}</ResizableText>
+                        <ResizableText>CSC {showDetails[index] ? cardInfo.CSC : "***"}</ResizableText>
 
                         {/* show/hide button */}
-                        <Button onClick={() => toggleDetails(index)} shadow auto type="secondary-light" 
-                          style={{ 
-                            position: "absolute", 
-                            height: `${textScale * 2}`, 
-                            bottom: "10px", 
-                            right: "10px", 
+                        <Button onClick={() => toggleDetails(index)} shadow auto type="secondary-light"
+                          style={{
+                            position: "absolute",
+                            height: `${textScale * 2}`,
+                            bottom: "10px",
+                            right: "10px",
                             display: "flex",
                             justifyContent: "center",
-                            alignItems: "center", 
+                            alignItems: "center",
                           }}
                           placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                         >
-                          {showDetails[index] ? <EyeOff size={ textScale * 1.3 } /> : <Eye size={ textScale * 1.3 } />}
+                          {showDetails[index] ? <EyeOff size={textScale * 1.3} /> : <Eye size={textScale * 1.3} />}
                           <Spacer w={1} />
                           {showDetails[index] ? <ResizableText>Hide</ResizableText> : <ResizableText>Show</ResizableText >}
                         </Button>
@@ -280,7 +282,7 @@ export default function MyCards() {
             {/* Next button */}
             <Button auto onClick={goToNext} style={{ ...styles.arrowButton, right: "10px" }}
               placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-                &#10095;
+              &#10095;
             </Button>
           </Grid>
         </Grid.Container>
@@ -293,7 +295,7 @@ export default function MyCards() {
           justifyContent: "center",
           alignItems: "center",
           marginTop: "20px",
-          }}>
+        }}>
           {cards.map((_, index) => (
             // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div

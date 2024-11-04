@@ -1,6 +1,6 @@
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { Prisma } from '@prisma/client';
-import { getPrismaClient } from '~/service/db.server';
+import { getPrismaClient } from '../service/db.server';
 
 // Generate a random 9-digit number
 function generateRandomAcc() {

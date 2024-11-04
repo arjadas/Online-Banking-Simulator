@@ -1,10 +1,9 @@
-import { ActionFunction, json, redirect } from "@remix-run/cloudflare";
+import { ActionFunction, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useSearchParams, useSubmit } from "@remix-run/react";
-import { resetPassword } from "~/auth.client";
 import { useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "~/store";
-import { GeistProvider, Themes } from "@geist-ui/core";
+import { resetPassword } from "../auth.client";
+import { RootState } from "../store";
 
 type ActionData = {
   error?: string;

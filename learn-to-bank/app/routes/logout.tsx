@@ -1,8 +1,8 @@
 import { LoaderFunction } from '@remix-run/cloudflare';
 import { useNavigate } from '@remix-run/react';
 import { useEffect } from 'react';
-import { signOutUser } from '~/auth.client';
-import { logout } from '~/auth.server';
+import { signOutUser } from '../auth.client';
+import { logout } from '../auth.server';
 
 export const loader: LoaderFunction = async ({ request, context }: { request: Request, context: any }) => {
   return logout(context, request);

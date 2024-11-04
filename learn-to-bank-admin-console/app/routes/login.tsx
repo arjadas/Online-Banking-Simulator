@@ -5,9 +5,9 @@ import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
-import { login } from "~/auth.client";
-import { createUserSession } from "~/auth.server";
-import { RootState } from '~/store';
+import { login } from "../auth.client";
+import { createUserSession } from "../auth.server";
+import { RootState } from '../store';
 
 type ActionData = {
   error?: string;

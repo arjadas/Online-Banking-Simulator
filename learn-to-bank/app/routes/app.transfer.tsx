@@ -4,12 +4,12 @@ import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from '@remix-run/react';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTransactionFlow } from '~/appSlice';
-import TransferBetweenAccountsForm from '~/components/TransferBetweenAccountsForm';
-import { getPrismaClient } from '~/service/db.server';
-import { TransactionService } from '~/service/transactionsService';
-import { RootState } from '~/store';
+import { setTransactionFlow } from '../appSlice';
 import { getUserSession } from "../auth.server";
+import TransferBetweenAccountsForm from '../components/TransferBetweenAccountsForm';
+import { getPrismaClient } from '../service/db.server';
+import { TransactionService } from '../service/transactionsService';
+import { RootState } from '../store';
 
 export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
   
@@ -19,6 +19,10 @@ export const action: ActionFunction = async ({ context, request }: { context: an
 
     if (!user) {
       return json({ error: 'Unauthenticated' }, { status: 401 });
+    }
+
+    if (!formData.get('fromAcc') || !formData.get('toAcc')) {
+      return json({ success: false, error: 'Please specify accounts.'}, {status: 400});
     }
 
     const transactionService = new TransactionService(getPrismaClient(context));
@@ -76,7 +80,7 @@ export default function TransferBetweenAccounts() {
   return (
     <Page>
       <Page.Content>
-        <TransferBetweenAccountsForm accounts={userAccounts as any as Account[]} actionData={actionData} transactionFlow={transactionFlow} />
+        <TransferBetweenAccountsForm accounts={userAccounts as any as Account[]} actionData={actionData} />
       </Page.Content>
     </Page>
   );

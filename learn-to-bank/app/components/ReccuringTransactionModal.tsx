@@ -1,6 +1,7 @@
 import { Button, Grid, Input, Modal, Select, Spacer, Text, useModal } from '@geist-ui/react';
 import React, { useEffect, useState } from 'react';
-import { getFullDay, globalBlur, joinWithAmpersand } from '~/util/util';
+// eslint-disable-next-line import/no-unresolved
+import { getFullDay, globalBlur, joinWithAmpersand } from '@parent/learn-to-bank-util/utils/util';
 import ResizableText from './ResizableText';
 
 export type FrequencyUnit = 'days' | 'weeks' | 'months' | 'years';
@@ -61,6 +62,7 @@ interface FrequencySelectorProps {
     onStartDateChange: (date: string) => void;
     onEndDateChange: (date: string) => void;
     onNotVisible: () => void;
+    setFrequencyButton?: boolean;
 }
 
 export const frequencyObjectToString = (frequency: FrequencyObject) => {
@@ -106,7 +108,7 @@ export const frequencyObjectToString = (frequency: FrequencyObject) => {
 }
 
 const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: initialVisible, onFrequencyChange, onStartDateChange,
-    onEndDateChange, onNotVisible }) => {
+    onEndDateChange, onNotVisible, setFrequencyButton = true }) => {
     const { visible, setVisible, bindings } = useModal();
     const [unit, setUnit] = useState<FrequencyUnit>('weeks');
     const [count, setCount] = useState<number>(1);
@@ -282,7 +284,7 @@ const FutureTransactionModal: React.FC<FrequencySelectorProps> = ({ visible: ini
 
     return (
         <>
-            <Button auto onClick={() => setVisible(true)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Set Frequency</Button>
+            { setFrequencyButton && <Button auto onClick={() => setVisible(true)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>Set Frequency</Button>}
             <Modal {...bindings} width="600px" onAbort={onNotVisible}>
                 <Modal.Title>Recurring Payment</Modal.Title>
                 <Modal.Content padding={2}>

@@ -3,14 +3,13 @@ import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTransactionFlow } from '~/appSlice';
-import { getUserSession } from '~/auth.server';
-import PaySomeoneForm from '~/components/PaySomeoneForm';
-import UserPrevContactForm from '~/components/UserPrevContactForm';
-import { TransactionService } from '~/service/transactionsService';
-import { RootState } from '~/store';
-import { isEqual } from 'lodash';
+import { setTransactionFlow } from '../appSlice';
+import { getUserSession } from '../auth.server';
+import PaySomeoneForm from '../components/PaySomeoneForm';
+import UserPrevContactForm from '../components/UserPrevContactForm';
 import { getPrismaClient } from "../service/db.server";
+import { TransactionService } from '../service/transactionsService';
+import { RootState } from '../store';
 
 export type UserPrevContactResult = {
   user_prev_contact_id: number;
@@ -172,5 +171,5 @@ export default function PaySomeone() {
     return <UserPrevContactForm contacts={userPrevContactsWithInfo} onSubmit={handleSubmit} />
   }
 
-  return <PaySomeoneForm accounts={userAccounts as any} onBack={() => setPrevContact(undefined)} actionData={actionData} transactionFlow={transactionFlow} />
+  return <PaySomeoneForm accounts={userAccounts as any} onBack={() => setPrevContact(undefined)} actionData={actionData} />
 }

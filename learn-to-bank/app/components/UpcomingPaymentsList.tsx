@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Text } from '@geist-ui/core';
-import { GeneratedTransaction, getTransactionsForPeriodBulk } from '~/util/futureTransactionUtil';
+import { GeneratedTransaction, getTransactionsForPeriodBulk } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
 import { addMonths, startOfDay } from 'date-fns';
-import { RecurringTransactionWithRecipient } from '~/routes/app.upcoming';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RecurringTransactionWithRecipient } from '../routes/app.upcoming';
 
 interface UpcomingPaymentsListProps {
     recurringTransactions: RecurringTransactionWithRecipient[];

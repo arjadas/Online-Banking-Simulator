@@ -2,10 +2,10 @@ import { Button, Card, Image, Input } from '@geist-ui/react';
 import { ActionFunction, json } from "@remix-run/cloudflare";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { login } from "~/auth.client";
-import { createUserSession } from "~/auth.server";
-import AuthenticatedLink from '~/components/AuthenticatedLink';
-import ResizableText from '~/components/ResizableText';
+import { login } from "../auth.client";
+import { createUserSession } from "../auth.server";
+import AuthenticatedLink from '../components/AuthenticatedLink';
+import ResizableText from '../components/ResizableText';
 
 type ActionData = {
   error?: string;

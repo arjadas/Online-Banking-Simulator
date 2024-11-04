@@ -1,17 +1,19 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Card, Grid, Spacer, Text } from '@geist-ui/core';
+import { Card, Grid, Spacer } from '@geist-ui/core';
+import { GeneratedTransaction } from '@parent/learn-to-bank-util/utils/futureTransactionUtil';
+import { splitLists } from '@parent/learn-to-bank-util/utils/util';
 import { Account, RecurringTransaction } from '@prisma/client';
-import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { ActionFunction, json, LoaderFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import React, { useCallback } from 'react';
-import { getUserSession } from '~/auth.server';
-import { RecurringTransactionCard } from '~/components/FuturePaymentCard';
-import { UpcomingPaymentsList } from '~/components/UpcomingPaymentsList';
-import { getRecurringTransactions } from '~/service/recurringTransactionService';
-import { GeneratedTransaction } from '~/util/futureTransactionUtil';
-import { splitLists } from '~/util/util';
+import { getUserSession } from '../auth.server';
+import { RecurringTransactionCard } from '../components/FuturePaymentCard';
+import ResizableText from '../components/ResizableText';
+import { UpcomingPaymentsList } from '../components/UpcomingPaymentsList';
 import { getPrismaClient } from "../service/db.server";
-import ResizableText from '~/components/ResizableText';
+import { getRecurringTransactions } from '../service/recurringTransactionService';
+import { TransactionService } from '../service/transactionsService';
 
 export type RecurringTransactionWithRecipient = RecurringTransaction & {
   recipient: {
@@ -42,6 +44,43 @@ export const loader: LoaderFunction = async ({ context, request }: { context: an
     userAccounts,
   });
 };
+
+export const action: ActionFunction = async ({ context, request }: { context: any, request: Request }) => {
+
+  try {
+    const formData = await request.formData();
+    const user = await getUserSession(context, request);
+    const transactionService = new TransactionService(getPrismaClient(context));
+    let result;
+
+    if (!user) {
+      return json({ error: 'Unauthenticated' }, { status: 401 });
+    }
+
+    if (formData.get("formID") === "form 1") {
+      console.log(formData.get("transactionID"));
+      console.log(formData.get("frequencyObject"));
+      console.log(formData.get("startDate"));
+      console.log(formData.get("endDate"));
+
+      result = await transactionService.editRecurringTransactionDateTime(
+        Number(formData.get("transactionID") as string), 
+        formData.get("frequencyObject") as string,
+        formData.get("startDate") as string,
+        formData.get("endDate") as string);
+    }
+
+    if (formData.get("formID") === "form 2") {
+      console.log(formData.get("transactionID"));
+      result = await transactionService.deleteTransaction(parseInt(formData.get("transactionID") as string));
+    }
+    
+    return json({ success: true, ...result });
+  } catch (error) {
+    return json({ success: false, error: (error as Error).message }, { status: 400 });
+  }
+};
+
 export default function UpcomingPayments() {
   const { recurringTransactions, userAccounts } = useLoaderData<{
     recurringTransactions: RecurringTransactionWithRecipient[]
@@ -62,6 +101,7 @@ export default function UpcomingPayments() {
       key={transaction.recc_transaction_id}
       transaction={transaction}
       userAccountIds={userAccountIds}
+      transactionID={transaction.recc_transaction_id}
     />
   };
 
@@ -70,6 +110,7 @@ export default function UpcomingPayments() {
       key={generatedTransaction.transaction.recc_transaction_id}
       transaction={generatedTransaction}
       userAccountIds={userAccountIds}
+      transactionID={generatedTransaction.transaction.recc_transaction_id}
     />
   }, [userAccountIds]);
 
