@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react";
 
-const AuthContext = createContext<{ uid: string | null; setuid: (id: string | null) => void } | null>(null);
+export const AuthContext = createContext<{ uid: string | null; setuid: (id: string | null) => void } | null>(null);
 
 interface AuthProviderProps {
   children: React.ReactNode;
