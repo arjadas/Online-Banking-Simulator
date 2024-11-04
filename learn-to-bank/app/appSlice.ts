@@ -61,6 +61,7 @@ const appSlice = createSlice({
         },
         setAddressType(state, action: PayloadAction<string>) {
             state.transactionFlow.addressType = action.payload;
+            state.transactionFlow.modifiedAddress = true;
         },
         setModifiedAddress(state, action: PayloadAction<boolean>) {
             state.transactionFlow.modifiedAddress = action.payload;
