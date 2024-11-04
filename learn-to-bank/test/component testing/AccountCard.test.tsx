@@ -2,8 +2,11 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; 
 import { describe, it, expect, vi } from 'vitest'; 
-import AccountCard from '../../app/components/AccountCard';
-import { getBadgeColor } from '~/util';
+import { AccountCard } from '../../../learn-to-bank/app/components/AccountCard';
+import { getBadgeColor } from '../../../learn-to-bank-util/utils/util';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { BrowserRouter } from 'react-router-dom';
 
 /** 
  * random prop values for various tests 
@@ -16,13 +19,13 @@ describe('AccountCard Component', () => {
     
     accountType: 'Saver Account',
     
-    bsb: '752-913',
+    bsb: 752913,
     
-    accountNumber: '86651430',
+    accountNumber: 86651430,
     
     payID: 'ssusan@example.com',
     
-    balance: '$4,194.86',
+    balance: '$4194.86',
   
   };
 
@@ -56,7 +59,7 @@ describe('AccountCard Component', () => {
  */
 
 
-  it('to check if  BSB is dispalyed correctly', () => {
+  it('to check if  BSB is displayed correctly', () => {
     
     
     render
